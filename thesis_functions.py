@@ -44,21 +44,25 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     
     '''
     
-    Years  = []
-    for i in range(int(starttime[0:4]),int(endtime[0:4])):
+    year  = []
+    for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
         Y = i
-        Years.append(Y)
-    Years.extend([str(i) for i in Years])
+        year.append(Y)
+    
+    Years = []
+    Years.extend([str(i) for i in year])
+    Years
     
     files_station = []
-    files_station.extend([glob.glob('Dados OBS\\' + Year + '/*/vss*') for Year in Years])
-    files_station.sort()
     print('Reading files...')
+    for Year in Years:
+    
+        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/vss*'))
+        files_station.sort()
     
     
     #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
-    
-    
+
     df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
                    header = None,skiprows = skiprows, 
                    parse_dates = {'Date': ['date', 'Time']},
