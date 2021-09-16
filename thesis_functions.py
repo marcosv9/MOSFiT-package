@@ -13,7 +13,7 @@ from datetime import datetime
 
 def load_obs_files(station, path, skiprows):
     '''
-    Function to read and concat observatory data
+    Function to read and concat observatory data xxxx
     
     '''
     files_station = glob.glob(path)
