@@ -43,7 +43,7 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     Sample must be H, D, M, Y   
     
     '''
-    
+    print('Reading files...')
     year  = []
     for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
         Y = i
@@ -54,7 +54,7 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     Years
     
     files_station = []
-    print('Reading files...')
+    
     for Year in Years:
     
         files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/vss*'))
@@ -279,22 +279,8 @@ def SV_obs(station, skiprows, starttime, endtime):
     Sample must be H, D, M, Y   
     
     '''
-    files_station = glob.glob('Dados OBS/20*/*/' + station + '*')
-    files_station.sort()
-    print('Reading files...')
     
-    
-    #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
-    
-    
-    df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
-                   header = None,skiprows = skiprows, 
-                   parse_dates = {'Date': ['date', 'Time']},
-                   names = ['date','Time','X','Y','Z']) for file in files_station), 
-                   ignore_index = True)
-    df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')     
-    #df_station['Hour'] = pd.to_datetime(df_station['Hour'], format = '%H:%M:%S.%f').dt.time               
-    df_station.set_index('Date', inplace = True)
+    df_station = load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime)
     
     
     df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
@@ -302,7 +288,13 @@ def SV_obs(station, skiprows, starttime, endtime):
     df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
     df_station2 = df_station
     
-    inp = input("Press Q to use only Quiet Days, D to remove Disturbed Days or E to Exit without actions [Q/D/E]")
+    options = ['Q','D','E']
+    while True: 
+        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days or E to Exit without actions [Q/D/E]:"))
+        if all([inp != option for option in options]):
+            print('You must type Q, D or E')
+        else:
+            break
     
     if inp == 'Q':
         
@@ -328,39 +320,6 @@ def SV_obs(station, skiprows, starttime, endtime):
     while input("Do You Want To Save a File With the Variation? [y/n]") == "y":
         print('Saving files...')
         for sample in samples:
-            #
-            #if (starttime or endtime == None) and sample == 'Min':
-    #
-            #    file = df_station.copy().resample(sample).mean().round(3)
-            #    file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True)
-            #
-            #
-            #if (starttime or endtime == None) and sample == 'H':
-    #
-            #    file = df_station.copy().resample(sample).mean().shift(-30, freq = 'Min').round(3)
-            #    file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True)
-            #
-            #if (starttime or endtime == None) and sample == 'D':
-    #
-            #    file = df_station.copy().resample(sample).mean().shift(12, freq = 'H').round(decimals = 3)
-            #    file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True)
-        #
-            #if (starttime or endtime == None) and sample == 'M':
-    #
-            #    file = df_station.copy().resample(sample).mean().shift(-15, freq = 'D').round(3)
-            #    file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True)
-    #
-            #if (starttime or endtime == None) and sample == 'Y':
-    #
-            #    file = df_station.copy().resample(sample).mean().shift(-182.5, freq = 'D').round(3)
-            #    file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True) 
-            
-    #df_station.copy() == df_station.resample(sample).mean()
-    
-    #if sample == 'H':                      
-        
-            #file = df_station.copy().resample(sample).mean().round(decimals = 3)   
-            #file.to_csv(directory + '/' + station + '_' + sample + '_mean.txt', sep ='\t', index=True)
                       
             if sample == 'Min':
                 
@@ -401,29 +360,9 @@ def SV_obs(station, skiprows, starttime, endtime):
                 file = df_station[starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D').round(3)
                 file.to_csv(directory + '/' + station.upper() + '_from_' 
                             + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
-        
-        
+         
         break
         
-      
-    
-    #if starttime == None and endtime == None:
-    #    df_station == df_station
-    #df_station = df_station.loc[starttime:endtime]
-    #df_station = np.where(df_station > 80000, np.nan, df_station)
-    #if df_station.max() > 200000:
-        #df_station = df_station.replace(df_station.max(), np.nan)
-        
-    #f= open(+ station + '_from_' + stattime + '_to_' + endtime + '.txt","w+")
-    #f.write(df_station)
-    #while input("Do You Want To Save a File With the Variation? [y/n]") == "y":
-    #    directory = 'Filtered_data/'+ station +'_data'
-    #    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)     
-    #    file = df_station.round(decimals = 3)
-    #    
-    #    file.to_csv(directory + '/' + station + '_from_' + starttime +
-    #            '_to_' + endtime + '.txt', sep ='\t', index=True)
-    #    break
         
     while input("Do You Want To Save Plot of the Variation and SV for X, Y and Z? [y/n]") == "y":
         
@@ -505,26 +444,6 @@ def SV_obs(station, skiprows, starttime, endtime):
         #plt.show()
         
         for sample in samples:
-            
-            #if starttime == None and endtime == None:
-            #   
-            #    fig, ax = plt.subplots(3,1,figsize = (16,10))
-        #
-            #    ax[0].plot(df_station['X'].resample(sample).mean(), color  = 'blue')
-            #    ax[0].set_ylabel('X (nT)', fontsize = 12)
-            #    ax[0].grid()
-            #    
-            #    ax[1].plot(df_station['Y'].resample(sample).mean(), color  = 'green')
-            #    ax[1].set_ylabel('Y (nT)', fontsize = 12)
-            #    ax[1].grid()
-            #    
-            #    ax[2].plot(df_station['Z'].resample(sample).mean(), color  =  'black')
-            #    ax[2].set_ylabel('Z (nT)', fontsize = 12)
-            #    ax[2].grid()
-            #    
-            #    #plt.show()
-            #    plt.savefig(directory + '/' + station + '_' + sample + '_mean.jpeg', bbox_inches='tight')
-                
                          
             fig, ax = plt.subplots(3,1,figsize = (16,10))
             
@@ -575,7 +494,6 @@ def SV_obs(station, skiprows, starttime, endtime):
             #plt.show()
             plt.savefig(directory + '/' + station + '_' + sample + '_mean.jpeg', bbox_inches='tight')
             
-
         break
     #file = df_station.round(decimals = 3)
     #file.to_csv('Filtered_data/'+ station + '_from_' + starttime +
