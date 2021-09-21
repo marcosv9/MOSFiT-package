@@ -246,7 +246,7 @@ def keep_Q_Days(dataframe, start, end):
     df = pd.DataFrame()
     df = dataframe.resample('D').mean()
     #df = dataframe
-    df_q = pd.read_excel('Dados OBS/Q_DAYS.xls', skiprows = 1, 
+    df_q = pd.read_excel('Dados OBS/Q_DAYS.xls',header = None,skiprows = 1, 
                      usecols = [1],
                      names = ['qd'],
                      parse_dates = {'Q-Days': ['qd']},
@@ -269,6 +269,8 @@ def night_time_selection(dataframe, start, end):
     df = dataframe
     df = df.loc[start:end]
     df = df.loc[(df.index.hour >= 19)]
+    
+    #df_.drop(df_.loc[(df_.index.hour > 6) & (df_.index.hour < 19)].index).resample('H').mean().dropna().head(24)
     
     return df
 
@@ -373,10 +375,10 @@ def SV_obs(station, skiprows, starttime, endtime):
         
     while True:
         
-        inp3 = input("Do You Want To Save Plot of the Variation and SV for X, Y and Z? [y/n]: ")
+        inp3 = input("Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
             
-            pathlib.Path(directory).mkdir(parents=True, exist_ok=True) 
+            
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))
             
@@ -399,20 +401,20 @@ def SV_obs(station, skiprows, starttime, endtime):
             
             
             ax[0,0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
-            ax[0,0].plot(df_station['X'][starttime:endtime].resample('M').mean(), color  = 'blue')
+            ax[0,0].plot(df_station['X'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'blue')
             ax[0,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[0,0].set_ylabel('X/nT', fontsize = 14)
             
             ax[0,0].grid()
             
-            ax[1,0].plot(df_station['Y'][starttime:endtime].resample('M').mean(), color  = 'green')
+            ax[1,0].plot(df_station['Y'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'green')
             ax[1,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[1,0].set_ylabel('Y/nT', fontsize = 14)
             
             ax[1,0].grid()
     
     
-            ax[2,0].plot(df_station['Z'][starttime:endtime].resample('M').mean(), color  = 'black')
+            ax[2,0].plot(df_station['Z'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'black')
             ax[2,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             #ax[2,1].set_xlabel('Years', fontsize = 14 )
@@ -506,6 +508,130 @@ def SV_obs(station, skiprows, starttime, endtime):
             break
         elif inp3 == 'n':
             print('No plots saved')
+            fig, ax = plt.subplots(3,2, figsize = (18,10))
+            
+            
+            ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+            ax[0,1].plot(X_SV, 'o', color  = 'blue')
+            ax[0,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0,1].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+            ax[0,1].grid()
+            
+            ax[1,1].plot(Y_SV, 'o', color  = 'green')
+            ax[1,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1,1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+            ax[1,1].grid()
+            
+            ax[2,1].plot(Z_SV, 'o', color  =  'black')
+            ax[2,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+            ax[2,1].grid()
+            
+            
+            ax[0,0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
+            ax[0,0].plot(df_station['X'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'blue')
+            ax[0,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0,0].set_ylabel('X/nT', fontsize = 14)
+            
+            ax[0,0].grid()
+            
+            ax[1,0].plot(df_station['Y'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'green')
+            ax[1,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1,0].set_ylabel('Y/nT', fontsize = 14)
+            
+            ax[1,0].grid()
+    
+    
+            ax[2,0].plot(df_station['Z'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'black')
+            ax[2,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,0].set_ylabel('Z/nT', fontsize = 14)
+            #ax[2,1].set_xlabel('Years', fontsize = 14 )
+            #ax[1].set_ylim(-30,30)
+            ax[2,0].grid()
+            
+            
+                  
+            
+             #plot of SV alone     
+                  
+            fig, ax = plt.subplots(3,1, figsize = (16,12))
+            
+            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+    
+            ax[0].plot(X_SV, 'o', color  = 'blue')
+            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            #ax[0].set_ylim(X_SV.min()*0.9,X_SV.max()*1.1)
+            #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+            ax[0].grid()
+            
+            ax[1].plot(Y_SV, 'o', color  = 'green')
+            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            #ax[1].set_ylim(Y_SV.min()*0.9,Y_SV.max()*1.1)
+            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+            ax[1].grid()
+            
+            ax[2].plot(Z_SV, 'o', color  =  'black')
+            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            #ax[2].set_ylim(Z_SV.min()*0.9,Z_SV.max()*1.1)
+            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+            ax[2].grid()
+            
+            
+            #plt.show()
+            
+            for sample in samples:
+                             
+                fig, ax = plt.subplots(3,1,figsize = (16,10))
+                
+                if sample == 'Min':
+                    ax[0].set_title(station.upper() + ' Minute Mean', fontsize = 18)
+                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean(), color  = 'blue')
+                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean(), color  = 'green')
+                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean(), color  = 'black')
+                if sample == 'H':    
+                    ax[0].set_title(station.upper() + ' Hourly Mean', fontsize = 18)
+                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'blue')
+                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'green')
+                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'black')
+                if sample == 'D':
+                    ax[0].set_title(station.upper() + ' Daily Mean', fontsize = 18)
+                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'blue')
+                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'green')
+                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'black')
+                if sample == 'M':
+                    ax[0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
+                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'blue')
+                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'green')
+                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'black')           
+                if sample == 'Y':
+                    ax[0].set_title(station.upper() + ' Yearly Mean', fontsize = 18)
+                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'), color  = 'blue')
+                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'), color  = 'green')
+                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'), color  = 'black')    
+                    
+              
+                ax[0].set_ylabel('X (nT)', fontsize = 12)
+                ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+                #ax[0].set_ylim(df_station['X'][starttime:endtime].min()*0.9,df_station['X'][starttime:endtime].max()*1.1)
+                ax[0].grid()
+                
+               
+                ax[1].set_ylabel('Y (nT)', fontsize = 12)
+                ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+                #ax[1].set_ylim(df_station['Y'][starttime:endtime].min()*0.9,df_station['Y'][starttime:endtime].max()*1.1)
+                ax[1].grid()
+                
+                
+                ax[2].set_ylabel('Z (nT)', fontsize = 12)
+                ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+                #ax[2].set_ylim(df_station['Z'][starttime:endtime].min()*0.9,df_station['Z'][starttime:endtime].max()*1.1)
+                ax[2].grid()
+                
+                #plt.show()
+                      
             break
         else:
             print('You must type y or n!')
@@ -514,6 +640,5 @@ def SV_obs(station, skiprows, starttime, endtime):
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
         
-    
     return df_station[starttime:endtime]  
     
