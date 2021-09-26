@@ -57,7 +57,7 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     
     for Year in Years:
     
-        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/vss*'))
+        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
         files_station.sort()
     
     
@@ -268,9 +268,9 @@ def night_time_selection(dataframe, start, end):
     df = pd.DataFrame()
     df = dataframe
     df = df.loc[start:end]
-    df = df.loc[(df.index.hour >= 19)]
+    #df = df.loc[(df.index.hour >= 19)]
     
-    #df_.drop(df_.loc[(df_.index.hour > 6) & (df_.index.hour < 19)].index).resample('H').mean().dropna().head(24)
+    df = df.drop(df.loc[(df.index.hour > 2) & (df.index.hour < 22)].index).dropna()
     
     return df
 
@@ -290,11 +290,12 @@ def SV_obs(station, skiprows, starttime, endtime):
     df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
     df_station2 = df_station
     
-    options = ['Q','D','E']
+    options = ['Q','D','NT','E']
     while True: 
-        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days or E to Exit without actions [Q/D/E]: "))
+        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time or E to Exit without actions [Q/D/NT/E]: "))
+        
         if all([inp != option for option in options]):
-            print('You must type Q, D or E')
+            print('You must type Q, D, NT or E')
         else:
             break
     
@@ -306,6 +307,12 @@ def SV_obs(station, skiprows, starttime, endtime):
         
         df_station = remove_Disturbed_Days(df_station, starttime, endtime)
         print('Disturbed Days removed')
+        
+    if inp == 'NT':
+        
+        df_station = night_time_selection(df_station, starttime, endtime)
+        print('Night-time selected')
+        
     if inp == 'E':
         print('No action')
         
@@ -426,7 +433,7 @@ def SV_obs(station, skiprows, starttime, endtime):
             
              #plot of SV alone     
                   
-            fig, ax = plt.subplots(3,1, figsize = (16,12))
+            fig, ax = plt.subplots(3,1, figsize = (16,10))
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
     
@@ -640,5 +647,18 @@ def SV_obs(station, skiprows, starttime, endtime):
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
         
-    return df_station[starttime:endtime]  
+    return df_station[starttime:endtime]
+
+def check_data_availability(station):
+    '''
+    Function to read and concat observatory data
+    
+    Sample must be H, D, M, Y   
+    
+    '''
+    f = []
+    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
+    f.sort()
+    print('The first available date for ' + station.upper() + ' is ' +  f[0][21:29])
+    print('The last available date for '  + station.upper() + ' is ' +  f[-1][21:29])
     
