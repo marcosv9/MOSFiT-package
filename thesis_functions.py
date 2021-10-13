@@ -93,6 +93,22 @@ def data_filter_basic(component, vmin, vmax):
     return component
 
 def download_data_INTERMAGNET(datatype, Year, Months, files = None):
+    
+    '''
+    Download observatory files from Intermagnet FTP server and save in
+    a specific directory.
+    
+    Datatype must be: 'D' for Definitive or 'QD' quasi-definitive
+    
+    Year must be informed as '2021' for example
+    
+    Months must be a list, for example - ['01','02','03']
+    
+    files must be an obs IAGA code or None, if None, files for all the observatories will
+    be downloaded.
+    
+    example of usage - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
+    '''
     List_Months = ['01','02','03','04','05','06','07','08','09','10','11','12']
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
     ftp.login('anonymous', 'email@email.com')
@@ -310,7 +326,7 @@ def SV_obs(station, skiprows, starttime, endtime):
         
     if inp == 'NT':
         
-        df_station = night_time_selection(df_station, starttime, endtime)
+        df_station = NT_LT(station, df_station, starttime, endtime)
         print('Night-time selected')
         
     if inp == 'E':
@@ -371,8 +387,10 @@ def SV_obs(station, skiprows, starttime, endtime):
                     file = df_station[starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D').round(3)
                     file.to_csv(directory + '/' + station.upper() + '_from_' 
                                 + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
+            print('Minute, Hourly, Daily, Monthly, Yearly means and Secular Variation were saved on directory:')
+            print(directory)   
             break
-            
+
         elif inp2 =='n':
             print('No files saved!')
             break
@@ -467,7 +485,7 @@ def SV_obs(station, skiprows, starttime, endtime):
                 
                 if sample == 'Min':
                     ax[0].set_title(station.upper() + ' Minute Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean(), color  = 'blue')
+                    ax[0].plot(df_station2['X'].loc[starttime:endtime].resample(sample).mean(), color  = 'blue')
                     ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean(), color  = 'green')
                     ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean(), color  = 'black')
                 if sample == 'H':    
@@ -511,7 +529,8 @@ def SV_obs(station, skiprows, starttime, endtime):
                 
                 #plt.show()
                 plt.savefig(directory + '/' + station + '_' + sample + '_mean.jpeg', bbox_inches='tight')
-                
+            print('Plots of Minute, Hourly, Daily, Monthly, Yearly means and Secular Variation were saved on directory:')
+            print(directory)    
             break
         elif inp3 == 'n':
             print('No plots saved')
@@ -662,3 +681,54 @@ def check_data_availability(station):
     print('The first available date for ' + station.upper() + ' is ' +  f[0][21:29])
     print('The last available date for '  + station.upper() + ' is ' +  f[-1][21:29])
     
+def NT_LT(station, dataframe, start, end):
+    f = []
+    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
+    f.sort()
+    
+    Long = pd.read_csv('Dados OBS/' + f[0][21:25] +'/' + f[0][25:27] + '/' + station + f[0][21:41],
+            nrows = 1, 
+            sep = ' ', 
+            usecols = [7],
+            header  = None,
+            names = ['Geodetic Longitude'],
+            index_col=None,
+            skiprows = 5)
+    
+    Longitude = Long['Geodetic Longitude'][0]
+   
+    if Longitude > 180:
+        Longitude = Longitude - 360 
+    print(Longitude)
+    dif =  Longitude/15
+    print(dif)
+    
+    df = dataframe
+    df_lt = dataframe.shift(round(dif, 3), freq = 'H')
+    
+    df_NT_lt = night_time_selection(df_lt,start, end)
+    df_NT = pd.DataFrame()
+    df_NT = df_NT_lt.shift(round(-dif, 3), freq = 'H')
+    #mini = 22 + dif
+    #maxi = 2 + dif
+    #if mini > 24:
+    #    mini -= 24
+    #elif mini < 0:
+    #    mini += 24
+    #if maxi > 24:
+    #    maxi -= 24
+    #elif maxi < 0:
+    #    maxi += 24
+    #print(mini,'mini')
+    #print(maxi,'maxi')
+    #df = pd.DataFrame()
+    #df = dataframe
+    #df = df.loc[start:end]
+    ##df = df.loc[(df.index.hour >= 19)]
+    #print(df)
+    #if mini > maxi:
+    #    df = df.drop(df.loc[(df.index.hour > int(maxi)) & (df.index.hour < int(mini))].index).dropna() 
+    #else:
+    #    df = df.loc[((df.index.hour > int(mini)) & (df.index.hour <= int(maxi)))].dropna()
+    
+    return df_NT
