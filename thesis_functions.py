@@ -8,6 +8,7 @@ import ftplib
 import pathlib
 import matplotlib.gridspec as gridspec
 from datetime import datetime
+import pwlf
 
 
 
@@ -43,7 +44,7 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     Sample must be H, D, M, Y   
     
     '''
-    print('Reading files...')
+    print('Reading files from '+ station.upper() +'...')
     year  = []
     for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
         Y = i
@@ -447,7 +448,7 @@ def SV_obs(station, skiprows, starttime, endtime):
             ax[2,0].grid()
             
             plt.savefig(directory + '/' + station + '_Var_SV.jpeg', bbox_inches='tight')
-                  
+            plt.show()      
             
              #plot of SV alone     
                   
@@ -477,7 +478,7 @@ def SV_obs(station, skiprows, starttime, endtime):
             ax[2].grid()
             
             plt.savefig(directory + '/' + station + '_SV.jpeg', bbox_inches='tight')
-            #plt.show()
+            plt.show()
             
             for sample in samples:
                              
@@ -527,8 +528,9 @@ def SV_obs(station, skiprows, starttime, endtime):
                 #ax[2].set_ylim(df_station['Z'][starttime:endtime].min()*0.9,df_station['Z'][starttime:endtime].max()*1.1)
                 ax[2].grid()
                 
-                #plt.show()
+               
                 plt.savefig(directory + '/' + station + '_' + sample + '_mean.jpeg', bbox_inches='tight')
+                plt.show()
             print('Plots of Minute, Hourly, Daily, Monthly, Yearly means and Secular Variation were saved on directory:')
             print(directory)    
             break
@@ -575,6 +577,7 @@ def SV_obs(station, skiprows, starttime, endtime):
             #ax[1].set_ylim(-30,30)
             ax[2,0].grid()
             
+            plt.show()
             
                   
             
@@ -604,6 +607,8 @@ def SV_obs(station, skiprows, starttime, endtime):
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
+            
+            plt.show()
             
             
             #plt.show()
@@ -655,6 +660,7 @@ def SV_obs(station, skiprows, starttime, endtime):
                 ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
                 #ax[2].set_ylim(df_station['Z'][starttime:endtime].min()*0.9,df_station['Z'][starttime:endtime].max()*1.1)
                 ax[2].grid()
+                plt.show()
                 
                 #plt.show()
                       
@@ -665,7 +671,19 @@ def SV_obs(station, skiprows, starttime, endtime):
     #file.to_csv('Filtered_data/'+ station + '_from_' + starttime +
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
-        
+    while True:
+        inp4 = input("Do You Want To adopet piecewise linear segments for the SV? [y/n]: ")
+        if inp4 == 'y':
+            try:
+                ls = input('Type the number of linear segments that best fit the SV: ')
+                jerk_detection(df_station,ls,starttime,endtime)
+            except ValueError:
+                print('You must type a number!')
+                continue
+            break        
+        elif inp4 == 'n':
+            print('No linear segments adopted')
+            break
     return df_station[starttime:endtime]
 
 def check_data_availability(station):
@@ -732,3 +750,74 @@ def NT_LT(station, dataframe, start, end):
     #    df = df.loc[((df.index.hour > int(mini)) & (df.index.hour <= int(maxi)))].dropna()
     
     return df_NT
+
+def jerk_detection(dataframe,ls, starttime, endtime):
+    '''
+    '''
+    
+    df_station = pd.DataFrame()
+    df_station = dataframe
+    df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
+    df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
+    df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+    df_SV = pd.DataFrame()
+    #fit your data (x and y)
+    components = ['X','Y','Z']
+    df_SV['X'] = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+    df_SV['Y'] = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+    df_SV['Z'] = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+    df_SV = df_SV.dropna()
+    
+    X = np.arange(0,len(df_SV.index))
+    
+    for component in components:
+        
+        myPWLF = pwlf.PiecewiseLinFit(X,df_SV[component].dropna())
+        
+        #fit the data for n line segments
+        z = myPWLF.fit(ls)
+        
+        #calculate slopes
+        slopes = myPWLF.calc_slopes()
+        
+        # predict for the determined points
+        xHat = X 
+        yHat = myPWLF.predict(xHat)
+        
+        #calculate statistics
+        p = myPWLF.p_values(method='non-linear', step_size=1e-4) #p-values
+        se = myPWLF.se  # standard errors
+        
+        df_SV[component + 'p'] = yHat
+        
+    fig, ax = plt.subplots(3,1,figsize = (14,10))
+
+
+    ax[0].plot(df_SV['X'],'o', color = 'blue')
+    ax[0].plot(df_SV['Xp'],'-', color = 'red')
+    #ax01].plot(y_poly_pred,'-')
+    #ax01].set_xlim(0,126)
+    ax[0].set_ylabel('dX/dT', fontsize = 14)
+    #ax01].set_ylim(-30,30)
+    ax[0].set_title('Automatic Jerk detection - VSS', fontsize = 16)
+    ax[0].grid()
+    
+    
+    ax[1].plot(df_SV['Y'],'o',color = 'green')
+    ax[1].plot(df_SV['Yp'],'-', color = 'red')
+    #ax11].plot(y_poly_pred,'-')
+    #ax11].set_xlim(0,126)
+    ax[1].set_ylabel('dY/dT', fontsize = 14)
+    #ax11].set_ylim(-30,30)
+    ax[1].grid()
+    
+    ax[2].plot(df_SV['Z'],'o',color = 'black')
+    ax[2].plot(df_SV['Zp'],'-', color = 'red')
+    #ax21].plot(y_poly_pred,'-')
+    #ax21].set_xlim(0,126)
+    ax[2].set_ylabel('dZ/dT', fontsize = 14)
+    ax[2].set_xlabel('Years', fontsize = 14 )
+    #ax21].set_ylim(-30,30)
+    ax[2].grid()
+    
+    plt.show()
