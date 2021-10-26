@@ -57,13 +57,13 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     files_station = []
     
     for Year in Years:
+
     
         files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
         files_station.sort()
-    
-    
-    #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
 
+    #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
+    
     df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
                    header = None,skiprows = skiprows, 
                    parse_dates = {'Date': ['date', 'Time']},
@@ -75,6 +75,51 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
 
     return df_station
 
+#def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
+#    '''
+#    Function to read and concat observatory data
+#    
+#    Sample must be H, D, M, Y   
+#    
+#    '''
+#    print('Reading files from '+ station.upper() +'...')
+#    year  = []
+#    for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
+#        Y = i
+#        year.append(Y)
+#    
+#    Years = []
+#    Years.extend([str(i) for i in year])
+#    Years
+#    
+#    files_station = []
+#    
+#    for Year in Years:
+#        
+#        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+#        files_station.sort()
+#        
+#        if files_station != []:
+#            
+#            df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
+#                   header = None,skiprows = skiprows, 
+#                   parse_dates = {'Date': ['date', 'Time']},
+#                   names = ['date','Time','X','Y','Z']) for file in files_station), 
+#                   ignore_index = True)
+#            df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')     
+#    #df_station['Hour'] = pd.to_datetime(df_station['Hour'], format = '%H:%M:%S.%f').dt.time               
+#            df_station.set_index('Date', inplace = True)
+#
+#        else:
+#            
+#            print('no files to read')
+#            
+#            break            
+#
+#    #d_arser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
+#
+#
+#    return df_station
 
 def data_filter_basic(component, vmin, vmax):
     '''
@@ -287,7 +332,7 @@ def night_time_selection(dataframe, start, end):
     df = df.loc[start:end]
     #df = df.loc[(df.index.hour >= 19)]
     
-    df = df.drop(df.loc[(df.index.hour > 2) & (df.index.hour < 22)].index).dropna()
+    df = df.drop(df.loc[(df.index.hour > 5) & (df.index.hour < 23)].index).dropna()
     
     return df
 
@@ -400,11 +445,11 @@ def SV_obs(station, skiprows, starttime, endtime):
         
         
     while True:
-        
+       
         inp3 = input("Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
-            
-            
+            directory = 'Filtered_data/'+ station +'_data'
+            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))
             
@@ -466,7 +511,6 @@ def SV_obs(station, skiprows, starttime, endtime):
             ax[1].plot(Y_SV, 'o', color  = 'green')
             ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             #ax[1].set_ylim(Y_SV.min()*0.9,Y_SV.max()*1.1)
-            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1].grid()
             
@@ -672,12 +716,16 @@ def SV_obs(station, skiprows, starttime, endtime):
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
     while True:
-        inp4 = input("Do You Want To adopet piecewise linear segments for the SV? [y/n]: ")
+        inp4 = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
         if inp4 == 'y':
             try:
                 ls = input('Type the number of linear segments that best fit the SV: ')
-                jerk_detection(df_station,ls,starttime,endtime)
+                #create an option to save or not a plot
+                
+                
+                jerk_detection(station, df_station, ls, starttime, endtime)
             except ValueError:
+                #it is not working for short periods, must be corrected
                 print('You must type a number!')
                 continue
             break        
@@ -722,7 +770,7 @@ def NT_LT(station, dataframe, start, end):
     print(dif)
     
     df = dataframe
-    df_lt = dataframe.shift(round(dif, 3), freq = 'H')
+    df_lt = df.shift(round(dif, 3), freq = 'H')
     
     df_NT_lt = night_time_selection(df_lt,start, end)
     df_NT = pd.DataFrame()
@@ -751,7 +799,7 @@ def NT_LT(station, dataframe, start, end):
     
     return df_NT
 
-def jerk_detection(dataframe,ls, starttime, endtime):
+def jerk_detection(station, dataframe,ls, starttime, endtime):
     '''
     '''
     
@@ -790,6 +838,10 @@ def jerk_detection(dataframe,ls, starttime, endtime):
         
         df_SV[component + 'p'] = yHat
         
+        
+    directory = 'Filtered_data/'+ station +'_data'
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)      
+        
     fig, ax = plt.subplots(3,1,figsize = (14,10))
 
 
@@ -799,7 +851,7 @@ def jerk_detection(dataframe,ls, starttime, endtime):
     #ax01].set_xlim(0,126)
     ax[0].set_ylabel('dX/dT', fontsize = 14)
     #ax01].set_ylim(-30,30)
-    ax[0].set_title('Automatic Jerk detection - VSS', fontsize = 16)
+    ax[0].set_title('Automatic Jerk detection - ' + station.upper(), fontsize = 16)
     ax[0].grid()
     
     
@@ -820,4 +872,185 @@ def jerk_detection(dataframe,ls, starttime, endtime):
     #ax21].set_ylim(-30,30)
     ax[2].grid()
     
+    plt.savefig(directory + '/' + station + '_SV_LFit.jpeg', bbox_inches='tight')
     plt.show()
+    
+def hampel_filter_denoising(input_series, window_size, n_sigmas=3):
+    new_series = input_series.copy()
+    for column in input_series:
+        
+        n = len(input_series[column])
+        #new_series = input_series.copy()
+        k = 1.4826 # scale factor for Gaussian distribution
+        
+        indices = []
+        
+        # possibly use np.nanmedian 
+        for i in range((window_size),(n - window_size)):
+            x0 = np.median(input_series[column][(i - window_size):(i + window_size)])
+            S0 = k * np.median(np.abs(input_series[column][(i - window_size):(i + window_size)] - x0))
+            if (np.abs(input_series[column][i] - x0) > n_sigmas * S0):
+                new_series[column][i] = x0
+        
+        fig, ax = plt.subplots(figsize = (16,5))
+        ax.plot(input_series[column], 'k', label = 'Removed Outliers')
+        ax.plot(new_series[column], 'r', label = 'New Series')
+        ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5), fontsize = 12)
+        plt.grid()
+        #plt.show()
+
+    return new_series
+
+def SV_(stations, starttime, endtime, file = None):
+    df_imos = pd.read_csv('Imos_INTERMAGNET.txt', sep = '\t')
+    
+    L_27 = ['CZT','DRV','PAF']
+    L_26 = ['NGK','DRV']
+    
+    Files = [None,'update','off']
+    if stations == None:
+
+        for station in df_imos['Imos']:
+            skiprows = 25
+            if station in L_27:
+                skiprows = 27
+            elif station == 'ngk' or 'cnb ':
+                skiprows = 26
+            
+            
+            
+            
+            df_station =  mvs.load_obs_files_OTIMIZADA(station, skiprows , starttime, endtime)
+            df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
+            df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
+            df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+            
+            X_SV_station = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+            Y_SV_station = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+            Z_SV_station = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+            
+            
+            df = pd.DataFrame()
+            df['X_SV'] = X_SV_station
+            df['Y_SV'] = Y_SV_station
+            df['Z_SV'] = Z_SV_station
+            for file in Files:
+                if file == None:
+                    
+                    directory = 'SV_update/'+ station +'_data/'
+                    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)     
+                    df.dropna().to_csv(directory + 'SV_' + station + '.txt', sep ='\t', index=True)
+                
+                if file == 'update':
+                    
+                    df1 = pd.read_csv('SV_update/' + station + '_data/SV_'+ station + '.txt', sep = '\t')
+                    df2 = pd.concat([df1,df],)
+                    df2.dropna().drop_duplicates().to_csv('SV_update/' + station + '_data/SV_'+ station + '.txt', sep = '\t',index = True)
+                
+                if file == 'off':    
+                    pass
+                if file not in Files:
+                    print('File must be None, update or off!')
+                    
+            fig, ax = plt.subplots(3,1, figsize = (16,10))
+             
+            #if df['X_SV'].mean() < 0:
+            #    ax[0].set_ylim(df['X_SV'].max() + 10, df['X_SV'].min() - 10)
+            #else:
+            #    ax[0].set_ylim( df['X_SV'].min() - 10,df['X_SV'].max() + 10)
+            #    
+            #if df['Y_SV'].mean() < 0:
+            #    ax[1].set_ylim(df['Y_SV'].max() + 10, df['Y_SV'].min() - 10)
+            #else:
+            #    ax[1].set_ylim( df['Y_SV'].min() - 10,df['Y_SV'].max() + 10)
+            #    
+            #if df['Z_SV'].mean() < 0:
+            #    ax[2].set_ylim(df['Z_SV'].max() + 10, df['Z_SV'].min() - 10)
+            #else:
+            #    ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+                
+            
+            ax[0].plot(X_SV_station,'o', color = 'blue')
+            ax[0].set_ylim(df['X_SV'].min() - 10, df['X_SV'].max() + 10)
+            ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
+            ax[1].plot(Y_SV_station,'o',color = 'green')
+            ax[1].set_ylim(df['Y_SV'].min() - 10, df['Y_SV'].max() + 10)
+            ax[2].plot(Z_SV_station,'o',color = 'black')
+            ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+            
+            #ax[0].autoscale()
+            #ax[0].set_ylim(df['X_SV'].max() + 10, df['X_SV'].min() - 10)
+            #ax[1].set_ylim(l_inf_y,l_sup_y)
+            #ax[2].set_ylim(l_inf_z,l_sup_z)
+            plt.show()
+    
+            
+    for station in stations:
+        skiprows = 25
+        if station in L_27:
+            skiprows = 27
+        if station == 'ngk' or 'cnb':
+            skiprows = 26
+            
+        df_station =  mvs.load_obs_files_OTIMIZADA(station, skiprows , starttime, endtime)
+        df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
+        df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
+        df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+    
+        X_SV_station = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        Y_SV_station = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        Z_SV_station = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+
+        df = pd.DataFrame()
+        df['X_SV'] = X_SV_station
+        df['Y_SV'] = Y_SV_station
+        df['Z_SV'] = Z_SV_station
+        df = df.dropna()
+        if file == None:
+    
+            directory = 'SV_update/'+ station +'_data/'
+            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)     
+            df.dropna().to_csv(directory + 'SV_' + station + '.txt', sep ='\t')
+            
+        if file == 'update':
+    
+            df1 = pd.read_csv('SV_update/' + station + '_data/SV_'+ station + '.txt', sep = '\t')
+            df1['Date'] = pd.to_datetime(df1['Date'], infer_datetime_format=True)
+            df1.set_index('Date', inplace = True)
+            df2 = pd.concat([df1,df])
+            df2.dropna().drop_duplicates().to_csv('SV_update/' + station + '_data/SV_'+ station + '.txt', sep = '\t')
+        if file == 'off':
+            pass
+        
+        if file not in Files:
+            print('File must be None, update or off!')
+            pass    
+        
+        fig, ax = plt.subplots(3,1, figsize = (16,10))
+        
+        #if df['X_SV'].mean() < 0:
+        #    ax[0].set_ylim(df['X_SV'].min() - 10, df['X_SV'].max() + 10)
+        #else:
+        #    ax[0].set_ylim( df['X_SV'].min() - 10,df['X_SV'].max() + 10)
+        #    
+        #if df['Y_SV'].mean() < 0:
+        #    ax[1].set_ylim(df['Y_SV'].min() - 10, df['Y_SV'].max() + 10)
+        #else:
+        #    ax[1].set_ylim(df['Y_SV'].min() - 10,df['Y_SV'].max() + 10)
+        #    
+        #if df['Z_SV'].mean() < 0:
+        #    ax[2].set_ylim(df['Z_SV'].min() - 10, df['Z_SV'].max() + 10)
+        #else:
+        #    ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+        
+        ax[0].plot(X_SV_station,'o', color = 'blue')
+        ax[0].set_ylim(df['X_SV'].min() - 10, df['X_SV'].max() + 10)
+        ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
+        ax[1].plot(Y_SV_station,'o',color = 'green')
+        ax[1].set_ylim(df['Y_SV'].min() - 10, df['Y_SV'].max() + 10)
+        ax[2].plot(Z_SV_station,'o',color = 'black')
+        ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+        #ax[0].set_ylim(l_inf,l_sup)
+        #ax[1].set_ylim(l_inf,l_sup)
+        #ax[2].set_ylim(l_inf,l_sup)
+        plt.show()
