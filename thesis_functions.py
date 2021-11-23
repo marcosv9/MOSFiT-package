@@ -30,7 +30,7 @@ def load_obs_files(station, path, skiprows):
                    parse_dates = {'Date': ['date', 'Time']},
                    names = ['date','Time','X','Y','Z']) for file in files_station), 
                    ignore_index = True)
-    df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')     
+    df_station['Date'] = pd.to_datetime(df_station['Date'],infer_datetime_format=True)     
     #df_station['Hour'] = pd.to_datetime(df_station['Hour'], format = '%H:%M:%S.%f').dt.time               
     df_station.set_index('Date', inplace = True)
 
@@ -146,14 +146,14 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     
     Datatype must be: 'D' for Definitive or 'QD' quasi-definitive
     
-    Year must be informed as '2021' for example
+    Year must be informed as '2021', for example.
     
     Months must be a list, for example - ['01','02','03']
     
     files must be an obs IAGA code or None, if None, files for all the observatories will
     be downloaded.
     
-    example of usage - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
+    example of use - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
     '''
     List_Months = ['01','02','03','04','05','06','07','08','09','10','11','12']
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
@@ -344,7 +344,7 @@ def SV_obs(station, starttime, endtime):
     
     '''
     L_27 = ['CZT','DRV','PAF']
-    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU']
+    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK']
     
     skiprows = 25
     if station.upper() in L_27:
@@ -358,7 +358,20 @@ def SV_obs(station, starttime, endtime):
     df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
     df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
     df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
-    df_station2 = df_station
+    df_station2 = df_station.copy()
+    
+    while True: 
+        inp5 = input("Do You Want To denoise the data based on median absolute deviation? [y/n]: ")
+        if inp5 == 'y':
+            print('Denoising data...')
+            df_station = hampel_filter_denoising(input_series = df_station, window_size = 12, n_sigmas=3)
+            break
+        if inp5 == 'n':
+            print('No data changed!')
+            break
+        else:
+            print('You must type y or n, try again!')
+        
     
     options = ['Q','D','NT','E']
     while True: 
@@ -458,6 +471,38 @@ def SV_obs(station, starttime, endtime):
         if inp3 == 'y':
             directory = 'Filtered_data/'+ station +'_data'
             pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
+            
+            #plot to use in the interactive map 
+            
+            fig, ax = plt.subplots(3,1, figsize = (8,6.5))
+            
+            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
+    
+            ax[0].plot(X_SV, 'o', color  = 'blue')
+            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0].set_ylim(X_SV.min() - 10, X_SV.max() + 10)
+            #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
+            ax[0].grid()
+            
+            ax[1].plot(Y_SV, 'o', color  = 'green')
+            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1].set_ylim(Y_SV.min() - 10, Y_SV.max() + 10)
+            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
+            ax[1].grid()
+            
+            ax[2].plot(Z_SV, 'o', color  =  'black')
+            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2].set_ylim(Z_SV.min() - 10, Z_SV.max() + 10)
+            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
+            ax[2].grid()
+            
+            plt.tick_params(labelsize=8)
+            plt.savefig(directory + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
+            #plt.show()
+            
+            #plot of secular variation and monthly mean
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))
             
@@ -887,6 +932,7 @@ def jerk_detection(station, dataframe,ls, starttime, endtime):
     plt.show()
     
 def hampel_filter_denoising(input_series, window_size, n_sigmas=3):
+    input_series = input_series.resample('D').mean()
     new_series = input_series.copy()
     for column in input_series:
         
@@ -909,8 +955,10 @@ def hampel_filter_denoising(input_series, window_size, n_sigmas=3):
         ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5), fontsize = 12)
         plt.grid()
         plt.show()
-
+        
     return new_series
+
+    
 
 def SV_(stations, starttime, endtime, file = None):
     df_imos = pd.read_csv('Imos_INTERMAGNET.txt', sep = '\t')
@@ -996,6 +1044,38 @@ def SV_(stations, starttime, endtime, file = None):
             plt.show()
     
             
+            directory2 = 'Map_plots/'+ station +'_data'
+            pathlib.Path(directory2).mkdir(parents=True, exist_ok=True)  
+            
+            #plot to use in the interactive map 
+            
+            fig, ax = plt.subplots(3,1, figsize = (8,6.5))
+            
+            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
+    
+            ax[0].plot(X_SV_station, 'o', color  = 'blue')
+            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0].set_ylim(X_SV_station.min() - 10, X_SV_station.max() + 10)
+            #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
+            ax[0].grid()
+            
+            ax[1].plot(Y_SV_station, 'o', color  = 'green')
+            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1].set_ylim(Y_SV_station.min() - 10, Y_SV_station.max() + 10)
+            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
+            ax[1].grid()
+            
+            ax[2].plot(Z_SV_station, 'o', color  =  'black')
+            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2].set_ylim(Z_SV_station.min() - 10, Z_SV_station.max() + 10)
+            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
+            ax[2].grid()
+            
+            plt.tick_params(labelsize=8)
+            plt.savefig(directory2 + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
+            
     for station in stations:
         skiprows = 25
         if station in L_27:
@@ -1036,6 +1116,37 @@ def SV_(stations, starttime, endtime, file = None):
         if file not in Files:
             print('File must be None, update or off!')
             pass    
+        
+        
+        directory2 = 'Map_plots/'+ station +'_data'
+        pathlib.Path(directory2).mkdir(parents=True, exist_ok=True)  
+        
+        fig, ax = plt.subplots(3,1, figsize = (8,6.5))
+        
+        ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
+
+        ax[0].plot(X_SV_station, 'o', color  = 'blue')
+        ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[0].set_ylim(X_SV_station.min() - 10, X_SV_station.max() + 10)
+        #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+        ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
+        ax[0].grid()
+        
+        ax[1].plot(Y_SV_station, 'o', color  = 'green')
+        ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[1].set_ylim(Y_SV_station.min() - 10, Y_SV_station.max() + 10)
+        ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
+        ax[1].grid()
+        
+        ax[2].plot(Z_SV_station, 'o', color  =  'black')
+        ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[2].set_ylim(Z_SV_station.min() - 10, Z_SV_station.max() + 10)
+        #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+        ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
+        ax[2].grid()
+        plt.tick_params(labelsize=8)
+        plt.savefig(directory2 + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
+      
         
         fig, ax = plt.subplots(3,1, figsize = (16,10))
         
