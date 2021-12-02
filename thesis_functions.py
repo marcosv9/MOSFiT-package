@@ -408,10 +408,9 @@ def SV_obs(station, starttime, endtime):
     directory = 'Filtered_data/'+ station +'_data'
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
     
-    X_SV = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-    Y_SV = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-    Z_SV = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-                
+
+    df_SV = calculate_SV(df_station, starttime = starttime, endtime = endtime)
+    
     while True: 
         inp2 = input("Do You Want To Save a File With the Variation? [y/n]: ")
         if inp2 == 'y':
@@ -445,8 +444,7 @@ def SV_obs(station, starttime, endtime):
                    # ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(-15, freq = 'D'))
                     file = df_station[starttime:endtime].resample(sample).mean().shift(-15, freq = 'D').round(3)
                     
-                    file_SV = (df_station[starttime:endtime].resample(sample).mean().diff(6) -
-                    df_station[starttime:endtime].resample(sample).mean().diff(-6)).shift(-15, freq = 'D').round(3)
+                    file_SV = df_SV
                     
                     file.to_csv(directory + '/' + station.upper() + '_from_'
                                 + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
@@ -482,22 +480,22 @@ def SV_obs(station, starttime, endtime):
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
     
-            ax[0].plot(X_SV, 'o', color  = 'blue')
+            ax[0].plot(df_SV['X_SV'], 'o', color  = 'blue')
             ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0].set_ylim(X_SV.min() - 10, X_SV.max() + 10)
+            ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
             ax[0].grid()
             
-            ax[1].plot(Y_SV, 'o', color  = 'green')
+            ax[1].plot(df_SV['Y_SV'], 'o', color  = 'green')
             ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1].set_ylim(Y_SV.min() - 10, Y_SV.max() + 10)
+            ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
             ax[1].grid()
             
-            ax[2].plot(Z_SV, 'o', color  =  'black')
+            ax[2].plot(df_SV['Z_SV'], 'o', color  =  'black')
             ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[2].set_ylim(Z_SV.min() - 10, Z_SV.max() + 10)
+            ax[2].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
             ax[2].grid()
@@ -512,17 +510,17 @@ def SV_obs(station, starttime, endtime):
             
             
             ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
-            ax[0,1].plot(X_SV, 'o', color  = 'blue')
+            ax[0,1].plot(df_SV['X_SV'], 'o', color  = 'blue')
             ax[0,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[0,1].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0,1].grid()
             
-            ax[1,1].plot(Y_SV, 'o', color  = 'green')
+            ax[1,1].plot(df_SV['Y_SV'], 'o', color  = 'green')
             ax[1,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[1,1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1,1].grid()
             
-            ax[2,1].plot(Z_SV, 'o', color  =  'black')
+            ax[2,1].plot(df_SV['Z_SV'], 'o', color  =  'black')
             ax[2,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[2,1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2,1].grid()
@@ -558,22 +556,22 @@ def SV_obs(station, starttime, endtime):
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
     
-            ax[0].plot(X_SV, 'o', color  = 'blue')
+            ax[0].plot(df_SV['X_SV'], 'o', color  = 'blue')
             ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0].set_ylim(X_SV.min() - 10, X_SV.max() + 10)
+            ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0].grid()
             
-            ax[1].plot(Y_SV, 'o', color  = 'green')
+            ax[1].plot(df_SV['Y_SV'], 'o', color  = 'green')
             ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1].set_ylim(Y_SV.min() - 10, Y_SV.max() + 10)
+            ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1].grid()
             
-            ax[2].plot(Z_SV, 'o', color  =  'black')
+            ax[2].plot(df_SV['Z_SV'], 'o', color  =  'black')
             ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[2].set_ylim(Z_SV.min() - 10, Z_SV.max() + 10)
+            ax[2].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
@@ -641,20 +639,20 @@ def SV_obs(station, starttime, endtime):
             
             
             ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
-            ax[0,1].plot(X_SV, 'o', color  = 'blue')
-            ax[0,1].set_ylim(X_SV.min() - 10, X_SV.max() + 10)
+            ax[0,1].plot(df_SV['X_SV'], 'o', color  = 'blue')
+            ax[0,1].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             ax[0,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[0,1].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0,1].grid()
             
-            ax[1,1].plot(Y_SV, 'o', color  = 'green')
-            ax[1,1].set_ylim(Y_SV.min() - 10, Y_SV.max() + 10)
+            ax[1,1].plot(df_SV['Y_SV'], 'o', color  = 'green')
+            ax[1,1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
             ax[1,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[1,1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1,1].grid()
             
-            ax[2,1].plot(Z_SV, 'o', color  =  'black')
-            ax[2,1].set_ylim(Z_SV.min() - 10, Z_SV.max() + 10)
+            ax[2,1].plot(df_SV['Z_SV'], 'o', color  =  'black')
+            ax[2,1].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
             ax[2,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
             ax[2,1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2,1].grid()
@@ -691,23 +689,23 @@ def SV_obs(station, starttime, endtime):
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
     
-            ax[0].plot(X_SV, 'o', color  = 'blue')
+            ax[0].plot(df_SV['X_SV'], 'o', color  = 'blue')
             ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0].set_ylim(X_SV.min() - 10, X_SV.max() + 10)
+            ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0].grid()
             
-            ax[1].plot(Y_SV, 'o', color  = 'green')
+            ax[1].plot(df_SV['Y_SV'], 'o', color  = 'green')
             ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1].set_ylim(Y_SV.min() - 10, Y_SV.max() + 10)
+            ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1].grid()
             
-            ax[2].plot(Z_SV, 'o', color  =  'black')
+            ax[2].plot(df_SV['Z_SV'], 'o', color  =  'black')
             ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[2].set_ylim(Z_SV.min() - 10, Z_SV.max() + 10)
+            ax[2].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
@@ -776,22 +774,27 @@ def SV_obs(station, starttime, endtime):
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
     while True:
-        #inp4 = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
-        #if inp4 == 'y':
-            #try:
-        ls = []    
-        ls = input('Type the number of linear segments that best fit the SV: ')
-        list_ls = ls.split()
-                #create an option to save or not a plot
-        jerk_detection(station, df_station, list_ls, starttime, endtime)
-            #except ValueError:
-            #    #it is not working for short periods, must be corrected
-            #    print('You must type a number!')
-            #    continue
-            #break        
-        #elif inp4 == 'n':
-           # print('No linear segments adopted')
-        break
+        condition = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
+        pass
+        if condition == 'y':
+            try:  
+                ls = input('Type the number of linear segments that best fit the SV: ')
+                list_ls = [int(k) for k in ls.split(" ")]
+                
+                        #create an option to save or not a plot
+                jerk_detection(station, df_station, list_ls, starttime, endtime)
+            except:
+                print("""This is not the correct format. Please reenter. (correct format: 
+                       integers separated by spaces)""")
+                continue
+            else:
+                break
+        if condition == 'n':
+            print('No linear segments adopted')
+            break
+        else:
+            print('You must type y or n, try again!')
+            
     return df_station[starttime:endtime]
 
 def check_data_availability(station):
@@ -1168,19 +1171,19 @@ def calculate_SV(dataframe, starttime, endtime,info = 'ADMM'):
         X_SV_station = (df['X'][starttime:endtime].resample('M').mean().diff(6) - df['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
         Y_SV_station = (df['Y'][starttime:endtime].resample('M').mean().diff(6) - df['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
         Z_SV_station = (df['Z'][starttime:endtime].resample('M').mean().diff(6) - df['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-        F_SV_station = (df['F'][starttime:endtime].resample('M').mean().diff(6) - df['F'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        #F_SV_station = (df['F'][starttime:endtime].resample('M').mean().diff(6) - df['F'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
     if info == 'YD':
         X_SV_station = df['X'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3) 
         Y_SV_station = df['Y'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
         Z_SV_station = df['Z'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
-        F_SV_station = df['F'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
+        #F_SV_station = df['F'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
 
        
     df_SV = pd.DataFrame()
     df_SV['X_SV'] = X_SV_station
     df_SV['Y_SV'] = Y_SV_station
     df_SV['Z_SV'] = Z_SV_station
-    df_SV['F_SV'] = F_SV_station
+    #df_SV['F_SV'] = F_SV_station
     df_SV = df_SV.dropna()
     return df_SV
 
