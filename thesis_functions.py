@@ -37,11 +37,9 @@ def load_obs_files(station, path, skiprows):
     return df_station    
 
 
-def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
+def load_obs_files_OTIMIZADA(station, starttime, endtime):
     '''
     Function to read and concat observatory data
-    
-    Sample must be H, D, M, Y   
     
     '''
     print('Reading files from '+ station.upper() +'...')
@@ -56,6 +54,15 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
     
     files_station = []
     
+    L_27 = ['CZT','DRV','PAF']
+    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT']
+    
+    skiprows = 26
+    if station.upper() in L_27:
+        skiprows = 27
+    if station.upper() in L_26:
+        skiprows = 26
+    
     for Year in Years:
 
     
@@ -64,15 +71,21 @@ def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
 
     #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
     
-    df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
+    df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5,6], 
                    header = None,skiprows = skiprows, 
                    parse_dates = {'Date': ['date', 'Time']},
-                   names = ['date','Time','X','Y','Z']) for file in files_station), 
+                   names = ['date','Time','X','Y','Z','F']) for file in files_station), 
                    ignore_index = True)
     df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')     
     #df_station['Hour'] = pd.to_datetime(df_station['Hour'], format = '%H:%M:%S.%f').dt.time               
     df_station.set_index('Date', inplace = True)
 
+    
+    df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
+    df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
+    df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+    df_station.loc[df_station['F'] == 99999.00, 'F'] = np.nan
+    
     return df_station
 
 #def load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime):
@@ -296,6 +309,8 @@ def remove_Disturbed_Days(dataframe, start, end):
 
     df_d.set_index('D-Days', inplace = True)
     
+    df_d = df_d.sort_values('D-Days')
+    
     
     remove = df_d.loc[start:end]
     
@@ -343,21 +358,9 @@ def SV_obs(station, starttime, endtime):
     Sample must be H, D, M, Y   
     
     '''
-    L_27 = ['CZT','DRV','PAF']
-    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK']
     
-    skiprows = 25
-    if station.upper() in L_27:
-        skiprows = 27
-    if station.upper() in L_26:
-        skiprows = 26
+    df_station = load_obs_files_OTIMIZADA(station, starttime, endtime)
     
-    df_station = load_obs_files_OTIMIZADA(station, skiprows, starttime, endtime)
-    
-    
-    df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
-    df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
-    df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
     df_station2 = df_station.copy()
     
     while True: 
@@ -412,6 +415,7 @@ def SV_obs(station, starttime, endtime):
     while True: 
         inp2 = input("Do You Want To Save a File With the Variation? [y/n]: ")
         if inp2 == 'y':
+
             print('Saving files...')
             for sample in samples:
                           
@@ -424,7 +428,7 @@ def SV_obs(station, starttime, endtime):
             
                 if sample == 'H':
                     
-                    file = df_station2[starttime:endtime].resample(sample).mean().shift(-30, freq = 'min').round(3)
+                    file = df_station2[starttime:endtime].resample(sample).mean().shift(30, freq = 'min').round(3)
                     #ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(12, freq = 'H'))
                     file.to_csv(directory + '/' + station.upper() + '_from_' 
                                 + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
@@ -772,22 +776,22 @@ def SV_obs(station, starttime, endtime):
     #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
     while True:
-        inp4 = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
-        if inp4 == 'y':
-            try:
-                ls = input('Type the number of linear segments that best fit the SV: ')
+        #inp4 = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
+        #if inp4 == 'y':
+            #try:
+        ls = []    
+        ls = input('Type the number of linear segments that best fit the SV: ')
+        list_ls = ls.split()
                 #create an option to save or not a plot
-                
-                
-                jerk_detection(station, df_station, ls, starttime, endtime)
-            except ValueError:
-                #it is not working for short periods, must be corrected
-                print('You must type a number!')
-                continue
-            break        
-        elif inp4 == 'n':
-            print('No linear segments adopted')
-            break
+        jerk_detection(station, df_station, list_ls, starttime, endtime)
+            #except ValueError:
+            #    #it is not working for short periods, must be corrected
+            #    print('You must type a number!')
+            #    continue
+            #break        
+        #elif inp4 == 'n':
+           # print('No linear segments adopted')
+        break
     return df_station[starttime:endtime]
 
 def check_data_availability(station):
@@ -858,41 +862,36 @@ def NT_LT(station, dataframe, start, end):
 def jerk_detection(station, dataframe,ls, starttime, endtime):
     '''
     '''
-    
+    #ls = []
     df_station = pd.DataFrame()
     df_station = dataframe
-    df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
-    df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
-    df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
     df_SV = pd.DataFrame()
     #fit your data (x and y)
-    components = ['X','Y','Z']
-    df_SV['X'] = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-    df_SV['Y'] = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-    df_SV['Z'] = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-    df_SV = df_SV.dropna()
+    components = ['X_SV','Y_SV','Z_SV']
+    
+    
+    df_SV = calculate_SV(df_station, starttime = starttime, endtime = endtime)
     
     X = np.arange(0,len(df_SV.index))
     
-    for component in components:
+    for (component,i) in zip(components,ls):
         
-        myPWLF = pwlf.PiecewiseLinFit(X,df_SV[component].dropna())
+        myPWLF = pwlf.PiecewiseLinFit(X,df_SV[component])
         
         #fit the data for n line segments
-        z = myPWLF.fit(ls)
-        
+        z = myPWLF.fit(i)
         #calculate slopes
-        slopes = myPWLF.calc_slopes()
+        #slopes = myPWLF.calc_slopes()
         
         # predict for the determined points
         xHat = X 
         yHat = myPWLF.predict(xHat)
         
         #calculate statistics
-        p = myPWLF.p_values(method='non-linear', step_size=1e-4) #p-values
-        se = myPWLF.se  # standard errors
+        #p = myPWLF.p_values(method='non-linear', step_size=1e-4) #p-values
+        #se = myPWLF.se  # standard errors
         
-        df_SV[component + 'p'] = yHat
+        df_SV[str(component) + 'p'] = yHat
         
         
     directory = 'Filtered_data/'+ station +'_data'
@@ -901,38 +900,38 @@ def jerk_detection(station, dataframe,ls, starttime, endtime):
     fig, ax = plt.subplots(3,1,figsize = (14,10))
 
 
-    ax[0].plot(df_SV['X'],'o', color = 'blue')
-    ax[0].plot(df_SV['Xp'],'-', color = 'red')
+    ax[0].plot(df_SV['X_SV'],'o', color = 'blue')
+    ax[0].plot(df_SV['X_SVp'],'-', color = 'red')
     #ax01].plot(y_poly_pred,'-')
     #ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
     ax[0].set_ylabel('dX/dT', fontsize = 14)
-    ax[0].set_ylim(df_SV['X'].min() - 10,df_SV['X'].max() + 10)
-    ax[0].set_title('Automatic Jerk detection - ' + station.upper(), fontsize = 16)
+    ax[0].set_ylim(df_SV['X_SV'].min() - 10,df_SV['X_SV'].max() + 10)
+    ax[0].set_title('Automatic detection - ' + station.upper(), fontsize = 16)
     ax[0].grid()
     
     
-    ax[1].plot(df_SV['Y'],'o',color = 'green')
-    ax[1].plot(df_SV['Yp'],'-', color = 'red')
+    ax[1].plot(df_SV['Y_SV'],'o',color = 'green')
+    ax[1].plot(df_SV['Y_SVp'],'-', color = 'red')
     #ax11].plot(y_poly_pred,'-')
     #ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
     ax[1].set_ylabel('dY/dT', fontsize = 14)
-    ax[1].set_ylim(df_SV['Y'].min() - 10,df_SV['Y'].max() + 10)
+    ax[1].set_ylim(df_SV['Y_SV'].min() - 10,df_SV['Y_SV'].max() + 10)
     ax[1].grid()
     
-    ax[2].plot(df_SV['Z'],'o',color = 'black')
-    ax[2].plot(df_SV['Zp'],'-', color = 'red')
+    ax[2].plot(df_SV['Z_SV'],'o',color = 'black')
+    ax[2].plot(df_SV['Z_SVp'],'-', color = 'red')
     #ax21].plot(y_poly_pred,'-')
     #ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
     ax[2].set_ylabel('dZ/dT', fontsize = 14)
     ax[2].set_xlabel('Years', fontsize = 14 )
-    ax[2].set_ylim(df_SV['Z'].min() - 10,df_SV['Z'].max() + 10)
+    ax[2].set_ylim(df_SV['Z_SV'].min() - 10,df_SV['Z_SV'].max() + 10)
     ax[2].grid()
     
     plt.savefig(directory + '/' + station + '_SV_LFit.jpeg', bbox_inches='tight')
     plt.show()
     
 def hampel_filter_denoising(input_series, window_size, n_sigmas=3):
-    input_series = input_series.resample('D').mean()
+    input_series = input_series.resample('H').mean()
     new_series = input_series.copy()
     for column in input_series:
         
@@ -979,20 +978,10 @@ def SV_(stations, starttime, endtime, file = None):
             
             
             
-            df_station =  load_obs_files_OTIMIZADA(station, skiprows , starttime, endtime)
-            df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
-            df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
-            df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+            df_station =  load_obs_files_OTIMIZADA(station, starttime, endtime)
             
-            X_SV_station = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-            Y_SV_station = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-            Z_SV_station = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-            
-            
-            df = pd.DataFrame()
-            df['X_SV'] = X_SV_station
-            df['Y_SV'] = Y_SV_station
-            df['Z_SV'] = Z_SV_station
+            df_SV = calculate_SV(df_station, starttime = starttime, endtime = endtime)
+
             for file in Files:
                 if file == None:
                     
@@ -1029,13 +1018,13 @@ def SV_(stations, starttime, endtime, file = None):
             #    ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
                 
             
-            ax[0].plot(X_SV_station,'o', color = 'blue')
-            ax[0].set_ylim(df['X_SV'].min() - 10, df['X_SV'].max() + 10)
+            ax[0].plot(df_SV['X_SV'],'o', color = 'blue')
+            ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
-            ax[1].plot(Y_SV_station,'o',color = 'green')
-            ax[1].set_ylim(df['Y_SV'].min() - 10, df['Y_SV'].max() + 10)
-            ax[2].plot(Z_SV_station,'o',color = 'black')
-            ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+            ax[1].plot(df_SV['Y_SV'],'o',color = 'green')
+            ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
+            ax[2].plot(df_SV['Z_SV'],'o',color = 'black')
+            ax[2].set_ylim( df_SV['Z_SV'].min() - 10,df_SV['Z_SV'].max() + 10)
             
             #ax[0].autoscale()
             #ax[0].set_ylim(df['X_SV'].max() + 10, df['X_SV'].min() - 10)
@@ -1053,22 +1042,22 @@ def SV_(stations, starttime, endtime, file = None):
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
     
-            ax[0].plot(X_SV_station, 'o', color  = 'blue')
+            ax[0].plot(df_SV['X_SV'], 'o', color  = 'blue')
             ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0].set_ylim(X_SV_station.min() - 10, X_SV_station.max() + 10)
+            ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
             ax[0].grid()
             
-            ax[1].plot(Y_SV_station, 'o', color  = 'green')
+            ax[1].plot(df_SV['Y_SV'], 'o', color  = 'green')
             ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1].set_ylim(Y_SV_station.min() - 10, Y_SV_station.max() + 10)
+            ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
             ax[1].grid()
             
-            ax[2].plot(Z_SV_station, 'o', color  =  'black')
+            ax[2].plot(df_SV['Z_SV'], 'o', color  =  'black')
             ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[2].set_ylim(Z_SV_station.min() - 10, Z_SV_station.max() + 10)
+            ax[2].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
             ax[2].grid()
@@ -1083,20 +1072,10 @@ def SV_(stations, starttime, endtime, file = None):
         if station == 'ngk' or 'cnb':
             skiprows = 26
             
-        df_station =  load_obs_files_OTIMIZADA(station, skiprows , starttime, endtime)
-        df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
-        df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
-        df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
-    
-        X_SV_station = (df_station['X'][starttime:endtime].resample('M').mean().diff(6) - df_station['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-        Y_SV_station = (df_station['Y'][starttime:endtime].resample('M').mean().diff(6) - df_station['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
-        Z_SV_station = (df_station['Z'][starttime:endtime].resample('M').mean().diff(6) - df_station['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        df_station =  load_obs_files_OTIMIZADA(station, starttime, endtime)
+        
+        df_SV = calculate_SV(df_station, starttime = starttime, endtime = endtime)
 
-        df = pd.DataFrame()
-        df['X_SV'] = X_SV_station
-        df['Y_SV'] = Y_SV_station
-        df['Z_SV'] = Z_SV_station
-        df = df.dropna()
         if file == None:
     
             directory = 'SV_update/'+ station +'_data/'
@@ -1125,22 +1104,22 @@ def SV_(stations, starttime, endtime, file = None):
         
         ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
 
-        ax[0].plot(X_SV_station, 'o', color  = 'blue')
+        ax[0].plot(df_SV['X_SV'], 'o', color  = 'blue')
         ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-        ax[0].set_ylim(X_SV_station.min() - 10, X_SV_station.max() + 10)
+        ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
         #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
         ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
         ax[0].grid()
         
-        ax[1].plot(Y_SV_station, 'o', color  = 'green')
+        ax[1].plot(df_SV['Y_SV'], 'o', color  = 'green')
         ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-        ax[1].set_ylim(Y_SV_station.min() - 10, Y_SV_station.max() + 10)
+        ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
         ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
         ax[1].grid()
         
-        ax[2].plot(Z_SV_station, 'o', color  =  'black')
+        ax[2].plot(df_SV['Z_SV'], 'o', color  =  'black')
         ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-        ax[2].set_ylim(Z_SV_station.min() - 10, Z_SV_station.max() + 10)
+        ax[2].set_ylim(df_SV['Z_SV'].min() - 10, df_SV['Z_SV'].max() + 10)
         #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
         ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
         ax[2].grid()
@@ -1165,14 +1144,95 @@ def SV_(stations, starttime, endtime, file = None):
         #else:
         #    ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
         
-        ax[0].plot(X_SV_station,'o', color = 'blue')
-        ax[0].set_ylim(df['X_SV'].min() - 10, df['X_SV'].max() + 10)
+        ax[0].plot(df_SV['X_SV'],'o', color = 'blue')
+        ax[0].set_ylim(df_SV['X_SV'].min() - 10, df_SV['X_SV'].max() + 10)
         ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
-        ax[1].plot(Y_SV_station,'o',color = 'green')
-        ax[1].set_ylim(df['Y_SV'].min() - 10, df['Y_SV'].max() + 10)
-        ax[2].plot(Z_SV_station,'o',color = 'black')
-        ax[2].set_ylim( df['Z_SV'].min() - 10,df['Z_SV'].max() + 10)
+        ax[1].plot(df_SV['Y_SV'],'o',color = 'green')
+        ax[1].set_ylim(df_SV['Y_SV'].min() - 10, df_SV['Y_SV'].max() + 10)
+        ax[2].plot(df_SV['Z_SV'],'o',color = 'black')
+        ax[2].set_ylim(df_SV['Z_SV'].min() - 10,df_SV['Z_SV'].max() + 10)
         #ax[0].set_ylim(l_inf,l_sup)
         #ax[1].set_ylim(l_inf,l_sup)
         #ax[2].set_ylim(l_inf,l_sup)
         plt.show()
+        
+def calculate_SV(dataframe, starttime, endtime,info = 'ADMM'):
+    df = pd.DataFrame()
+    df = dataframe
+    
+    Info = ['ADMM','YD']
+    if info not in Info:
+        print('Info must be ADMM or YD')
+    
+    if info == 'ADMM':
+        X_SV_station = (df['X'][starttime:endtime].resample('M').mean().diff(6) - df['X'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        Y_SV_station = (df['Y'][starttime:endtime].resample('M').mean().diff(6) - df['Y'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        Z_SV_station = (df['Z'][starttime:endtime].resample('M').mean().diff(6) - df['Z'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+        F_SV_station = (df['F'][starttime:endtime].resample('M').mean().diff(6) - df['F'] [starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3)
+    if info == 'YD':
+        X_SV_station = df['X'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3) 
+        Y_SV_station = df['Y'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
+        Z_SV_station = df['Z'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
+        F_SV_station = df['F'][starttime:endtime].resample('Y').mean().diff().shift(-182.5, freq = 'D').round(3)
+
+       
+    df_SV = pd.DataFrame()
+    df_SV['X_SV'] = X_SV_station
+    df_SV['Y_SV'] = Y_SV_station
+    df_SV['Z_SV'] = Z_SV_station
+    df_SV['F_SV'] = F_SV_station
+    df_SV = df_SV.dropna()
+    return df_SV
+
+def update_qd_and_dd(data, file):
+    
+    
+    DATA = ['DD','QD']
+    
+    if data not in DATA:
+        print('Data must be QD or DD!')
+        
+    path = 'Dados OBS/' + file
+    if data == 'DD':
+        df = pd.read_csv(path,skiprows = 4,sep = '\s+',
+                    header = None,
+                    usecols = [0,1,12,13,14,15,16],
+                    names = ['Month','Year','D1','D2','D3','D4','D5'])
+        
+         
+        columns = ['D1','D2','D3','D4','D5']
+        
+        df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
+        
+        for col in columns:
+            df['Test' +  col] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('*','')
+        
+        df_DD = pd.DataFrame()
+        df_DD['DD'] = pd.concat([df['TestD1'],df['TestD2'],df['TestD3'],df['TestD4'],df['TestD5']])
+        
+        df_DD['DD'].to_csv('NEW_DD.txt',index = False)
+        
+    if data == 'QD':
+        
+        df = pd.read_csv(path,skiprows = 4,sep = '\s+',
+                    header = None, 
+                    usecols = [0,1,2,3,4,5,6,7,8,9,10,11],
+                    names = ['Month','Year','Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10'])
+        
+        columns = ['Q1','Q2','Q3','Q4','Q5','Q6','Q7','Q8','Q9','Q10'] 
+        
+        df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
+        
+        for col in columns:
+            df['Test' +  col] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('A','')
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('K','')
+        
+        df_QD = pd.DataFrame()
+        df_QD['QD'] = pd.concat([df['TestQ1'],df['TestQ2'],df['TestQ3'],df['TestQ4'],df['TestQ5'],df['TestQ6'],df['TestQ7'],df['TestQ8'],df['TestQ9'],df['TestQ10']])
+        
+        df_QD['QD'].to_csv('NEW_QD.txt',index = False)
