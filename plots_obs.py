@@ -57,7 +57,7 @@ def load_qd_data(station, path):
     #files_station = []
     #
     L_27 = ['CZT','DRV','PAF']
-    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT']
+    L_26 = ['NGK','DRV','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT','SJG']
     #
     skiprows = 17
     if station.upper() in L_27:
@@ -89,10 +89,27 @@ def load_qd_data(station, path):
     
     return df_station
 
-def obs_data_processing(station,path, starttime, endtime, sample = None, plots: bool = False):
+def obs_data_processing(station,path, starttime = None, endtime = None, sample = None, plots: bool = False):
+    '''
+    Parameters --
     
+    Station -> Código IAGA do observatório ou estação
+    Path -> Diretorio onde estão os arquivos de interesse
+    Starttime -> data inicial de interesse Ex: '2010-01-01'
+    Endtime -> data final de interesse Ex: '2020-06-25'
+    Sample -> Taxa de amostragem dos dados, pode ser: 'H', 'D', 'M' ou 'Y'
+    Plots -> boolean, False ou True
+    
+    
+    '''
     df = load_qd_data(station = station, path = path)
-    df = df.loc[starttime:endtime]
+    
+    
+    if starttime == None and endtime == None:
+        df = df
+    else:
+        df = df.loc[starttime:endtime]
+    
     if sample == None:
         df = df
     else:
@@ -110,7 +127,7 @@ def obs_data_processing(station,path, starttime, endtime, sample = None, plots: 
                  
      
     
-    return df
+    return df[starttime:endtime]
 
 
 
