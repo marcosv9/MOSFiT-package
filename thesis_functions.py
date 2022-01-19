@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
+from pandas.tseries.frequencies import to_offset
 import glob
 import os
 import ftplib
@@ -10,6 +11,8 @@ import matplotlib.gridspec as gridspec
 from datetime import datetime
 import pwlf
 import chaosmagpy as cp
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
 
 
 
@@ -53,6 +56,9 @@ def load_obs_files_OTIMIZADA(station, starttime, endtime):
     
     
     '''
+    for i in [starttime,endtime]:
+        validate(i)
+    
     print('Reading files from '+ station.upper() +'...')
     year  = []
     for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
@@ -92,9 +98,9 @@ def load_obs_files_OTIMIZADA(station, starttime, endtime):
     df_station.set_index('Date', inplace = True)
 
     
-    df_station.loc[df_station['X'] == 99999.0, 'X'] = np.nan
-    df_station.loc[df_station['Y'] == 99999.0, 'Y'] = np.nan
-    df_station.loc[df_station['Z'] == 99999.0, 'Z'] = np.nan
+    df_station.loc[df_station['X'] >= 99999.0, 'X'] = np.nan
+    df_station.loc[df_station['Y'] >= 99999.0, 'Y'] = np.nan
+    df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
     #df_station.loc[df_station['F'] == 99999.00, 'F'] = np.nan
     #df_station = df_station.dropna()
     df_station = df_station.loc[starttime:endtime]
@@ -309,6 +315,9 @@ def remove_Disturbed_Days(dataframe, start, end):
     Ex  - df_NGK2 = mvs.remove_Disturbed_Days(df_NGK, start = '2010-01' , end = '2019-12')
     
     '''
+    for i in [start,end]:
+        validate(i)
+    
     df = pd.DataFrame()
     df = dataframe.resample('D').mean()
     #df = dataframe
@@ -353,6 +362,9 @@ def keep_Q_Days(dataframe, start, end):
     Ex  - df_NGK2 = keep_Q_Days(df_NGK, start = '2010-01' , end = '2019-12')
     '''
     
+    for i in [start,end]:
+        validate(i)
+    
     df = pd.DataFrame()
     df = dataframe.resample('D').mean()
     #df = dataframe
@@ -375,6 +387,9 @@ def keep_Q_Days(dataframe, start, end):
     return df
 
 def night_time_selection(dataframe, start, end):
+    
+    for i in [start,end]:
+        validate(i)
     df = pd.DataFrame()
     df = dataframe
     df = df.loc[start:end]
@@ -400,7 +415,7 @@ def SV_obs(station, starttime, endtime):
         inp5 = input("Do You Want To denoise the data based on median absolute deviation? [y/n]: ")
         if inp5 == 'y':
             print('Denoising data...')
-            df_station = hampel_filter_denoising(input_series = df_station, window_size = 12, n_sigmas=3)
+            df_station = hampel_filter_denoising(input_series = df_station, window_size = 100, n_sigmas=3)
             break
         if inp5 == 'n':
             print('No data changed!')
@@ -631,9 +646,9 @@ def SV_obs(station, starttime, endtime):
                     ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean(), color  = 'black')
                 if sample == 'H':    
                     ax[0].set_title(station.upper() + ' Hourly Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'blue')
-                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'green')
-                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'black')
+                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'blue')
+                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'green')
+                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'black')
                 if sample == 'D':
                     ax[0].set_title(station.upper() + ' Daily Mean', fontsize = 18)
                     ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'blue')
@@ -901,6 +916,7 @@ def NT_LT(station, dataframe, start, end):
     return df_NT
 
 def jerk_detection(station, dataframe,ls, starttime, endtime):
+    
     '''
     adopt piecewise linear segments on the secular variation
     
@@ -1023,7 +1039,25 @@ def hampel_filter_denoising(input_series, window_size, n_sigmas=3):
     
 
 def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampel_filter: bool = False, plot_chaos: bool = False):
+    '''
     
+    
+    Functions arguments ----
+    
+    stations - must be a list of observatories IAGA code or None
+    starttime - must be a 'yyyy-mm-dd' format
+    endtime - must be a 'yyyy-mm-dd' format
+    external_reduce - must be 'QD', 'DD', 'NT', 'C' or None 
+               *QD for keep quiet days
+               *DD for remove disturbed days
+               *NT for Night time selection
+               *C use CHAOS Model predicted external field
+    hampel_filter - boolean, True or False
+    Plot_chaos - boolean, True or False
+    
+    
+    
+    '''
     df_imos = pd.read_csv('Imos_INTERMAGNET.txt', sep = '\t')
     
     External_reduce = ['QD','DD','NT','C']
@@ -1106,9 +1140,9 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
             fig, ax = plt.subplots(3,1, figsize = (16,10))
             
             if plot_chaos == True:
-                ax[0].plot(df_SV_chaos['X_int'],'o-', label = 'Chaos - rms: ' + str(RMS[0]))
-                ax[1].plot(df_SV_chaos['Y_int'],'o-', label = 'Chaos - rms: ' + str(RMS[1]))
-                ax[2].plot(df_SV_chaos['Z_int'],'o-', label = 'Chaos - rms: ' + str(RMS[2]))
+                ax[0].plot(df_SV_chaos['X_int'],'o-', label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'o-', label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'o-', label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
                 ax[0].legend()  
                 ax[1].legend()  
                 ax[2].legend()  
@@ -1135,9 +1169,9 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
             
             fig, ax = plt.subplots(3,1, figsize = (8,6.5))
             if plot_chaos == True:
-                ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]))
-                ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]))
-                ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]))
+                ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color  = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color  = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color  = 'red')
                 ax[0].legend()  
                 ax[1].legend()  
                 ax[2].legend() 
@@ -1236,9 +1270,9 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
         
         if plot_chaos == True:
             
-            ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]))
-            ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]))
-            ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]))
+            ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
             ax[0].legend()  
             ax[1].legend()  
             ax[2].legend() 
@@ -1272,9 +1306,9 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
         
         fig, ax = plt.subplots(3,1, figsize = (16,10))
         if plot_chaos == True:
-            ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]))
-            ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]))
-            ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]))
+            ax[0].plot(df_SV_chaos['X_int'],'-', label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-', label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-', label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
             ax[0].legend()  
             ax[1].legend()  
             ax[2].legend() 
@@ -1298,7 +1332,10 @@ def calculate_SV(dataframe, starttime, endtime, info = 'ADMM', columns = None):
     
     #if info is not in Info:
     #    print('info must be ADMM or YD')
-#
+#   
+    df_ADMM = resample_obs_data(dataframe = df, sample = 'M')
+    df_YD = resample_obs_data(dataframe = df, sample = 'Y')
+
     if columns == None:
         columns = ['X','Y','Z']
     else:
@@ -1309,11 +1346,11 @@ def calculate_SV(dataframe, starttime, endtime, info = 'ADMM', columns = None):
     
     if info == 'ADMM':
         for col in columns:
-            SV = (df[col].loc[starttime:endtime].resample('M').mean().diff(6) - df[col].loc[starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3).dropna()
+            SV = (df_ADMM[col].diff(6) - df_ADMM[col].diff(-6)).round(3).dropna()
             df_SV[col] = SV  
     if info == 'YD':
         for col in columns:
-            SV = (df[col].loc[starttime:endtime].resample('M').mean().diff(6) - df[col].loc[starttime:endtime].resample('M').mean().diff(-6)).shift(-15, freq = 'D').round(3).dropna()
+            SV = (df[col].diff().round(3).dropna()
             df_SV[col] = SV 
             
     return df_SV
@@ -1372,8 +1409,10 @@ def update_qd_and_dd(data, file):
         df_QD['QD'].to_csv('NEW_QD.txt',index = False)
 
 def Kp_index_correction(dataframe, starttime, endtime, kp):
-    
-    
+    '''
+    '''
+    for i in [starttime,endtime]:
+        validate(i)
     
     if (kp <=0 ) or (kp>= 9): 
         print('kp must be a number from 0 to 9, try again!')
@@ -1400,9 +1439,14 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
 
 
 def chaos_model_provisory(station, starttime, endtime):
+    '''
+    '''
     
-    
-    model = cp.load_CHAOS_matfile('chaosmagpy_package_0.7.1/data/CHAOS-7.8.mat')
+    for i in [starttime,endtime]:
+        validate(i)
+        
+        
+    model = cp.load_CHAOS_matfile('chaosmagpy_package_0.8/data/CHAOS-7.9.mat')
     
     station = station.upper()
     df_IMOS = pd.read_csv('IMOS_INTERMAGNET.txt', sep = '\s+')
@@ -1623,7 +1667,8 @@ def INTERMAGNET_AND_CHAOS_COMPARISION(station, dataframe_Chaos, starttime, endti
         
 def external_field_correction_chaos_model(station, starttime, endtime,df_station = None, df_chaos = None):
     
-    
+    '''
+    '''
     
     station = station.upper()
     df_IMOS = pd.read_csv('IMOS_INTERMAGNET.txt', sep = '\s+')
@@ -1676,3 +1721,143 @@ def rms(predictions, real_data):
         x.append(rms)
         #print('the rmse for ' + str(cols) + ' component is ' + str(rms) + '.')
     return x
+
+def validate(str_date):
+    try:
+        datetime.strptime(str_date, '%Y-%m-%d')
+    except ValueError:
+        raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM-DD')
+        
+        
+def polynomial_jerk_detection(station, window_start, 
+                              window_end, 
+                              starttime, 
+                              endtime,
+                              df_station = None,
+                              plot_detection: bool = True,
+                              CHAOS_correction: bool = True):
+    
+    station = station
+    window_start = window_start
+    window_end = window_end
+    starttime = starttime
+    endtime = endtime
+    
+    for i in [starttime,endtime,window_start,window_end]:
+        validate(i)
+        
+    if df_station is not None:
+        
+        df_station = df_station
+        
+    else:
+        df_station = load_obs_files_OTIMIZADA(station = station, starttime = starttime, endtime = endtime)
+        
+    if CHAOS_correction == True:
+        
+        df_station, df_chaos = external_field_correction_chaos_model(station = station,
+                                                  starttime = starttime,
+                                                  endtime = endtime,
+                                                  df_station = df_station,
+                                                  df_chaos = None)
+    else:
+        pass
+    
+    #calculating SV
+    df_SV = calculate_SV(dataframe = df_station, starttime = starttime, endtime = endtime, info = 'ADMM', columns = None)
+    
+    #starting with polynomial jerk detection
+    
+    t = np.arange(0,df_SV.loc[window_start:window_end].size/3).reshape(-1,1)
+    jerk_prediction = pd.DataFrame()
+    jerk_prediction.index = df_SV.loc[window_start:window_end].index
+    
+    for column in df_SV:
+
+        polynomial_features= PolynomialFeatures(degree=3)
+        x_poly = polynomial_features.fit_transform(t)
+        
+        model = LinearRegression()
+        model.fit(x_poly, df_SV[column].loc[window_start:window_end])
+        jerk_prediction[column] = model.predict(x_poly)
+        
+    if plot_detection == True:
+        colors = ['blue','green','black']
+        fig, axes = plt.subplots(3,1,figsize = (10,8))
+        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
+        plt.xlabel('Date (Years)', fontsize = 12)
+        
+        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+            ax.plot(df_SV[col],'o-',color = color)
+            ax.plot(df_SV[col].loc[window_start:window_end].index,
+                    jerk_prediction[col],color = 'red', linewidth = 3, label = '3rd order polynomial')
+            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+            ax.legend()
+        
+        
+        fig, axes = plt.subplots(1,3,figsize = (16,4))
+        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
+        fig.text(0.5, 0.04, 'Date (Years)', ha='center')
+     
+        upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
+        lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
+
+        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+            ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],'o-',color = color)
+            ax.plot(jerk_prediction[col],color = 'red', linewidth = 3)
+            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+            
+        
+        
+    else:
+        pass
+        
+    return df_SV, jerk_prediction 
+
+def read_txt_SV(station, starttime, endtime):
+    path = 'SV_update/'+ station.upper() +'_data/SV_' + station.upper() + '.txt'
+
+    df_SV = pd.read_csv(path,sep = '\s+', index_col = [0])
+    df_SV.index = pd.to_datetime(df_SV.index,infer_datetime_format=True)
+    df_SV = df_SV.loc[starttime:endtime]
+    
+    return df_SV
+
+def resample_obs_data(dataframe, sample):
+    
+    df_station = pd.DataFrame()
+    df_station = dataframe
+    
+    samples = ['min','H','D','M','Y']
+    
+    
+    if sample not in samples:
+        print('sample must be min, H, D, M or Y!')
+    else:
+        
+        if sample == 'min':
+            
+            df_station = df_station
+            
+        if sample == 'H':
+            
+            df_station = df_station.resample('H').mean()
+            df_station.index = df_station.index + to_offset('30min')
+            
+        if sample == 'D':
+            
+            df_station = df_station.resample('D').mean()
+            df_station.index = df_station.index + to_offset('12H')
+            
+        if sample == 'M':
+            
+            df_station = df_station.resample('M').mean()
+            df_station.index = df_station.index + to_offset('-1M') + to_offset('15D')
+            
+            
+        if sample == 'Y':
+            
+            df_station = df_station.resample('Y').mean()
+            df_station.index = df_station.index + to_offset('-6M') + to_offset('-15D')
+            
+    return df_station
