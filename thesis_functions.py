@@ -153,23 +153,6 @@ def load_obs_files_OTIMIZADA(station, starttime, endtime):
 #
 #    return df_station
 
-def data_filter_basic(component, vmin, vmax):
-    '''
-    Filter the data based on informed max and min values..
-    
-    Too slow for big datasets
-    '''
-    
-    Filtered_comp = np.asarray(component)
-    #comp_new = np.asarray(component)
-    
-    
-    Filtered_comp = [number for number in component if number < vmin or number > vmax]
-    #print(Filtered_comp)
-    component = component.replace(Filtered_comp,np.nan)
-    
-    return component
-
 def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     
     '''
@@ -297,7 +280,7 @@ def download_obs_files_from_INTERMAGNET_ftp_server(path, destiny_path, files):
 
     print('Disconnected from INTERMAGNET Ftp server!')  
     
-def remove_Disturbed_Days(dataframe, start, end):
+def remove_Disturbed_Days(dataframe, starttime, endtime):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -315,12 +298,16 @@ def remove_Disturbed_Days(dataframe, start, end):
     Ex  - df_NGK2 = mvs.remove_Disturbed_Days(df_NGK, start = '2010-01' , end = '2019-12')
     
     '''
-    for i in [start,end]:
+    for i in [starttime,endtime]:
         validate(i)
     
-    df = pd.DataFrame()
-    df = dataframe.resample('D').mean()
-    #df = dataframe
+    #df = pd.DataFrame()
+    #df = dataframe.resample('D').mean()
+    
+    df = dataframe.loc[starttime:endtime]
+    
+    disturbed_index = pd.DataFrame()
+    
     df_d = pd.read_excel('Dados OBS/DIS_DAYS.xls', skiprows = 1, 
                      usecols = [0],
                      names = ['dd'],
@@ -332,18 +319,23 @@ def remove_Disturbed_Days(dataframe, start, end):
     
     df_d = df_d.sort_values('D-Days')
     
+    
     first_day = str(df.index[0].year) + '-' + str(df.index[0].month) + '-' + str(df.index[0].day)
     last_day = str(df.index[-1].year) + '-' + str(df.index[-1].month) + '-' + str(df.index[-1].day)
     
+    df_d = df_d.loc[first_day:last_day]
     
-    remove = df_d.loc[first_day:last_day]
+    for date in df_d.index.date:
+        disturbed_index = disturbed_index.append(df.loc[str(date)])
+        
+    #remove = df_d.loc[first_day:last_day]
     
-    df = df.drop(remove.index)
+    df = df.drop(disturbed_index.index)
     
     
     return df
 
-def keep_Q_Days(dataframe, start, end):
+def keep_Q_Days(dataframe, starttime, endtime):
     ''' 
     Function created to keep only geomagnetic quiet 
     days from observatory geomagnetic data.
@@ -362,11 +354,14 @@ def keep_Q_Days(dataframe, start, end):
     Ex  - df_NGK2 = keep_Q_Days(df_NGK, start = '2010-01' , end = '2019-12')
     '''
     
-    for i in [start,end]:
+    for i in [starttime,endtime]:
         validate(i)
     
-    df = pd.DataFrame()
-    df = dataframe.resample('D').mean()
+    #df = pd.DataFrame()
+    #df = dataframe.resample('D').mean()
+    df = dataframe.loc[starttime:endtime]
+    
+    quiet_index = pd.DataFrame()
     #df = dataframe
     df_q = pd.read_excel('Dados OBS/Q_DAYS.xls',header = None,skiprows = 1, 
                      usecols = [1],
@@ -375,11 +370,16 @@ def keep_Q_Days(dataframe, start, end):
                     )
     df_q['Q-Days'] = pd.to_datetime(df_q['Q-Days'], format = '%YYYY-%mm-%dd')
     df_q = df_q.sort_values('Q-Days')
+    
+    
     df_q.set_index('Q-Days', inplace = True)
     
-    keep = df_q.loc[start:end]
+    df_q = df_q.loc[starttime:endtime]
+    #keep = df_q.loc[starttime:endtime]
+    for date in df_q.index.date:
+        quiet_index = quiet_index.append(df.loc[str(date)])
     #for i in range(df.index):
-    df = df[start:end].reindex(df_q.index)
+    df = df.reindex(quiet_index.index).dropna()
  
         
     #if df.index not in keep.index:
@@ -399,7 +399,7 @@ def night_time_selection(dataframe, start, end):
     
     return df
 
-def SV_obs(station, starttime, endtime):
+def SV_obs(station, starttime, endtime, plot_chaos: bool = False):
     '''
     Function to read and concat observatory data
     
@@ -424,12 +424,12 @@ def SV_obs(station, starttime, endtime):
             print('You must type y or n, try again!')
         
     
-    options = ['Q','D','NT','E','C']
+    options = ['Q','D','NT','E']
     while True: 
-        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time, C to correct using Chaos model, or E to Exit without actions [Q/D/NT/C/E]: "))
+        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time or E to Exit without actions [Q/D/NT/E]: "))
         
         if all([inp != option for option in options]):
-            print('You must type Q, D, NT, C or E')
+            print('You must type Q, D, NT or E')
         else:
             break
     
@@ -449,70 +449,111 @@ def SV_obs(station, starttime, endtime):
         
     if inp == 'E':
         print('No action')
-    
-    if inp == 'C':
         
-        df_station, df_chaos = external_field_correction_chaos_model(station = station,
+    while True:
+    
+        input_chaos = input("Do You want to correct the external field using the CHAOS model? [y/n]: ")
+        if input_chaos == 'y':
+            df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                            starttime = starttime,
                                                            endtime = endtime,
                                                            df_station = df_station,
                                                            df_chaos = None)
+            print('External field corrected using CHAOS!')
+            break
+        if input_chaos == 'n':
+            print('Correction using CHAOS was not applied.')
+            break
+        else:
+            print('You must type y or n, try again!')
         
 
-        
-    samples = ['Min','H','D','M','Y']
     directory = 'Filtered_data/'+ station +'_data'
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
     
 
     df_SV = calculate_SV(df_station, starttime = starttime, endtime = endtime)
     
+    df_SV_not_corrected = calculate_SV(df_station2, starttime = starttime, endtime = endtime)
+    
+    if input_chaos == 'y':
+        
+        df_chaos_SV = calculate_SV(df_chaos, starttime = starttime, endtime = endtime, columns = ['X_int','Y_int','Z_int'])   
+    else:
+        
+        pass
+    
     while True: 
         inp2 = input("Do You Want To Save a File With the Variation? [y/n]: ")
         if inp2 == 'y':
 
             print('Saving files...')
-            for sample in samples:
+
+            for sample in ['Min','H','D', 'M', 'Y']:
                           
                 if sample == 'Min':
                 
-                    file = df_station2[starttime:endtime].resample(sample).mean().round(3)
+                    file = df_station[starttime:endtime].resample(sample).mean().round(3)
                     #ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(12, freq = 'H'))
-                    file.to_csv(directory + '/' + station.upper() + '_from_'
-                            + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() + '_minute_mean_preliminar.zip', sep ='\t', index=True)
             
                 if sample == 'H':
                     
-                    file = df_station2[starttime:endtime].resample(sample).mean().shift(30, freq = 'min').round(3)
+                    file = resample_obs_data(df_station, 'H').round(3)
                     #ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(12, freq = 'H'))
-                    file.to_csv(directory + '/' + station.upper() + '_from_' 
-                                + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() + '_hourly_mean_preliminar.txt', sep ='\t', index=True)
                 
+                    Header_SV_obs_files(station = station,
+                                        filename = 'hourly_mean',
+                                        data_denoise = inp5,
+                                        external_correction = inp,
+                                        chaos_model = input_chaos)               
                 if sample == 'D':
                     
-                    file = df_station[starttime:endtime].resample(sample).mean().shift(12, freq = 'H').round(3)
+                    file = resample_obs_data(df_station, 'D').round(3)
                     #ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(12, freq = 'H'))
-                    file.to_csv(directory + '/' + station.upper() + '_from_' 
-                                + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() + '_daily_mean_preliminar.txt', sep ='\t', index=True)
                     
+                    Header_SV_obs_files(station = station,
+                                        filename = 'daily_mean',
+                                        data_denoise = inp5,
+                                        external_correction = inp,
+                                        chaos_model = input_chaos) 
                 if sample == 'M':
                     
                    # ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(-15, freq = 'D'))
-                    file = df_station[starttime:endtime].resample(sample).mean().shift(-15, freq = 'D').round(3)
+                    file = resample_obs_data(df_station, 'M').round(3)
                     
                     file_SV = df_SV
                     
-                    file.to_csv(directory + '/' + station.upper() + '_from_'
-                                + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
-                    file_SV.to_csv(directory + '/' + station.upper() + '_from_'
-                                + starttime +'_to_' + endtime + '_' + sample + '_SV.zip', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() +'_monthly_mean_preliminar.txt', sep ='\t', index=True)
+                    
+                    Header_SV_obs_files(station = station,
+                                        filename = 'monthly_mean',
+                                        data_denoise = inp5,
+                                        external_correction = inp,
+                                        chaos_model = input_chaos) 
+                    
+                    file_SV.to_csv(directory + '/' + station.upper() +'_secular_variation_preliminar.txt', sep ='\t', index=True)
+                    
+                    Header_SV_obs_files(station = station,
+                                        filename = 'secular_variation',
+                                        data_denoise = inp5,
+                                        external_correction = inp,
+                                        chaos_model = input_chaos) 
                 if sample == 'Y':
                     
                     #ax.plot(df_HER['X']['2010-01':'2019-12'].resample(sample).mean().shift(-182.5, freq = 'D'))
-                    file = df_station[starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D').round(3)
-                    file.to_csv(directory + '/' + station.upper() + '_from_' 
-                                + starttime +'_to_' + endtime + '_' + sample + '_mean.zip', sep ='\t', index=True)
-            print('Minute, Hourly, Daily, Monthly, Yearly means and Secular Variation were saved on directory:')
+                    file = resample_obs_data(df_station, 'Y').round(3)
+                    file.to_csv(directory + '/' + station.upper() + '_annual_mean_preliminar.txt', sep ='\t', index=True)
+                    
+                    Header_SV_obs_files(station = station,
+                                        filename = 'annual_mean',
+                                        data_denoise = inp5,
+                                        external_correction = inp,
+                                        chaos_model = input_chaos) 
+                    
+            print('Minute, Hourly, Daily, Monthly, Annual means and Secular Variation were saved on directory:')
             print(directory)   
             break
 
@@ -528,76 +569,97 @@ def SV_obs(station, starttime, endtime):
         inp3 = input("Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
             directory = 'Filtered_data/'+ station +'_data'
-            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
+            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
             
-            #plot to use in the interactive map 
+            #plot minute mean
+            if input_chaos == 'y' or inp5 == 'y':
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
+                ax[0].plot(df_station2['X'], color  = 'blue')
+                ax[0].set_xlim(df_station2['X'].index[0],df_station2['X'].index[-1])
+                ax[0].set_ylabel('X(nT)', fontsize = 12)
+                ax[0].grid()
+                
+                ax[1].plot(df_station2['Y'], color  = 'green')
+                ax[1].set_xlim(df_station2['Y'].index[0],df_station2['Y'].index[-1])
+                ax[1].set_ylabel('Y(nT)', fontsize = 12)
+                ax[1].grid()
+                
+                ax[2].plot(df_station2['Z'], color  =  'black')
+                ax[2].set_xlim(df_station2['Z'].index[0],df_station2['Z'].index[-1])
+                ax[2].set_ylabel('Z(nT)', fontsize = 12)
+                ax[2].grid()
+                
+                plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
+                plt.show()
+                
+            else:
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
+                ax[0].plot(df_station['X'], 'o', color  = 'blue')
+                ax[0].set_xlim(df_station['X'].index[0],df_station['X'].index[-1])
+                ax[0].set_ylim(df_station['X'].min(), df_station['X'].max())
+                #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].grid()
+                
+                ax[1].plot(df_station['Y'], 'o', color  = 'green')
+                ax[1].set_xlim(df_station['Y'].index[0],df_station['Y'].index[-1])
+                ax[1].set_ylim(df_station['Y'].min(), df_station['Y'].max())
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].grid()
+                
+                ax[2].plot(df_station['Z'], 'o', color  =  'black')
+                ax[2].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
+                ax[2].set_ylim(df_station['Z'].min(), df_station['Z'].max())
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].grid()
+                
+                plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
+                plt.show()
+                    
             
-            fig, ax = plt.subplots(3,1, figsize = (8,6.5))
-            
-            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
-    
-            ax[0].plot(df_SV['X'], 'o', color  = 'blue')
-            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0].set_ylim(df_SV['X'].min() - 3, df_SV['X'].max() + 3)
-            #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
-            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
-            ax[0].grid()
-            
-            ax[1].plot(df_SV['Y'], 'o', color  = 'green')
-            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1].set_ylim(df_SV['Y'].min() - 3, df_SV['Y'].max() + 3)
-            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
-            ax[1].grid()
-            
-            ax[2].plot(df_SV['Z'], 'o', color  =  'black')
-            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
-            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
-            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
-            ax[2].grid()
-            
-            plt.tick_params(labelsize=8)
-            plt.savefig(directory + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
-            #plt.show()
+            plot_samples(station = station, dataframe = df_station, save_plots = True)
             
             #plot of secular variation and monthly mean
             
-            fig, ax = plt.subplots(3,2, figsize = (18,10))
-            
+            fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
             ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
             ax[0,1].plot(df_SV['X'], 'o', color  = 'blue')
-            ax[0,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0,1].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
             ax[0,1].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0,1].grid()
             
             ax[1,1].plot(df_SV['Y'], 'o', color  = 'green')
-            ax[1,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1,1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
             ax[1,1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1,1].grid()
             
             ax[2,1].plot(df_SV['Z'], 'o', color  =  'black')
-            ax[2,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,1].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
             ax[2,1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2,1].grid()
             
             
             ax[0,0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
             ax[0,0].plot(df_station['X'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'blue')
-            ax[0,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0,0].set_ylabel('X/nT', fontsize = 14)
-            
+            ax[0,0].set_xlim(df_station['X'].index[0],df_station['X'].index[-1])
+            ax[0,0].set_ylabel('X/nT', fontsize = 14)   
             ax[0,0].grid()
             
             ax[1,0].plot(df_station['Y'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'green')
-            ax[1,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1,0].set_ylabel('Y/nT', fontsize = 14)
-            
+            ax[1,0].set_xlim(df_station['Y'].index[0],df_station['Y'].index[-1])
+            ax[1,0].set_ylabel('Y/nT', fontsize = 14)           
             ax[1,0].grid()
     
     
             ax[2,0].plot(df_station['Z'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'black')
-            ax[2,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,0].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             #ax[2,1].set_xlabel('Years', fontsize = 14 )
             #ax[1].set_ylim(-30,30)
@@ -613,20 +675,20 @@ def SV_obs(station, starttime, endtime):
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
     
             ax[0].plot(df_SV['X'], 'o', color  = 'blue')
-            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
             ax[0].set_ylim(df_SV['X'].min() - 3, df_SV['X'].max() + 3)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0].grid()
             
             ax[1].plot(df_SV['Y'], 'o', color  = 'green')
-            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
             ax[1].set_ylim(df_SV['Y'].min() - 3, df_SV['Y'].max() + 3)
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1].grid()
             
             ax[2].plot(df_SV['Z'], 'o', color  =  'black')
-            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
             ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
@@ -635,131 +697,200 @@ def SV_obs(station, starttime, endtime):
             plt.savefig(directory + '/' + station + '_SV.jpeg', bbox_inches='tight')
             plt.show()
             
-            for sample in samples:
-                             
-                fig, ax = plt.subplots(3,1,figsize = (16,10))
+
+            if input_chaos == 'y' and plot_chaos == True:
                 
-                if sample == 'Min':
-                    ax[0].set_title(station.upper() + ' Minute Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'].loc[starttime:endtime].resample(sample).mean(), color  = 'blue')
-                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean(), color  = 'green')
-                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean(), color  = 'black')
-                if sample == 'H':    
-                    ax[0].set_title(station.upper() + ' Hourly Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'blue')
-                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'green')
-                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean().shift(30, freq = 'Min'), color  = 'black')
-                if sample == 'D':
-                    ax[0].set_title(station.upper() + ' Daily Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'black')
-                if sample == 'M':
-                    ax[0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'black')           
-                if sample == 'Y':
-                    ax[0].set_title(station.upper() + ' Yearly Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'black')    
-                    
-              
-                ax[0].set_ylabel('X (nT)', fontsize = 12)
-                ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[0].set_ylim(df_station['X'][starttime:endtime].min()*0.9,df_station['X'][starttime:endtime].max()*1.1)
+                #plotting real SV and corrected SV comparison
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+                ax[0].plot(df_SV_not_corrected['X'], 'o', color  = 'red', label = 'real data')
+                ax[0].plot(df_SV['X'], 'o', color  = 'blue', label = 'CHAOS correction')
+                ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+                ax[0].set_ylim(df_SV_not_corrected['X'].min() - 5, df_SV_not_corrected['X'].max() + 5)
+                #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].legend()
                 ax[0].grid()
                 
-               
-                ax[1].set_ylabel('Y (nT)', fontsize = 12)
-                ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[1].set_ylim(df_station['Y'][starttime:endtime].min()*0.9,df_station['Y'][starttime:endtime].max()*1.1)
+                
+                ax[1].plot(df_SV_not_corrected['Y'], 'o', color  = 'red', label = 'real data')
+                ax[1].plot(df_SV['Y'], 'o', color  = 'green', label = 'CHAOS correction')
+                ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+                ax[1].set_ylim(df_SV_not_corrected['Y'].min() - 5, df_SV_not_corrected['Y'].max() + 5)
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].legend()
                 ax[1].grid()
                 
                 
-                ax[2].set_ylabel('Z (nT)', fontsize = 12)
-                ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[2].set_ylim(df_station['Z'][starttime:endtime].min()*0.9,df_station['Z'][starttime:endtime].max()*1.1)
+                ax[2].plot(df_SV_not_corrected['Z'], 'o', color  = 'red', label = 'real data')
+                ax[2].plot(df_SV['Z'], 'o', color  =  'black', label = 'CHAOS correction')
+                ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+                ax[2].set_ylim(df_SV_not_corrected['Z'].min() - 5, df_SV_not_corrected['Z'].max() + 5)
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].legend()
                 ax[2].grid()
                 
-               
-                plt.savefig(directory + '/' + station + '_' + sample + '_mean.jpeg', bbox_inches='tight')
+                plt.savefig(directory + '/' + station + '_SV_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
+                
+                #plotting chaos predicted and corrected SV
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+                ax[0].plot(df_chaos_SV['X_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[0].plot(df_SV['X'], 'o', color  = 'blue')
+                ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+                ax[0].set_ylim(df_SV['X'].min() - 5, df_SV['X'].max() + 5)
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].legend()
+                ax[0].grid()
+                
+                
+                ax[1].plot(df_chaos_SV['Y_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[1].plot(df_SV['Y'], 'o', color  = 'green', label = 'CHAOS correction')
+                ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+                ax[1].set_ylim(df_SV['Y'].min() - 5, df_SV['Y'].max() + 5)
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].legend()
+                ax[1].grid()
+                
+                
+                ax[2].plot(df_chaos_SV['Z_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[2].plot(df_SV['Z'], 'o', color  =  'black')
+                ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+                ax[2].set_ylim(df_SV['Z'].min() - 5, df_SV['Z'].max() + 5)
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].legend()
+                ax[2].grid()
+                
+                plt.savefig(directory + '/' + station + '_SV_predicted_and_correction_comparison.jpeg', bbox_inches='tight')
+                plt.show()
+                
+            
             print('Plots of Minute, Hourly, Daily, Monthly, Yearly means and Secular Variation were saved on directory:')
             print(directory)    
+            
             break
         elif inp3 == 'n':
             print('No plots saved')
-            fig, ax = plt.subplots(3,2, figsize = (18,10))
             
+            #plot minute mean
+            
+            if input_chaos == 'y' or inp5 == 'y':
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
+                ax[0].plot(df_station2['X'], color  = 'blue')
+                ax[0].set_xlim(df_station2['X'].index[0],df_station2['X'].index[-1])
+                ax[0].set_ylabel('X(nT)', fontsize = 12)
+                ax[0].grid()
+                
+                ax[1].plot(df_station2['Y'], color  = 'green')
+                ax[1].set_xlim(df_station2['Y'].index[0],df_station2['Y'].index[-1])
+                ax[1].set_ylabel('Y(nT)', fontsize = 12)
+                ax[1].grid()
+                
+                ax[2].plot(df_station2['Z'], color  =  'black')
+                ax[2].set_xlim(df_station2['Z'].index[0],df_station2['Z'].index[-1])
+                ax[2].set_ylim(df_station2['Z'].min() - 3, df_station2['Z'].max() + 3)
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('Z(nT)', fontsize = 12)
+                ax[2].grid()
+                
+                plt.show()
+                
+            else:
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
+                ax[0].plot(df_station['X'], color  = 'blue')
+                ax[0].set_xlim(df_station['X'].index[0],df_station['X'].index[-1])
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].grid()
+                
+                ax[1].plot(df_station['Y'], color  = 'green')
+                ax[1].set_xlim(df_station['Y'].index[0],df_station['Y'].index[-1])
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].grid()
+                
+                ax[2].plot(df_station['Z'], color  =  'black')
+                ax[2].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].grid()
+                
+                plt.show()
+            
+            plot_samples(station = station, dataframe = df_station, save_plots = False)
+            
+            #plot of secular variation and monthly mean
+            
+            fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
             ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
             ax[0,1].plot(df_SV['X'], 'o', color  = 'blue')
-            ax[0,1].set_ylim(df_SV['X'].min() - 3, df_SV['X'].max() + 3)
-            ax[0,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0,1].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
             ax[0,1].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0,1].grid()
             
             ax[1,1].plot(df_SV['Y'], 'o', color  = 'green')
-            ax[1,1].set_ylim(df_SV['Y'].min() - 3, df_SV['Y'].max() + 3)
-            ax[1,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1,1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
             ax[1,1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1,1].grid()
             
             ax[2,1].plot(df_SV['Z'], 'o', color  =  'black')
-            ax[2,1].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
-            ax[2,1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,1].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
             ax[2,1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2,1].grid()
             
             
             ax[0,0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
             ax[0,0].plot(df_station['X'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'blue')
-            ax[0,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[0,0].set_ylabel('X/nT', fontsize = 14)
-            
+            ax[0,0].set_xlim(df_station['X'].index[0],df_station['X'].index[-1])
+            ax[0,0].set_ylabel('X/nT', fontsize = 14)   
             ax[0,0].grid()
             
             ax[1,0].plot(df_station['Y'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'green')
-            ax[1,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-            ax[1,0].set_ylabel('Y/nT', fontsize = 14)
-            
+            ax[1,0].set_xlim(df_station['Y'].index[0],df_station['Y'].index[-1])
+            ax[1,0].set_ylabel('Y/nT', fontsize = 14)           
             ax[1,0].grid()
     
     
             ax[2,0].plot(df_station['Z'][starttime:endtime].resample('M').mean().shift(-15, freq = 'D'), color  = 'black')
-            ax[2,0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2,0].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             #ax[2,1].set_xlabel('Years', fontsize = 14 )
             #ax[1].set_ylim(-30,30)
             ax[2,0].grid()
             
-            plt.show()
-
+            plt.show()      
             
              #plot of SV alone     
                   
-            fig, ax = plt.subplots(3,1, figsize = (16,12))
+            fig, ax = plt.subplots(3,1, figsize = (16,10))
             
             ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
     
             ax[0].plot(df_SV['X'], 'o', color  = 'blue')
-            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
             ax[0].set_ylim(df_SV['X'].min() - 3, df_SV['X'].max() + 3)
             #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
             ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
             ax[0].grid()
             
             ax[1].plot(df_SV['Y'], 'o', color  = 'green')
-            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
             ax[1].set_ylim(df_SV['Y'].min() - 3, df_SV['Y'].max() + 3)
-            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
             ax[1].grid()
             
             ax[2].plot(df_SV['Z'], 'o', color  =  'black')
-            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
             ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
             #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
@@ -768,65 +899,82 @@ def SV_obs(station, starttime, endtime):
             plt.show()
             
             
-            #plt.show()
-            
-            for sample in samples:
-                             
-                fig, ax = plt.subplots(3,1,figsize = (16,10))
+            if input_chaos == 'y' and plot_chaos == True:
                 
-                if sample == 'Min':
-                    ax[0].set_title(station.upper() + ' Minute Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean(), color  = 'blue')
-                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean(), color  = 'green')
-                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean(), color  = 'black')
-                if sample == 'H':    
-                    ax[0].set_title(station.upper() + ' Hourly Mean', fontsize = 18)
-                    ax[0].plot(df_station2['X'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'blue')
-                    ax[1].plot(df_station2['Y'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'green')
-                    ax[2].plot(df_station2['Z'][starttime:endtime].resample(sample).mean().shift(-30, freq = 'Min'), color  = 'black')
-                if sample == 'D':
-                    ax[0].set_title(station.upper() + ' Daily Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-12, freq = 'H'), color  = 'black')
-                if sample == 'M':
-                    ax[0].set_title(station.upper() + ' Monthly Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-15, freq = 'D'), color  = 'black')           
-                if sample == 'Y':
-                    ax[0].set_title(station.upper() + ' Yearly Mean', fontsize = 18)
-                    ax[0].plot(df_station['X'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'blue')
-                    ax[1].plot(df_station['Y'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'green')
-                    ax[2].plot(df_station['Z'][starttime:endtime].resample(sample).mean().shift(-182.5, freq = 'D'),'o-', color  = 'black')    
-                    
-              
-                ax[0].set_ylabel('X (nT)', fontsize = 12)
-                ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[0].set_ylim(df_station['X'][starttime:endtime].min()*0.9,df_station['X'][starttime:endtime].max()*1.1)
+                #plotting real SV and corrected SV comparison
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+                ax[0].plot(df_SV_not_corrected['X'], 'o', color  = 'red', label = 'real data')
+                ax[0].plot(df_SV['X'], 'o', color  = 'blue', label = 'CHAOS correction')
+                ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+                ax[0].set_ylim(df_SV_not_corrected['X'].min() - 5, df_SV_not_corrected['X'].max() + 5)
+                #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].legend()
                 ax[0].grid()
                 
-               
-                ax[1].set_ylabel('Y (nT)', fontsize = 12)
-                ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[1].set_ylim(df_station['Y'][starttime:endtime].min()*0.9,df_station['Y'][starttime:endtime].max()*1.1)
+                
+                ax[1].plot(df_SV_not_corrected['Y'], 'o', color  = 'red', label = 'real data')
+                ax[1].plot(df_SV['Y'], 'o', color  = 'green', label = 'CHAOS correction')
+                ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+                ax[1].set_ylim(df_SV_not_corrected['Y'].min() - 5, df_SV_not_corrected['Y'].max() + 5)
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].legend()
                 ax[1].grid()
                 
                 
-                ax[2].set_ylabel('Z (nT)', fontsize = 12)
-                ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-                #ax[2].set_ylim(df_station['Z'][starttime:endtime].min()*0.9,df_station['Z'][starttime:endtime].max()*1.1)
+                ax[2].plot(df_SV_not_corrected['Z'], 'o', color  = 'red', label = 'real data')
+                ax[2].plot(df_SV['Z'], 'o', color  =  'black', label = 'CHAOS correction')
+                ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+                ax[2].set_ylim(df_SV_not_corrected['Z'].min() - 5, df_SV_not_corrected['Z'].max() + 5)
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].legend()
                 ax[2].grid()
+                
                 plt.show()
                 
-                #plt.show()
-                      
+                #plotting chaos predicted and corrected SV
+                
+                fig, ax = plt.subplots(3,1, figsize = (16,10))
+                
+                ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+                ax[0].plot(df_chaos_SV['X_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[0].plot(df_SV['X'], 'o', color  = 'blue')
+                ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+                ax[0].set_ylim(df_SV['X'].min() - 5, df_SV['X'].max() + 5)
+                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].legend()
+                ax[0].grid()
+                
+                
+                ax[1].plot(df_chaos_SV['Y_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[1].plot(df_SV['Y'], 'o', color  = 'green', label = 'CHAOS correction')
+                ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+                ax[1].set_ylim(df_SV['Y'].min() - 5, df_SV['Y'].max() + 5)
+                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].legend()
+                ax[1].grid()
+                
+                
+                ax[2].plot(df_chaos_SV['Z_int'], 'o', color  = 'red', label = 'Chaos prediction SV')
+                ax[2].plot(df_SV['Z'], 'o', color  =  'black')
+                ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+                ax[2].set_ylim(df_SV['Z'].min() - 5, df_SV['Z'].max() + 5)
+                #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].legend()
+                ax[2].grid()
+                
+                plt.show()
+         
             break
+
+                   
         else:
             print('You must type y or n!')
-    #file = df_station.round(decimals = 3)
-    #file.to_csv('Filtered_data/'+ station + '_from_' + starttime +
-    #            '_to_' + endtime + '.txt', sep ='\t', index=True)
     
     while True:
         condition = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
@@ -891,27 +1039,6 @@ def NT_LT(station, dataframe, start, end):
     df_NT_lt = night_time_selection(df_lt,start, end)
     df_NT = pd.DataFrame()
     df_NT = df_NT_lt.shift(round(-dif, 3), freq = 'H')
-    #mini = 22 + dif
-    #maxi = 2 + dif
-    #if mini > 24:
-    #    mini -= 24
-    #elif mini < 0:
-    #    mini += 24
-    #if maxi > 24:
-    #    maxi -= 24
-    #elif maxi < 0:
-    #    maxi += 24
-    #print(mini,'mini')
-    #print(maxi,'maxi')
-    #df = pd.DataFrame()
-    #df = dataframe
-    #df = df.loc[start:end]
-    ##df = df.loc[(df.index.hour >= 19)]
-    #print(df)
-    #if mini > maxi:
-    #    df = df.drop(df.loc[(df.index.hour > int(maxi)) & (df.index.hour < int(mini))].index).dropna() 
-    #else:
-    #    df = df.loc[((df.index.hour > int(mini)) & (df.index.hour <= int(maxi)))].dropna()
     
     return df_NT
 
@@ -976,7 +1103,7 @@ def jerk_detection(station, dataframe,ls, starttime, endtime):
     ax[0].plot(df_SV['Xp'],'-', color = 'red')
     #ax01].plot(y_poly_pred,'-')
     #ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-    ax[0].set_ylabel('dX/dT', fontsize = 14)
+    ax[0].set_ylabel('dX/dt (nT)', fontsize = 14)
     ax[0].set_ylim(df_SV['X'].min() - 3,df_SV['X'].max() + 3)
     ax[0].set_title('Automatic detection - ' + station.upper(), fontsize = 16)
     ax[0].grid()
@@ -986,7 +1113,7 @@ def jerk_detection(station, dataframe,ls, starttime, endtime):
     ax[1].plot(df_SV['Yp'],'-', color = 'red')
     #ax11].plot(y_poly_pred,'-')
     #ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-    ax[1].set_ylabel('dY/dT', fontsize = 14)
+    ax[1].set_ylabel('dY/dt (nT)', fontsize = 14)
     ax[1].set_ylim(df_SV['Y'].min() - 3,df_SV['Y'].max() + 3)
     ax[1].grid()
     
@@ -994,7 +1121,7 @@ def jerk_detection(station, dataframe,ls, starttime, endtime):
     ax[2].plot(df_SV['Zp'],'-', color = 'red')
     #ax21].plot(y_poly_pred,'-')
     #ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
-    ax[2].set_ylabel('dZ/dT', fontsize = 14)
+    ax[2].set_ylabel('dZ/dt (nT)', fontsize = 14)
     ax[2].set_xlabel('Years', fontsize = 14 )
     ax[2].set_ylim(df_SV['Z'].min() - 3,df_SV['Z'].max() + 3)
     ax[2].grid()
@@ -1350,7 +1477,7 @@ def calculate_SV(dataframe, starttime, endtime, info = 'ADMM', columns = None):
             df_SV[col] = SV  
     if info == 'YD':
         for col in columns:
-            SV = (df[col].diff().round(3).dropna()
+            SV = df[col].diff().round(3).dropna()
             df_SV[col] = SV 
             
     return df_SV
@@ -1506,7 +1633,7 @@ def chaos_model_provisory(station, starttime, endtime):
     #end = cp.data_utils.mjd2000(endtime[0:4],endtime[5:7],endtime[8:10])        
     
     #print(end)
-    Date = pd.date_range(starttime,endtime, freq = 'H')
+    Date = pd.date_range(starttime,endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
     
     # Internal field
@@ -1861,3 +1988,102 @@ def resample_obs_data(dataframe, sample):
             df_station.index = df_station.index + to_offset('-6M') + to_offset('-15D')
             
     return df_station
+
+def plot_samples(station, dataframe, save_plots:bool = False):
+    '''
+    '''
+    if save_plots == False:
+    
+        samples = ['H','D','M','Y']
+        colors = ['blue','green','black']
+        
+        
+        for sample, title in zip(samples, ['hourly','daily','monthly','annual']):
+            
+            df_station = resample_obs_data(dataframe = dataframe, sample = sample)
+            fig, axes = plt.subplots(3,1,figsize = (16,10))
+            plt.suptitle(station.upper() + ' ' + title + ' mean', fontsize = 18, y = 0.92)
+            plt.xlabel('Date(Years)', fontsize = 12)
+                          
+            for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
+            
+                ax.plot(df_station[col],color = color)
+                ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
+                ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
+                ax.grid()
+            plt.show()
+    else:
+        directory = 'Filtered_data/'+ station +'_data'
+        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+        samples = ['H','D','M','Y']
+        colors = ['blue','green','black']
+        
+        
+        for sample, title in zip(samples, ['hourly','daily','monthly','annual']):
+            
+            df_station = resample_obs_data(dataframe = dataframe, sample = sample)
+            fig, axes = plt.subplots(3,1,figsize = (16,10))
+            plt.suptitle(station.upper() + ' ' + title + ' mean', fontsize = 18, y = 0.92)
+            plt.xlabel('Date(Years)', fontsize = 12)
+                          
+            for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
+            
+                ax.plot(df_station[col],color = color)
+                ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
+                ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
+                ax.grid()
+                
+            plt.savefig(directory + '/' + station + '_' + title + '_mean.jpeg', bbox_inches='tight')
+            plt.show()
+            
+
+def Header_SV_obs_files(station, filename, data_denoise, external_correction, chaos_model):
+    
+    #filenames = ['minute_mean','hourly_mean','daily_mean','monthly_mean','annual_mean']
+     
+    
+    path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'_preliminar.txt'
+    path_header = 'Filtered_data/'+ station +'_data'
+    destiny_path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'.txt'
+    
+    external_options = {'D': 'Disturbed Days removed',
+                           'Q': 'Quiet Days selection', 
+                           'NT': 'Night Time selection',
+                          'E': 'No'}
+    
+    denoise_options = {'y': 'Hampel Filter','n': 'No'}
+    
+    chaos_options = {'y': 'Yes','n': 'No'}
+    
+    #pathlib.Path(destiny_path).mkdir(parents=True, exist_ok=True)
+
+    df_station = pd.read_csv(path,sep = '\s+', index_col = [0])
+    df_station.index = pd.to_datetime(df_station.index,infer_datetime_format=True)
+
+
+    df_IMOS = pd.read_csv('IMOS_INTERMAGNET.txt', sep = '\s+')  
+    df_IMOS.set_index('Imos', inplace = True)
+    
+    
+    Header = ('Thesis project provisory header\nIAGA CODE '
+              + str(station.upper()) + '\nLatitude ' + 
+              str(df_IMOS.loc[station.upper()]['Latitude'].round(2))
+              +'\nLongitude ' + 
+              str(df_IMOS.loc[station.upper()]['Longitude'].round(2)) +'\nData denoise: ' + denoise_options[data_denoise] +
+              '\nExternal field reduction: ' + external_options[external_correction] + '\nCHAOS model correction: ' + chaos_options[chaos_model] +  
+              '\n\n')
+    
+    with open(path_header +'/header_file.txt','w+') as f2:
+        f2.write(Header)
+        header = f2.read()
+    
+    filenames = [path_header +'/header_file.txt',path]
+    with open(destiny_path, 'w') as outfile:
+        for fname in filenames:
+            with open(fname) as infile:
+                for line in infile:
+                    outfile.write(line)
+                    
+    
+    os.remove(path_header +'/header_file.txt')
+    os.remove(path)
