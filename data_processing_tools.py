@@ -25,15 +25,28 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     Ther list of geomagnetic disturbed days used is available
     on https://www.gfz-potsdam.de/en/kp-index/. It is update every month.
     
-    The data need to be a dataframe.
+    ------------------------------------------------------
     
-    December-2021 Fow now.
-     
-    Function(dataframe = Name of your dataframe ex: df_VSS,
-    starttime = date that you want to start removing DD,
-    endtime = the same thing )
+    Distubed days available until December-2021.
     
-    Ex  - remove_Disturbed_Days(df_NGK, start = '2010-01-01' , end = '2019-12-31')
+    --------------------------------------------------------
+    
+    Inputs:
+    
+    dataframe - a pandas dataframe with geomagnetic data.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    ---------------------------------------------------------------------
+    Example of use:
+    
+    remove_Disturbed_Days(df_NGK, starttime = '2010-01-01' , endtime = '2019-12-31')
+    
+    ----------------------------------------------------------------------
+    
+    Return a dataframe without the geomagnetic disturbed days.
     
     '''
     
@@ -85,15 +98,28 @@ def keep_Q_Days(dataframe, starttime, endtime):
     Ther list of geomagnetic quiet days used is available
     on https://www.gfz-potsdam.de/en/kp-index/. It is update every month.
     
-    The data need to be a pandas DataFrame.
+    --------------------------------------------------------------------------
     
-    October-2021 Fow now, the output is a data with only quiet days.
+    Quiet days are available until December-2021.
     
-    Implement to not be required to inform start and end period (only if the user want to)    
+    --------------------------------------------------------------------------
     
-    Function(dataframe = Name of your dataframe ex: df_VSS, start = date that you want to start removing DD, end = the same thing )
+    Inputs:
     
-    Ex  - keep_Q_Days(df_NGK, starttime = '2010-01-01' , endtime = '2019-12-31')
+    dataframe - a pandas dataframe with geomagnetic data.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    ---------------------------------------------------------------------------
+    Example of use:
+    
+    keep_Q_Days(dataframe = my_dataframe, starttime = '2010-01-01' , endtime = '2019-12-31')
+    
+    ---------------------------------------------------------------------------
+    Return a dataframe containing only geomagnetic quiet days.
+    
     '''
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
@@ -133,18 +159,30 @@ def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None)
     
     Two different methods are available, Annual differences of monthly means (ADMM) or Yearly differences (YD). 
     
+    -------------------------------------------------------------------------------------
     
     inputs:
+
+    dataframe - a pandas dataframe with geomagnetic data.
     
-    dataframe - a pandas dataframe with geomagnetic data
+    starttime - first day of the data (format = 'yyyy-mm-dd)
     
-    starttime - first day of the data
-    
-    endtime - last day of the data 
+    endtime - last day of the data (format = 'yyyy-mm-dd)
     
     method- 'ADMM' or 'YD'
     
-    columns - None if the columns ate X, Y and Z or must be passed.
+    columns - name of the geomagnetic components columns of your dataframe.
+              None if the columns are X, Y and Z or must be passed as a list.
+    
+    --------------------------------------------------------------------------------------------
+    Example of use:
+    
+    calculate_SV(dataframe = name_of_your_dataframe, starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',
+                 method = 'ADMM', columns = ['X','Y','Z']) 
+                
+    
+    --------------------------------------------------------------------------------------------
+    Return a dataframe with the secular variation
     
     '''
     
@@ -183,6 +221,27 @@ def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None)
 
 def Kp_index_correction(dataframe, starttime, endtime, kp):
     '''
+    Function o filter geomagnetic data based on Kp index
+    
+    ---------------------------------------------------------
+    inputs:
+    
+    dataframe - a pandas dataframe with geomagnetic data.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    kp = limit kp index value (float or int), from 0 to 9.
+    --------------------------------------------------------
+    Example of use:
+    
+    Kp_index_correction(dataframe = name_of_dataframe, starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',
+                        kp = 3.3)    
+    
+    ----------------------------------------------------------
+    return a dataframe filtered by the selected Kp-index
+    
     '''
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
@@ -197,13 +256,13 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     df = pd.DataFrame()
     df = dataframe
     
-    KP_ = pd.read_csv('Dados OBS/Kp_ap_since_1932.txt', skiprows = 30,
+    KP_ = pd.read_csv('Dados OBS/Data/Kp index/Kp_ap_since_1932.txt', skiprows = 30,
                   header = None,
                   sep = '\s+', 
                   usecols = [7,8],
                   names = ['Kp','Ap'],
                  )
-    Date = pd.date_range('1932-01-01 00:00:00','2021-12-08 21:00:00', freq = '3H')    
+    Date = pd.date_range('1932-01-01 00:00:00','2022-01-29 21:00:00', freq = '3H')    
     KP_.index = Date
     
     x=pd.DataFrame()
@@ -216,8 +275,37 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     
     return dataframe
 
-def chaos_model_provisory(station, starttime, endtime):
+def chaos_model_prediction(station, starttime, endtime):
     '''
+    Compute the CHAOS-7.9 model geomagnetic field prediction for a INTERMAGNET observatory.
+    
+    Hourly values are computed based on starttime and endtime
+    
+    Find the model in the website - http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+    
+    References
+    Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020),
+    The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly,
+    Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9
+    --------------------------------------------------------------------------------
+    Inputs:
+    
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    ----------------------------------------------------------------------------------
+    
+    Example of use:
+    chaos_model_prediction(station = 'VSS', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd')
+    
+    ----------------------------------------------------------------------------------
+    
+    return a dataframe with the X, Y and Z geomagnetic components CHAOS prediction for total field,
+    internal field and external field.
+    
     '''
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
@@ -229,63 +317,27 @@ def chaos_model_provisory(station, starttime, endtime):
     model = cp.load_CHAOS_matfile('chaosmagpy_package_0.8/data/CHAOS-7.9.mat')
     
     station = station.upper()
-    df_IMOS = pd.read_csv('IMOS_INTERMAGNET.txt', sep = '\s+')
-    df_IMOS.index = df_IMOS['Imos'] 
+    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
     
     
     R_REF = 6371.2
     
     if station not in df_IMOS.index:
         print('Station must be an observatory IAGA CODE!')
-        
-    f = []
-    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
-    f.sort()
+
+    Longitude = df_IMOS.loc[station]['Longitude']
     
-    
-    Longitude = pd.read_csv('Dados OBS/' + f[0][21:25] +'/' + f[0][25:27] + '/' + station + f[0][21:41],
-            nrows = 1, 
-            sep = ' ', 
-            usecols = [7],
-            header  = None,
-            names = ['Geodetic Longitude'],
-            index_col=None,
-            skiprows = 5)
-    
-    Longitude = Longitude['Geodetic Longitude'][0]
-    
-    Latitude = pd.read_csv('Dados OBS/' + f[0][21:25] +'/' + f[0][25:27] + '/' + station + f[0][21:41],
-            nrows = 1, 
-            sep = ' ', 
-            usecols = [8],
-            header  = None,
-            names = ['Geodetic Latitude'],
-            index_col=None,
-            skiprows = 4)
-    
-    Latitude = 90 - Latitude['Geodetic Latitude'][0]
-    
-    Elevation = pd.read_csv('Dados OBS/' + f[0][21:25] +'/' + f[0][25:27] + '/' + station + f[0][21:41],
-        nrows = 1, 
-        sep = ' ', 
-        usecols = [15],
-        header  = None,
-        names = ['Elevation'],
-        index_col=None,
-        skiprows = 6)   
-    
-    Elevation = Elevation['Elevation'][0]/1000 + R_REF
-    
-    #if Latitude < 0:
-    #    Latitude = 90 - Latitude
-    #else:
-    #    Latitude = Latitude
-    
-    
-    #start = cp.data_utils.mjd2000(starttime[0:4],starttime[5:7],starttime[8:10])
-    #end = cp.data_utils.mjd2000(endtime[0:4],endtime[5:7],endtime[8:10])        
-    
-    #print(end)
+
+    Latitude = 90 - df_IMOS.loc[station]['Latitude']
+ 
+
+    Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
+
     Date = pd.date_range(starttime,endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
     
@@ -315,12 +367,38 @@ def chaos_model_provisory(station, starttime, endtime):
                                    phi = Longitude, 
                                    source='all')
 
-    print('Computing field due to external sources, incl. induced field: SM.')
-    B_sm = model.synth_values_sm(time = Time,
+    if endtime <= '2021-06-30':
+        
+        print('Computing field due to external sources, incl. induced field: SM.')
+        B_sm = model.synth_values_sm(time = Time,
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
                                  source='all')
+    else:
+        Date_RC = pd.date_range(starttime,'2021-06-30' + ' 23:00:00', freq = 'H')
+        Date_NO_RC = pd.date_range('2021-07-01',endtime + ' 23:00:00', freq = 'H')
+        Time =cp.data_utils.mjd2000(Date_RC)
+        Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
+        
+        print('Computing field due to external sources, incl. induced field: SM.')
+        B_sm_with_rc = model.synth_values_sm(time = Time,
+                                 radius = Elevation,
+                                 theta = Latitude,
+                                 phi = Longitude,
+                                 source='all')
+        
+        B_sm_without_rc = model.synth_values_sm(time = Time_sm,
+                                 radius = Elevation,
+                                 theta = Latitude,
+                                 phi = Longitude,
+                                 source='all',rc_e = False, rc_i = False)
+        
+        B_sm = []
+        B_sm_x = np.append(B_sm_with_rc[0],B_sm_without_rc[0])
+        B_sm_y = np.append(B_sm_with_rc[1],B_sm_without_rc[1])
+        B_sm_z = np.append(B_sm_with_rc[2],B_sm_without_rc[2])
+        B_sm = [B_sm_x,B_sm_y,B_sm_z]
 
     # complete external field contribution
     B_radius_ext = B_gsm[0] + B_sm[0]
@@ -447,6 +525,32 @@ def INTERMAGNET_AND_CHAOS_COMPARISION(station, dataframe_Chaos, starttime, endti
         
 def external_field_correction_chaos_model(station, starttime, endtime,df_station = None, df_chaos = None):    
     '''
+    Correct the INTERMAGNET observatory data with the CHAOS-7.9 model external geomagnetic field prediction.
+    
+    Find the model in the website - http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+    
+    References
+    Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020),
+    The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly,
+    Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9
+    --------------------------------------------------------------------------------
+    Inputs:
+    
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    df_station - dataframe with INTERMAGNET data or None (compute the INTERMAGNET data)
+    
+    df_chaos - dataframe with CHAOS predicted data or None (compute the CHAOS model data)
+    
+    ----------------------------------------------------------------------------------
+    
+    Return a hourly mean dataframe corrected from CHAOS-7 model external field
+    
+    
     '''
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
@@ -458,8 +562,12 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
     
     station = station.upper()
     
-    df_IMOS = pd.read_csv('IMOS_INTERMAGNET.txt', sep = '\s+')
-    df_IMOS.index = df_IMOS['Imos'] 
+    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
     if station not in df_IMOS.index:
         print('Station must be an observatory IAGA CODE!')
         
@@ -471,7 +579,7 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
     
     else:
         
-        df_chaos = chaos_model_provisory(station = station,
+        df_chaos = chaos_model_prediction(station = station,
                                          starttime = starttime,
                                          endtime = endtime)
         
@@ -488,12 +596,15 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
         df_station = mvs.load_INTERMAGNET_files(station = station,
                                                   starttime = starttime,
                                                   endtime = endtime)
+        
         df_station = df_station.loc[starttime:endtime]
     df_station = df_station.resample('H').mean()
         
     df_station['X'] = df_station['X'] - df_chaos['X_ext']
     df_station['Y'] = df_station['Y'] - df_chaos['Y_ext']
-    df_station['Z'] = df_station['Z'] - df_chaos['Z_ext']    
+    df_station['Z'] = df_station['Z'] - df_chaos['Z_ext'] 
+    
+    df_station = resample_obs_data(df_station, 'H')
         
     return df_station, df_chaos    
 
@@ -512,6 +623,31 @@ def rms(predictions, real_data):
 def night_time_selection(station, dataframe, starttime, endtime):
     
     '''
+    Function to select the night time period (from 23 PM to 5 AM) from the geomagnetic data.
+     
+    ---------------------------------------------------------------------
+    Inputs:
+    
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    
+    dataframe - a pandas dataframe with geomagnetic data.
+    
+    dataframe - 3 letters IAGA code for a INTERMAGNET observatory.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    ---------------------------------------------------------------------------
+        
+    Example of use:
+    night_time_selection(station = 'VSS',dataframe = 'name_of_dataframe',
+                         starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd')
+    
+    ------------------------------------------------------------------------------
+    
+    return a dataframe with only the night time period.
+    
     '''
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
@@ -524,20 +660,15 @@ def night_time_selection(station, dataframe, starttime, endtime):
     f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
     f.sort()
     
-    Long = pd.read_csv('Dados OBS/' + f[0][21:25] +'/' + f[0][25:27] + '/' + station + f[0][21:41],
-            nrows = 1, 
-            sep = ' ', 
-            usecols = [7],
-            header  = None,
-            names = ['Geodetic Longitude'],
-            index_col=None,
-            skiprows = 5)
+    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
     
-    Longitude = Long['Geodetic Longitude'][0]
-   
-    if Longitude > 180:
-        Longitude = Longitude - 360 
-
+    Longitude = df_IMOS.loc[station]['Longitude']
+    
     dif =  Longitude/15
 
     
@@ -546,7 +677,6 @@ def night_time_selection(station, dataframe, starttime, endtime):
     
     df_lt = df.shift(round(dif, 3), freq = 'H')
     
-    #df_NT_lt = night_time_selection(df_lt,starttime, endtime)
     
     df_NT_lt = df_lt.drop(df_lt.loc[(df_lt.index.hour > 5) & (df_lt.index.hour < 23)].index).dropna()
     
@@ -560,6 +690,8 @@ def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     '''
     adopt piecewise linear segments on the secular variation
     
+    ---------------------------------------------------------------------------------
+    
     Inputs:
     
     station = IAGA code
@@ -568,6 +700,8 @@ def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     linear_segments = Number of linear segments, must be a list containing 3 numbers (one for each geomagnetic component)
     starttime = initial period
     endtime = final period
+    
+    --------------------------------------------------------------------------------
     
     usage example:
     jerk_detection(station = 'VSS', dataframe = df_VSS, linear_segments = [3,4,3],
