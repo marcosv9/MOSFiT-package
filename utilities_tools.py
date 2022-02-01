@@ -237,6 +237,10 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     List_Months = ['01','02','03','04','05','06','07','08','09','10','11','12']
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
     ftp.login('anonymous', 'email@email.com')
+    
+    if Months == None:
+        Months = List_Months
+        
     for month in Months:
         directory = 'Dados OBS/' + Year + '/' + month
         print(directory)
@@ -293,51 +297,3 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
                
-def download_obs_files_from_INTERMAGNET_ftp_server(path, destiny_path, files):
-    '''
-    Download observatory files from Intermagnet FTP server and save in your
-    destiny_path.
-    
-    Necessary implementations -
-    Automatically create the destiny_path if the user set a nonexistent folder
-    A more intelligent way to set the files
-    
-    
-    
-    Ex 
-    
-    download_obs_files_from_INTERMAGNET_ftp_server(path = 'intermagnet/minute/quasi-definitive/IAGA2002/2021/07',
-                                             destiny_path = 'C:\\test\\07\\',
-                                             files = 'thy*07*')
-        
-    
-    '''
-    
-#path = path
-    ftp = ftplib.FTP('seismo.nrcan.gc.ca')
-    ftp.login('anonymous', 'email@email.com')
-    ftp.cwd(path)
-
-
-#ftp.login('anonymous', 'email@email.com')
-    
-    print('Connected to Intermagnet FTP server')
-    filenames = ftp.nlst(files) # get filenames within the directory
-    filenames.sort()
-    print('List of files that will be downloaded')
-    for filename in filenames:
-
-        print(filename)
-#filename = 'box20200510dmin.min.gz'
-    while input("Do You Want To Continue? [y/n]") == "y":
-        for filename in filenames:    
-            print('File',filename, 'downloaded!')   
-            local_filename = os.path.join(destiny_path, filename)
-            file = open(local_filename, 'wb')
-            ftp.retrbinary('RETR '+ filename, file.write)
-
-            file.close()
-        break
-    ftp.quit()
-
-    print('Disconnected from INTERMAGNET Ftp server!')  
