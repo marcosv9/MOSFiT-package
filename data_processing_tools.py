@@ -82,7 +82,7 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     df_d = df_d.loc[first_day:last_day]
     
     for date in df_d.index.date:
-        disturbed_index = disturbed_index.append(df.loc[str(date)])
+        disturbed_index = pd.concat([disturbed_index,df.loc[str(date)]])
         
     
     df = df.drop(disturbed_index.index)
@@ -148,7 +148,7 @@ def keep_Q_Days(dataframe, starttime, endtime):
     df_q = df_q.loc[starttime:endtime]
 
     for date in df_q.index.date:
-        quiet_index = quiet_index.append(df.loc[str(date)])
+        quiet_index = pd.concat([quiet_index,df.loc[str(date)]])
     df = df.reindex(quiet_index.index).dropna()
 
     return df
