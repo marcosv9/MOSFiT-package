@@ -110,7 +110,7 @@ def load_INTERMAGNET_files(station, starttime, endtime):
     df_station.loc[df_station['Y'] >= 99999.0, 'Y'] = np.nan
     df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
 
-    df_station = df_station.loc[starttime:endtime]
+    df_station = df_station.sort_index().loc[starttime:endtime]
     
     return df_station
 
@@ -789,7 +789,12 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
     
     
     '''
-    df_imos = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt', sep = '\t')
+    df_imos = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
     
     External_reduce = ['QD','DD','NT','C']
     
@@ -801,7 +806,7 @@ def SV_(stations, starttime, endtime, external_reduce = None, file = None, hampe
         pass
     
     if stations == None:
-        for station in df_imos['Imos']:
+        for station in df_imos.index:
 
             df_station =  load_INTERMAGNET_files(station, starttime, endtime)
             if hampel_filter == True:
