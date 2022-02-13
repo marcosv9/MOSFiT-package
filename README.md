@@ -1,2 +1,2 @@
-# Automatic geomagnetic jerk detection 
+# Fast geomagnetic jerk detection 
 Python Functions
