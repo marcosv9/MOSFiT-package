@@ -15,6 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from Thesis_Marcos import thesis_functions as mvs
 from Thesis_Marcos import utilities_tools as utt
+from Thesis_Marcos import support_functions as spf
 
 
 def remove_Disturbed_Days(dataframe, starttime, endtime):
@@ -59,7 +60,7 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     
     disturbed_index = pd.DataFrame()
     
-    df_d = pd.read_csv('Dados OBS/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
+    df_d = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
                        skiprows = 1, 
                      usecols = [0],
                      names = ['dd'],
@@ -128,7 +129,7 @@ def keep_Q_Days(dataframe, starttime, endtime):
     
     quiet_index = pd.DataFrame()
 
-    df_q = pd.read_csv('Dados OBS/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
+    df_q = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
                        header = None,
                        skiprows = 1, 
                      usecols = [0],
@@ -257,7 +258,7 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     df = pd.DataFrame()
     df = dataframe
     
-    KP_ = pd.read_csv('Dados OBS/Data/Kp index/Kp_ap_since_1932.txt', skiprows = 30,
+    KP_ = pd.read_csv('Data/Kp index/Kp_ap_since_1932.txt', skiprows = 30,
                   header = None,
                   sep = '\s+', 
                   usecols = [7,8],
@@ -319,7 +320,7 @@ def chaos_model_prediction(station, starttime, endtime):
     model = cp.load_CHAOS_matfile('chaosmagpy_package_0.8/data/CHAOS-7.9.mat')
     
     station = station.upper()
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
@@ -473,7 +474,7 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
     
     station = station.upper()
     
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
@@ -592,7 +593,7 @@ def night_time_selection(station, dataframe, starttime, endtime):
     f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
     f.sort()
     
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
