@@ -14,6 +14,7 @@ import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from Thesis_Marcos import thesis_functions as mvs
+from Thesis_Marcos import support_functions as spf
 
 
 def update_qd_and_dd(data):
@@ -24,7 +25,7 @@ def update_qd_and_dd(data):
     if data not in ['DD','QD']:
         print('Data must be QD or DD!')
         
-    path = 'Dados OBS/Data/Disturbed and Quiet Days/' 
+    path = 'Thesis_Marcos/Data/Disturbed and Quiet Days/' 
     files = glob.glob(path + 'qd*')
     files.sort()
     
@@ -133,7 +134,7 @@ def Header_SV_obs_files(station,
     df_station.index = pd.to_datetime(df_station.index,infer_datetime_format=True)
 
 
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
@@ -258,7 +259,7 @@ def Header_SV_files(station, data_denoise, external_correction, chaos_model):
     df_station.index = pd.to_datetime(df_station.index,infer_datetime_format=True)
 
 
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
