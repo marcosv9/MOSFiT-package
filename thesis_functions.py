@@ -915,7 +915,7 @@ def SV_(stations,
     '''
     
     
-    df_imos = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
