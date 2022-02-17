@@ -1,3 +1,4 @@
+
 ##  About Me
 I'm a Marcos Vinicius Silva...
 
@@ -27,3 +28,14 @@ To use the developed funtions, is necessary to import them. I suggest to use the
 ```
 
 
+## SV_OBS Usage
+
+SV_OBS is the main funcion, allowing the user to process the geomagnetic data in a interactive workflow, using most of the available data_processing functions.
+
+
+```python
+
+SV_OBS(station = 'VSS',
+stattime = '2000-01-01,
+endtime = '2021-06-30')}
+```
