@@ -36,7 +36,5 @@ SV_OBS is the main funcion, allowing the user to process the geomagnetic data in
 
 ```python
 
-SV_OBS(station = 'VSS',
-stattime = '2000-01-01,
-endtime = '2021-06-30')}
+SV_OBS(station = 'VSS', stattime = '2000-01-01, endtime = '2021-06-30', plot_chaos = True, convert_HDZ_to_XYZ = True)
 ```
