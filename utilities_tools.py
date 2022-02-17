@@ -14,6 +14,7 @@ import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from Thesis_Marcos import thesis_functions as mvs
+from Thesis_Marcos import support_functions as spf
 
 
 def check_data_availability(station):
@@ -150,7 +151,7 @@ def HDZ_to_XYZ_conversion(station,
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
     for i in [starttime,endtime]:
-        spt.validate(i)
+        spf.validate(i)
         
         
     
