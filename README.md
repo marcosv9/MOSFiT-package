@@ -20,6 +20,8 @@ The functions are separetade in data processing, utility, support and main funct
 
 To use the developed funtions, is necessary to import them. I suggest to use the following statements.
 
+![](figures/workflow.png)
+
 ```bash
   from Thesis_Marcos import data_processing_tools as dpt
   from Thesis_Marcos import utilities_tools as utt
