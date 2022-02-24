@@ -20,8 +20,6 @@ The functions are separetade in data processing, utility, support and main funct
 
 To use the developed funtions, is necessary to import them. I suggest to use the following statements.
 
-![](figures/workflow.png)
-
 ```bash
   from Thesis_Marcos import data_processing_tools as dpt
   from Thesis_Marcos import utilities_tools as utt
@@ -34,10 +32,9 @@ To use the developed funtions, is necessary to import them. I suggest to use the
 
 SV_OBS is the main funcion, allowing the user to process the geomagnetic data in a interactive workflow, using most of the available data_processing functions.
 
+![](figures/worflow.png)
 
 ```python
 
-SV_OBS(station = 'VSS',
-stattime = '2000-01-01,
-endtime = '2021-06-30')}
+SV_OBS(station = 'VSS', stattime = '2000-01-01, endtime = '2021-06-30', plot_chaos = True, convert_HDZ_to_XYZ = True)
 ```
