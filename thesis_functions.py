@@ -68,6 +68,8 @@ def load_INTERMAGNET_files(station, starttime, endtime):
     L_26 = ['NGK','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT']
     
     skiprows = 26
+    if station == 'EBR' and endtime >= '2021-01-01':
+        skiprows = 32
     if station.upper() in L_27:
         skiprows = 27
     if station.upper() in L_26:
@@ -130,7 +132,8 @@ def SV_obs(station,
     
     -------------------------------------------
     
-    Option to save plot and text files of minute, hourly, daily, monthly, annual means and secular variation.
+    Option to save plot and text files of minute, hourly, daily,
+    monthly, annual means and secular variation.
     
     --------------------------------------------
     
@@ -142,7 +145,8 @@ def SV_obs(station,
     
     endtime - last day of the data (format = 'yyyy-mm-dd)
     
-    plot_chaos - boolean (True or False). If the CHAOS model prediction was computed, Will be plotted the comparisons.
+    plot_chaos - boolean (True or False). If the CHAOS model prediction was computed,
+                 Will be plotted the comparisons.
     
     convert_HDZ_to_XYZ - boolean (True or False). 
     
@@ -183,7 +187,7 @@ def SV_obs(station,
     while True: 
         inp5 = input("Do You Want To denoise the data based on median absolute deviation? [y/n]: ")
         if inp5 == 'y':
-            print('Denoising data...')
+            
             df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                      window_size = 100,
                                                      n_sigmas=3,
@@ -231,11 +235,11 @@ def SV_obs(station,
         print('No action')
         
     # condition for data resampling - not in use
-    resample_condition = []
-    if inp not in ['Q','D','NT']:
-        resample_condition = True
-    else:
-        resample_condition = False    
+    resample_condition = False
+    #if inp not in ['Q','D','NT']:
+    #    resample_condition = True
+    #else:
+    #    resample_condition = False    
         
     #CHAOS model correction interaction
     
@@ -494,6 +498,21 @@ def SV_obs(station,
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             ax[2,0].grid()
             
+            if First_QD_data != []:
+                #computing date for SV
+                SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+                
+                ax[0,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[1,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[2,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                ax[0,1].legend()
+                ax[1,1].legend()
+                ax[2,1].legend()
             plt.savefig(directory + '/' + station + '_Var_SV.jpeg', bbox_inches='tight')
             plt.show()      
             
@@ -520,6 +539,23 @@ def SV_obs(station,
             ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
+            
+            if First_QD_data != []:
+                #computing date for SV
+                SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+                
+                ax[0].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[2].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                ax[0].legend()
+                ax[1].legend()
+                ax[2].legend()
+            
             
             plt.savefig(directory + '/' + station + '_SV.jpeg', bbox_inches='tight')
             plt.show()
@@ -657,9 +693,9 @@ def SV_obs(station,
                 ax[2].grid()
                 
                 if First_QD_data != []:
-                    ax[0].plot(df_station.loc[df_station.index > First_QD_data]['X'],'o-', color = 'red',label = 'Quasi-definitive data')
-                    ax[1].plot(df_station.loc[df_station.index > First_QD_data]['Y'],'o-', color = 'red',label = 'Quasi-definitive data')
-                    ax[2].plot(df_station.loc[df_station.index > First_QD_data]['Z'],'o-', color = 'red',label = 'Quasi-definitive data')
+                    ax[0].plot(df_station.loc[df_station.index > First_QD_data]['X'],'-', color = 'red',label = 'Quasi-definitive data')
+                    ax[1].plot(df_station.loc[df_station.index > First_QD_data]['Y'],'-', color = 'red',label = 'Quasi-definitive data')
+                    ax[2].plot(df_station.loc[df_station.index > First_QD_data]['Z'],'-', color = 'red',label = 'Quasi-definitive data')
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
@@ -723,6 +759,21 @@ def SV_obs(station,
             ax[2,0].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             ax[2,0].grid()
+            if First_QD_data != []:
+                #computing date for SV
+                SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+                
+                ax[0,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[1,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[2,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                ax[0,1].legend()
+                ax[1,1].legend()
+                ax[2,1].legend()
             
             plt.show()      
             
@@ -749,6 +800,21 @@ def SV_obs(station,
             ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
+            if First_QD_data != []:
+                #computing date for SV
+                SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+                
+                ax[0].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                
+                ax[2].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
+                             'o', color  = 'red',label = 'Quasi-definitive')
+                ax[0].legend()
+                ax[1].legend()
+                ax[2].legend()
             
             plt.show()
             
@@ -875,11 +941,15 @@ def SV_(stations,
     
     endtime - must be a date, 'yyyy-mm-dd' format
     
-    external_reduction - must be 'QD', 'DD', 'NT', 'C' or None 
+    jerk_start_window - first day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    jerk_end_window - last day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    external_reduction - must be 'QD', 'DD', 'NT' or None 
                *QD for keep quiet days
                *DD for remove disturbed days
                *NT for Night time selection
-               *C use CHAOS Model predicted external field
+               
     
     CHAOS_correction - boolean, option to correct the geomagnetic data with the CHAOS-model.
     
@@ -955,7 +1025,7 @@ def SV_(stations,
                 df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                          window_size = 100,
                                                          n_sigmas=3,
-                                                         plot_figure = False)
+                                                         plot_figure = True)
             else:
                 pass
             if external_reduction == None:
@@ -1053,9 +1123,9 @@ def SV_(stations,
             fig, ax = plt.subplots(3,1, figsize = (16,10))
             
             if plot_chaos == True and CHAOS_correction == True:
-                ax[0].plot(df_SV_chaos['X_int'],'o-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
-                ax[1].plot(df_SV_chaos['Y_int'],'o-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
-                ax[2].plot(df_SV_chaos['Z_int'],'o-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+                ax[0].plot(df_SV_chaos['X_int'],'o-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'o-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'o-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
                 ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
                 ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
                 ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
@@ -1093,9 +1163,9 @@ def SV_(stations,
             
             fig, ax = plt.subplots(3,1, figsize = (8,6.5))
             if plot_chaos == True and CHAOS_correction == True:
-                ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color  = 'red')
-                ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color  = 'red')
-                ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color  = 'red')
+                ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color  = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color  = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color  = 'red')
                 ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
                 ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
                 ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
@@ -1185,7 +1255,7 @@ def SV_(stations,
             df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                      window_size = 100,
                                                      n_sigmas=3,
-                                                     plot_figure = False)
+                                                     plot_figure = True)
         else:
             pass
         
@@ -1275,9 +1345,9 @@ def SV_(stations,
         
         if plot_chaos == True and CHAOS_correction == True:
             
-            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
-            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
-            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
             ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
             ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
             ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
@@ -1324,9 +1394,9 @@ def SV_(stations,
         
         fig, ax = plt.subplots(3,1, figsize = (16,10))
         if plot_chaos == True and CHAOS_correction == True:
-            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red')  #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
-            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red')  #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
-            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red')  #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
             ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
             ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
             ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
@@ -1407,7 +1477,7 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
-                ax.plot(df_station[col],'o-',color = color)
+                ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
                 ax.grid()
@@ -1429,11 +1499,11 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
-                ax.plot(df_station[col],'o-',color = color)
+                ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
                 ax.grid()
-                ax.plot(df_station.loc[df_station.index > First_QD_data][col],'o-', color = 'red', label = 'Quasi-definitive data')
+                ax.plot(df_station.loc[df_station.index > First_QD_data][col],'-', color = 'red', label = 'Quasi-definitive data')
                 ax.legend()
                 
             plt.show()
@@ -1454,7 +1524,7 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
-                ax.plot(df_station[col],'o-',color = color)
+                ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
                 ax.grid()
@@ -1479,10 +1549,10 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
-                ax.plot(df_station[col],'o-',color = color)
+                ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
-                ax.plot(df_station.loc[df_station.index > First_QD_data][col],'o-', color = 'red', label = 'Quasi-definitive data')
+                ax.plot(df_station.loc[df_station.index > First_QD_data][col],'-', color = 'red', label = 'Quasi-definitive data')
                 ax.legend()
                 ax.grid()
                 

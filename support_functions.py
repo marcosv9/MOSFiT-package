@@ -147,7 +147,7 @@ def Header_SV_obs_files(station,
               str(df_IMOS.loc[station.upper()]['Latitude'].round(2))
               +'\nLongitude ' + 
               str(df_IMOS.loc[station.upper()]['Longitude'].round(2)) +
-              '\nElevation' +
+              '\nElevation ' +
               str(df_IMOS.loc[station.upper()]['Elevation'].round(2)) +
               '\nData denoise: ' +
               denoise_options[data_denoise] +

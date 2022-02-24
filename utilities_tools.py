@@ -15,6 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from Thesis_Marcos import thesis_functions as mvs
 from Thesis_Marcos import support_functions as spf
+from Thesis_Marcos import data_processing_tools as dpt
 
 
 def check_data_availability(station):
@@ -32,7 +33,6 @@ def check_data_availability(station):
     print('The first available date for ' + station.upper() + ' is ' +  f[0][21:29])
     print('The last available date for '  + station.upper() + ' is ' +  f[-1][21:29])
             
-
 def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     
     '''
@@ -112,8 +112,7 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
                     break
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
-               
-    
+                   
 def HDZ_to_XYZ_conversion(station,
                           dataframe,
                           starttime,

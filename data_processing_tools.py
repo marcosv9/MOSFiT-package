@@ -80,8 +80,11 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     df_d = df_d.loc[first_day:last_day]
     
     for date in df_d.index.date:
-        disturbed_index = pd.concat([disturbed_index,df.loc[str(date)]])
-        
+        try:
+            disturbed_index = pd.concat([disturbed_index,df.loc[str(date)]])
+        except:
+            pass
+
     
     df = df.drop(disturbed_index.index)
     
@@ -302,7 +305,9 @@ def chaos_model_prediction(station, starttime, endtime):
     ----------------------------------------------------------------------------------
     
     Example of use:
-    chaos_model_prediction(station = 'VSS', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd')
+    chaos_model_prediction(station = 'VSS',
+                           starttime = 'yyyy-mm-dd',
+                           endtime = 'yyyy-mm-dd')
     
     ----------------------------------------------------------------------------------
     
@@ -518,10 +523,12 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
     df_station['Y'] = df_station['Y'] - df_chaos['Y_ext']
     df_station['Z'] = df_station['Z'] - df_chaos['Z_ext'] 
     
-    df_station = resample_obs_data(df_station, 'H', apply_percentage = False)   
+    df_station = resample_obs_data(df_station,
+                                   'H',
+                                    apply_percentage = False)   
     
     print('The external field predicted using CHAOS-model was removed from the data.')
-    return df_station, df_chaos    
+    return df_station.loc[starttime:endtime], df_chaos    
 
 def rms(predictions, real_data):
     '''
@@ -574,8 +581,10 @@ def night_time_selection(station, dataframe, starttime, endtime):
     ---------------------------------------------------------------------------
         
     Example of use:
-    night_time_selection(station = 'VSS',dataframe = 'name_of_dataframe',
-                         starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd')
+    night_time_selection(station = 'VSS',
+                         dataframe = name_of_dataframe,
+                         starttime = 'yyyy-mm-dd',
+                         endtime = 'yyyy-mm-dd')
     
     ------------------------------------------------------------------------------
     
@@ -651,8 +660,11 @@ def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     --------------------------------------------------------------------------------
     
     usage example:
-    jerk_detection(station = 'VSS', dataframe = df_VSS, linear_segments = [3,4,3],
-                   starttime = '2005-01-01', endtime = '2021-09-30')
+    jerk_detection(station = 'VSS',
+                   dataframe = df_VSS,
+                   linear_segments = [3,4,3],
+                   starttime = '2005-01-01',
+                   endtime = '2021-09-30')
     
     '''
     
@@ -745,7 +757,7 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
     
     Inputs:
     
-    dataframe - pandas dataframe 
+    dataframe - a pandas dataframe with geomagnetic data. 
     
     window_size - integer, size of the moving window to calculate the absolute median
     
@@ -764,6 +776,7 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
     
     dataframe = resample_obs_data(dataframe,'H')
     denoised_dataframe = dataframe.copy()
+    print('Denoising the data')
     for column in dataframe:
         
         n = len(dataframe[column])
@@ -792,103 +805,35 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
         
     return denoised_dataframe
 
-def polynomial_jerk_detection(station, window_start, 
-                              window_end, 
-                              starttime, 
-                              endtime,
-                              df_station = None,
-                              plot_detection: bool = True,
-                              CHAOS_correction: bool = True):
-    
-    for i in [starttime,endtime,window_start,window_end]:
-        spf.validate(i)
-        
-    assert len(station) == 3, 'station must be a three letters IAGA Code'
-    
-    assert isinstance(df_station,pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
-     
-    station = station
-    window_start = window_start
-    window_end = window_end
-    starttime = starttime
-    endtime = endtime
-    
-        
-    if df_station is not None:
-        
-        df_station = df_station
-        
-    else:
-        df_station = mvs.load_INTERMAGNET_files(station = station, starttime = starttime, endtime = endtime)
-        
-    if CHAOS_correction == True:
-        
-        df_station, df_chaos = external_field_correction_chaos_model(station = station,
-                                                  starttime = starttime,
-                                                  endtime = endtime,
-                                                  df_station = df_station,
-                                                  df_chaos = None)
-    else:
-        pass
-    
-    #calculating SV
-    df_SV = calculate_SV(dataframe = df_station, starttime = starttime, endtime = endtime, info = 'ADMM', columns = None)
-    
-    #starting with polynomial jerk detection
-    
-    t = np.arange(0,df_SV.loc[window_start:window_end].size/3).reshape(-1,1)
-    jerk_prediction = pd.DataFrame()
-    jerk_prediction.index = df_SV.loc[window_start:window_end].index
-    
-    for column in df_SV:
 
-        polynomial_features= PolynomialFeatures(degree=3)
-        x_poly = polynomial_features.fit_transform(t)
-        
-        model = LinearRegression()
-        model.fit(x_poly, df_SV[column].loc[window_start:window_end])
-        jerk_prediction[column] = model.predict(x_poly)
-        
-    if plot_detection == True:
-        colors = ['blue','green','black']
-        fig, axes = plt.subplots(3,1,figsize = (10,8))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
-        plt.xlabel('Date (Years)', fontsize = 12)
-        
-        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
-            ax.plot(df_SV[col],'o-',color = color)
-            ax.plot(df_SV[col].loc[window_start:window_end].index,
-                    jerk_prediction[col],color = 'red', linewidth = 3, label = '3rd order polynomial')
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-            ax.legend()
-        
-        
-        fig, axes = plt.subplots(1,3,figsize = (16,4))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
-        fig.text(0.5, 0.04, 'Date (Years)', ha='center')
-     
-        upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
-        lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
-
-        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
-            ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],'o-',color = color)
-            ax.plot(jerk_prediction[col],color = 'red', linewidth = 3)
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-            
-        
-        
-    else:
-        pass
-        
-    return df_SV, jerk_prediction 
 
 def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
     '''
     Resample a pd.DataFrame to hourly, daily, monthly or annual means
     
-    The new sample is set in the middle of the sample range. Example daily mean is set in the middle of the day, 12h.
+    The new sample is set in the middle of the sample range. 
     
+    Example daily mean is set in the middle of the day, 12h.
     
+    ------------------------------------------------------------------------
+    Inputs:
+    
+    dataframe - a pandas dataframe with geomagnetic data. 
+    
+    sample - string, must be 'min','H','D','M' or 'Y'
+             *min - minute mean data
+             *H - Hourly mean data
+             *D - Daily mean data
+             *M - Monthly mean data
+             *Y - Annual mean data
+    
+    ---------------------------------------------------------------------
+    Use example:
+    resample_obs_data(dataframe = my_data,
+                      sample = 'M',
+                      apply_percentage = False)
+    
+    Return a pandas dataframe converted for the selected sample
     '''
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe.'
@@ -905,7 +850,9 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
         if sample == 'min' and apply_percentage == False:
             
             df_station = df_station
+
         if sample == 'min' and apply_percentage == True:
+
             df_station = df_station
             
         if sample == 'H' and apply_percentage == False:
@@ -918,13 +865,16 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
             tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if tmp['count'].median().any() <= 1:
+            if (tmp['count'].median().any()) <= 1 == True:
+
+                df_station = df_station.resample('H').mean()
                 
                 df_station = tmp['mean'].where(tmp['count']>=1*0.85)
             else:
                 df_station = tmp['mean'].where(tmp['count']>=60*0.85)
             
-            #df_station = df_station.resample('H').mean()
+            df_station = df_station.resample('H').mean()
+
             df_station.index = df_station.index + to_offset('30min')
             
         if sample == 'D' and apply_percentage == False:
@@ -932,11 +882,13 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             df_station = df_station.resample('D').mean()
             df_station.index = df_station.index + to_offset('12H')        
         
-        if sample == 'D' and apply_percentage == True:
+        elif sample == 'D' and apply_percentage == True:
             
             tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if tmp['count'].median().any() <= 30:
+            if (tmp['count'].median().any()) <= 30 == True:
+
+                df_station = df_station.resample('H').mean()
                 
                 df_station = tmp['mean'].where(tmp['count']>=24*0.85)
                 
@@ -944,7 +896,7 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
                 df_station = tmp['mean'].where(tmp['count']>=1440*0.85)
             
-            #df_station = df_station.resample('D').mean()
+            df_station = df_station.resample('D').mean()
             df_station.index = df_station.index + to_offset('12H')
             
         if sample == 'M' and apply_percentage == False:
@@ -957,25 +909,30 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
             tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if tmp['count'].median().any() <= 800:
+            if (tmp['count'].median().any() <= 800) == True:
+
+                df_station = df_station.resample('H').mean()
+
                 tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
 
             else:
             #tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
                 tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24*60
-                
-                
+            #print(tmp['count'].median())    
+            #print(tmp['full day'])    
             X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['full day']*0.85]
             Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['full day']*0.85]
             Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.85]
 
             
-            df_station = pd.DataFrame()
-            df_station['X'] = X
-            df_station['Y'] = Y
-            df_station['Z'] = Z
+            df_station_resampled = pd.DataFrame()
+            df_station_resampled.index = df_station.index
+            df_station_resampled['X'] = X
+            df_station_resampled['Y'] = Y
+            df_station_resampled['Z'] = Z
             
-            #df_station = df_station.resample('M').mean()
+            df_station = df_station_resampled
+            df_station = df_station.resample('M').mean()
             df_station.index = df_station.index + to_offset('-1M') + to_offset('15D')
             
             
@@ -992,7 +949,9 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             tmp = df_station.groupby(pd.Grouper(freq='Y')).agg(['mean','count']).swaplevel(0,1,axis=1)
             tmp['Days'] = Days['Days'].resample('Y').sum()
             
-            if tmp['count'].median().any() <= 8784:
+            if (tmp['count'].median().any()) <= 8784:
+                df_station = df_station.resample('H').mean()
+
                 X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.85*24]
                 Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.85*24]
                 Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.85*24]
@@ -1002,10 +961,11 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
                 Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.85*24*60]
                 Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.85*24*60]
             
-            df_station = pd.DataFrame()
+            
             df_station['X'] = X
             df_station['Y'] = Y
             df_station['Z'] = Z
+            df_station = df_station.resample('Y').mean()
             df_station.index = df_station.index + to_offset('-6M') + to_offset('-15D')
             
     return df_station
@@ -1019,6 +979,55 @@ def jerk_detection_window(station, window_start,
                               plot_detection: bool = True,
                               CHAOS_correction: bool = True,
                               plot_CHAOS_prediction:bool = False):
+    '''
+    Geomagnetic jerk detection based on two linear segments adoption in a
+    chosen time window.
+    
+    ----------------------------------------------------------
+    Inputs:
+    
+    station - String, 3 letters IAGA code.
+    
+    window_start - first day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    window_end - last day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    df_station - Must be a pandas dataframe with the geomagnetic data or None.
+                 If None, the data will be computed using load_INTERMAGNET_files.
+    
+    df_CHAOS - Must be a pandas dataframe with the predicted CHAOS geomagnetic data or None.
+               If None, the data will be computed using chaos_model_prediction.
+    
+    plot_detection - boolean (True or False). If True, the jerk detection will be shown.
+    
+    CHAOS_correction - boolean (True or False). If True, the geomagnetic data from 'df_station'
+                       will be corrected using the CHAOS-model prediciton
+                       
+    plot_CHAOS_prediction - boolean (True or False). If True, the SV from CHAOS will be shown.
+    
+    -----------------------------------------------------------------------
+    Use example:
+        jerk_detection_window(station = 'ngk',
+                              window_start = '2012-01-15', 
+                              window_end = '2018-01-15', 
+                              starttime = '2005-01-01', 
+                              endtime = '2021-06-30',
+                              df_station = None,
+                              df_CHAOS = None,
+                              plot_detection = True,
+                              CHAOS_correction = True,
+                              plot_CHAOS_prediction=True)
+                              
+    -----------------------------------------------------------------------
+    Return - plots of the SV and the jerk detection for X, Y and Z.
+             Jerk occurence time (t0)
+             Jerk amplitude
+             R² between the data and the linear segments.
+    '''
     
     for i in [starttime,endtime,window_start,window_end]:
         spf.validate(i)
@@ -1069,6 +1078,8 @@ def jerk_detection_window(station, window_start,
                              endtime = endtime,
                              method = 'ADMM',
                              columns = None)
+    if plot_CHAOS_prediction == False:
+        pass
     
     if CHAOS_correction and plot_CHAOS_prediction == True:
         
@@ -1085,14 +1096,13 @@ def jerk_detection_window(station, window_start,
     
     df_jerk_window.index = df_SV.loc[window_start:window_end].index
     
-    z = pd.DataFrame()
+    date_jerk = []
+    for date in df_jerk_window.index:
+        date_jerk.append(spf.date_to_decinal_year_converter(date))
+    
+    breakpoints = pd.DataFrame()
     #starting with window jerk detection
     
-    #t = np.arange(0,df_SV.loc[window_start:window_end].size/3).reshape(-1,1)
-    #jerk_prediction = pd.DataFrame()
-    #jerk_prediction.index = df_SV.loc[window_start:window_end].index
-    
-    X = np.arange(0,len(df_jerk_window.index))
     
     df_slopes = pd.DataFrame()
     #rsq = pd.DataFrame()
@@ -1103,9 +1113,9 @@ def jerk_detection_window(station, window_start,
     
     for column in df_SV.columns:
 
-        myPWLF = pwlf.PiecewiseLinFit(X,df_SV.loc[window_start:window_end][column])
+        myPWLF = pwlf.PiecewiseLinFit(date_jerk,df_SV.loc[window_start:window_end][column])
         
-        z[column] = myPWLF.fit(2)
+        breakpoints[column] = myPWLF.fit(2)
         
         #calculate slopes
         slopes = myPWLF.calc_slopes()
@@ -1113,101 +1123,107 @@ def jerk_detection_window(station, window_start,
         
         #calculate r_squared
         
-        print('\nR^2 for the ' + column + ' component: ' + str((myPWLF.r_squared()).round(2)))
+
+        
 
         #se = myPWLF.se
         #print(se)
-        xHat = X 
+        xHat = date_jerk
         yHat = myPWLF.predict(xHat)
         
         df_jerk_window[str(column)] = yHat
         
+        print('\n' + station.upper() + ' Jerk statistics for the ' + column + ' component.')
+        print('\nJerk occurence time -t0-: ' + str(breakpoints[column][1].round(2)))
+        print('Jerk amplitute: ' + str(df_slopes[column].diff()[1].round(2)))
+        print('R^2: ' + str((myPWLF.r_squared()).round(2)))
+        print('\n****************************************************************')
         #for i in range(myPWLF.n_segments):
         #    eqn_list.append(get_symbolic_eqn(myPWLF, i + 1))
         #    #print('Equation number: ',(i + 1) + 'for ' + str(column) + 'component')
         #    print(eqn_list[-1])
         #    #f_list.append(lambdify(x, eqn_list[-1]))
-        
-    if plot_detection == True and plot_CHAOS_prediction == False or CHAOS_correction == False:
-        colors = ['blue','green','black']
-        fig, axes = plt.subplots(3,1,figsize = (10,8))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
-        plt.xlabel('Date (Years)', fontsize = 12)
-        
-        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
-            ax.plot(df_SV[col],'o-',color = color)
-            ax.plot(df_jerk_window[col].index,
-                    df_jerk_window[col],color = 'red', linewidth = 3, label = 't0 ' + 
-                    str(round((df_jerk_window.index[int(z[col][1].round())].year+
-                               (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
-            ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-            ax.legend()
-        
-        
-        fig, axes = plt.subplots(1,3,figsize = (16,4))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
-        fig.text(0.5, 0.04, 'Date (Years)', ha='center')
-     
-        upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
-        lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
-
-        for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+    if plot_detection == False:
+        pass
+    else:
+        if plot_detection == True and plot_CHAOS_prediction == False or CHAOS_correction == False:
+            colors = ['blue','green','black']
+            fig, axes = plt.subplots(3,1,figsize = (10,8))
+            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
+            plt.xlabel('Date (Years)', fontsize = 12)
             
-            ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],'o-',color = color)
-            ax.plot(df_jerk_window[col],color = 'red', linewidth = 3)
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+            for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+                ax.plot(df_SV[col],'o-',color = color)
+                ax.plot(df_jerk_window[col].index,
+                        df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection') 
+                        #label = 'JOT ' + 
+                        #str(round((df_jerk_window.index[int(z[col][1].round())].year+
+                        #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
+                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+                ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
+                ax.legend()
+            
+            
+            fig, axes = plt.subplots(1,3,figsize = (16,4))
+            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
+            fig.text(0.5, 0.04, 'Date (Years)', ha='center')
+         
+            upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
+            lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
     
-    elif plot_detection and plot_CHAOS_prediction and CHAOS_correction == True:
+            for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+                
+                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],'o-',color = color)
+                ax.plot(df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection')
+                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
         
-        colors = ['blue','green','black']
-        fig, axes = plt.subplots(3,1,figsize = (12,10))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
-        plt.xlabel('Date (Years)', fontsize = 12)
-        
-        for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV.columns, axes.flatten(), colors):
-            ax.plot(df_SV[col],'o-',color = color)
+        elif plot_detection and plot_CHAOS_prediction and CHAOS_correction == True:
             
-            ax.plot(df_CHAOS_SV[chaos_col],
-                    '-',
-                    linewidth = 2,
-                    label = 'CHAOS prediction')
+            colors = ['blue','green','black']
+            fig, axes = plt.subplots(3,1,figsize = (12,10))
+            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
+            plt.xlabel('Date (Years)', fontsize = 12)
             
-            ax.plot(df_jerk_window[col].index,
-                    df_jerk_window[col],color = 'red', linewidth = 3, label = 't0 ' + 
-                    str(round((df_jerk_window.index[int(z[col][1].round())].year+
-                               (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
-            ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-            ax.legend()
-        plt.show()
-        
-        
-        fig, axes = plt.subplots(1,3,figsize = (16,4))
-        plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
-        fig.text(0.5, 0.04, 'Date (Years)', ha='center')
-     
-        upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
-        lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
-
-        for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV, axes.flatten(), colors):
+            for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV.columns, axes.flatten(), colors):
+                ax.plot(df_SV[col],'o-',color = color)
+                
+                ax.plot(df_CHAOS_SV[chaos_col],
+                        '-',
+                        linewidth = 2,
+                        label = 'CHAOS prediction')
+                
+                ax.plot(df_jerk_window[col].index,
+                        df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection') 
+                        #label = 't0 ' + 
+                        #str(round((df_jerk_window.index[int(z[col][1].round())].year+
+                        #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
+                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+                ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
+                ax.legend()
             
-            ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
-                    'o-',
-                    color = color)
             
-            ax.plot(df_CHAOS_SV[chaos_col].loc[str(lower_limit):str(upper_limit)],
-                    '-',
-                    linewidth = 2,
-                    label = 'CHAOS prediction')
-            
-            ax.plot(df_jerk_window[col],color = 'red', linewidth = 3)
-            ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-            ax.legend()
-        plt.show()
-        
-        
+            fig, axes = plt.subplots(1,3,figsize = (14,6))
+            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
+            fig.text(0.5, 0.04, 'Date (Years)', ha='center')
+         
+            upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
+            lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
     
-    return df_jerk_window, df_slopes
-
-
+            for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV, axes.flatten(), colors):
+                
+                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
+                        'o-',
+                        color = color)
+                
+                ax.plot(df_CHAOS_SV[chaos_col].loc[str(lower_limit):str(upper_limit)],
+                        '-',
+                        linewidth = 2,
+                        label = 'CHAOS prediction')
+                
+                ax.plot(df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection')
+                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+                ax.legend()
+            
+            
+        
+    return df_jerk_window, df_slopes,breakpoints
