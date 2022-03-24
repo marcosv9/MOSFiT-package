@@ -115,6 +115,15 @@ def Header_SV_obs_files(station,
     
     
     '''  
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    
     path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'_preliminary.txt'
     path_header = 'Filtered_data/'+ station +'_data'
     destiny_path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'.txt'
@@ -188,58 +197,80 @@ def data_type(station, starttime, endtime):
     
     
     '''
-    year  = []
-    for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
-        Y = i
-        year.append(Y)
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
     
-    Years = []
-    Years.extend([str(i) for i in year])
-    Years
-    #print(starttime)
-    files_station = []
-
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
     
-    for Year in Years:
-
-    
-        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
-        files_station.sort()
-
-    #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
-    df_data_type = pd.DataFrame()
-    df_data_type = pd.concat( (pd.read_csv(file,sep = '\s+',
-                                         header = None,                                         
-                                         skiprows = 11,
-                                         nrows = 20,
-                                         usecols = [0,2],
-                                         names = ['Date','Data_Type'])
-                             for file in files_station))
-    
-    data_type = df_data_type.loc[[0],['Data_Type']]
-
-    date = df_data_type.loc[[15],['Date']]
-    #date.set_index('Date', inplace = True)
-
-    data_type.set_index(date['Date'], inplace = True)
-    
-    data_type.sort_index()
-    #print(df_data_type)
-    
-    for Date in data_type['Data_Type']: 
-        if Date == 'Definitive':
-            Date = []
-        else:
+    if endtime >= '2018-06-30':
+        year  = []
+        for i in range((2019),int(endtime[0:4])+ 1):
+            Y = i
+            year.append(Y)
         
-            Date = data_type.loc[data_type['Data_Type'] != 'Definitive'].index[0]
+        Years = []
+        Years.extend([str(i) for i in year])
+        Years
+        #print(starttime)
+        files_station = []
     
+        
+        
+        for Year in Years:
     
+        
+            files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+            files_station.sort()
+    
+        #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
+        df_data_type = pd.DataFrame()
+        df_data_type = pd.concat( (pd.read_csv(file,sep = '\s+',
+                                             header = None,                                         
+                                             skiprows = 11,
+                                             nrows = 20,
+                                             usecols = [0,2],
+                                             names = ['Date','Data_Type'])
+                                 for file in files_station))
+        
+        data_type = df_data_type.loc[[0],['Data_Type']]
+    
+        date = df_data_type.loc[[15],['Date']]
+        #date.set_index('Date', inplace = True)
+    
+        data_type.set_index(date['Date'], inplace = True)
+        
+        data_type.sort_index()
+        #print(df_data_type)
+        
+        for Date in data_type['Data_Type']: 
+            if Date == 'Definitive':
+                Date = []
+            else:
+            
+                Date = data_type.loc[data_type['Data_Type'] != 'Definitive'].index[0]
+    else:
+        Date = []    
+        
     return Date
 
 def Header_SV_files(station, data_denoise, external_correction, chaos_model):
     '''    
     '''
+    
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    
     path = 'SV_update/'+ station +'_data/SV_'+ station.upper() + '_preliminary.txt'
     path_header = 'SV_update/'+ station +'_data'
     destiny_path = 'SV_update/'+ station +'_data/SV_'+ station.upper() + '.txt'

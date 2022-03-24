@@ -27,6 +27,15 @@ def check_data_availability(station):
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    
     f = []
     f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
     f.sort()
@@ -148,6 +157,15 @@ def HDZ_to_XYZ_conversion(station,
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
+    
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
     for i in [starttime,endtime]:
         spf.validate(i)

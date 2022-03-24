@@ -49,8 +49,23 @@ def load_INTERMAGNET_files(station, starttime, endtime):
     '''
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
+    
     for i in [starttime,endtime]:
         spf.validate(i)
+        
+    #checking the existence of the station argument
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+        
+    
+    
+    #starting reading files
     
     print('Reading files from '+ station.upper() +'...')
     year  = []
@@ -163,11 +178,13 @@ def SV_obs(station,
     
 
     #detecting different data types
-    
-    First_QD_data = spf.data_type(station = station,
+    if endtime > '2018-12-31':
+        
+        First_QD_data = spf.data_type(station = station,
                               starttime = starttime,
                               endtime = endtime)
-    
+    else:
+        First_QD_data = []
     
     
     # HDZ to XYZ conversion
@@ -235,12 +252,12 @@ def SV_obs(station,
         print('No action')
         
     # condition for data resampling - not in use
-    resample_condition = False
-    #if inp not in ['Q','D','NT']:
-    #    resample_condition = True
-    #else:
-    #    resample_condition = False    
-        
+    #resample_condition = float
+    if inp not in ['Q','D','NT'] or inp5 != 'y':
+        resample_condition = True
+    else:
+        resample_condition = False    
+    
     #CHAOS model correction interaction
     
     while True:
@@ -248,11 +265,13 @@ def SV_obs(station,
         input_chaos = input("Do You want to correct the external field using the CHAOS model? [y/n]: ")
         if input_chaos == 'y':
             
+            df_station_jerk_detection = df_station.copy()
+            
             df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
                                                            starttime = starttime,
                                                            endtime = endtime,
                                                            df_station = df_station,
-                                                           df_chaos = None, apply_percentage = False)
+                                                           df_chaos = None, apply_percentage = resample_condition)
             break
         if input_chaos == 'n':
             print('Correction using CHAOS was not applied.')
@@ -269,12 +288,12 @@ def SV_obs(station,
     df_SV = dpt.calculate_SV(df_station,
                              starttime = starttime,
                              endtime = endtime,
-                             apply_percentage = False)
+                             apply_percentage = resample_condition)
     
     df_SV_not_corrected = dpt.calculate_SV(df_station2,
                                            starttime = starttime,
                                            endtime = endtime,
-                                           apply_percentage = False)
+                                           apply_percentage = resample_condition)
     
     if input_chaos == 'y':
         
@@ -302,12 +321,17 @@ def SV_obs(station,
                 
                     file = df_station[starttime:endtime].resample(sample).mean().round(3).replace(np.NaN,99999.0)
                     
-                    file.to_csv(directory + '/' + station.upper() + '_minute_mean_preliminary.zip', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() + '_minute_mean_preliminary.zip',
+                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
+                                sep ='\t', index=True)
             
                 if sample == 'H':
                     
-                    file = dpt.resample_obs_data(df_station, 'H',apply_percentage = False).round(3).replace(np.NaN,99999.0)
-                    file.to_csv(directory + '/' + station.upper() + '_hourly_mean_preliminary.txt', sep ='\t', index=True)
+                    file = dpt.resample_obs_data(df_station, 'H',apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+
+                    file.to_csv(directory + '/' + station.upper() + '_hourly_mean_preliminary.txt',
+                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
+                                sep ='\t', index=True)
                 
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'hourly_mean',
@@ -316,8 +340,12 @@ def SV_obs(station,
                                         chaos_model = input_chaos)               
                 if sample == 'D':
                     
-                    file = dpt.resample_obs_data(df_station, 'D',apply_percentage = False).round(3).replace(np.NaN,99999.0)
-                    file.to_csv(directory + '/' + station.upper() + '_daily_mean_preliminary.txt', sep ='\t', index=True)
+                    file = dpt.resample_obs_data(df_station, 'D',apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+
+                    file.to_csv(directory + '/' + station.upper() + '_daily_mean_preliminary.txt',
+                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
+                                sep ='\t',
+                                index=True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'daily_mean',
@@ -326,11 +354,14 @@ def SV_obs(station,
                                         chaos_model = input_chaos) 
                 if sample == 'M':
                     
-                    file = dpt.resample_obs_data(df_station, 'M', apply_percentage = False).round(3).replace(np.NaN,99999.0)
+                    file = dpt.resample_obs_data(df_station, 'M', apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
                     
                     file_SV = df_SV.replace(np.NaN,99999.0)
                     
-                    file.to_csv(directory + '/' + station.upper() +'_monthly_mean_preliminary.txt', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() +'_monthly_mean_preliminary.txt',
+                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
+                                sep ='\t',
+                                index=True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'monthly_mean',
@@ -338,7 +369,10 @@ def SV_obs(station,
                                         external_correction = inp,
                                         chaos_model = input_chaos) 
                     
-                    file_SV.to_csv(directory + '/' + station.upper() +'_secular_variation_preliminary.txt', sep ='\t', index=True)
+                    file_SV.to_csv(directory + '/' + station.upper() +'_secular_variation_preliminary.txt',
+                     header = [station.upper() + 'SV_X',station.upper() + 'SV_Y',station.upper() + 'SV_Z'],
+                     sep ='\t',
+                      index=True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'secular_variation',
@@ -349,7 +383,10 @@ def SV_obs(station,
                     
                     file = dpt.resample_obs_data(df_station, 'Y', apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
                     
-                    file.to_csv(directory + '/' + station.upper() + '_annual_mean_preliminary.txt', sep ='\t', index=True)
+                    file.to_csv(directory + '/' + station.upper() + '_annual_mean_preliminary.txt',
+                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
+                                sep ='\t',
+                                index=True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'annual_mean',
@@ -447,20 +484,20 @@ def SV_obs(station,
                              dataframe = df_station,
                              save_plots = True,
                              plot_data_type = First_QD_data,
-                             apply_percentage = False)
+                             apply_percentage = resample_condition)
             else:
                 plot_samples(station = station,
                              dataframe = df_station,
                              save_plots = True,
                              plot_data_type = None,
-                             apply_percentage = False)
+                             apply_percentage = resample_condition)
             
             #plot of secular variation and monthly mean
             
             #calculating dataframe with minthly mean
             df_monthly_mean = dpt.resample_obs_data(df_station,
                                                sample = 'M',
-                                               apply_percentage = False)
+                                               apply_percentage = resample_condition)
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
@@ -894,25 +931,49 @@ def SV_obs(station,
             print('You must type y or n!')
     
     while True:
-        condition = input("Do You Want To adopt piecewise linear segments for the SV? [y/n]: ")
-        pass
+        condition = input("Do you want to detect a geomagnetic jerk? [y/n]: ")
+        
         if condition == 'y':
             try:  
-                linear_segments = input('Type the number of linear segments that best fit the SV: ')
-                list_ls = [int(k) for k in linear_segments.split(" ")]
+                window_start = input('type the  start date for the jerk window [yyyy-mm-15]: ')
+                window_end = input('type the end date for the jerk window [yyyy-mm-15]: ')
                 
-                        #create an option to save or not a plot
-                dpt.jerk_detection(station, df_station, list_ls, starttime, endtime)
-            except:
-                print("""This is not the correct format. Please reenter. (correct format: 
-                       integers separated by spaces)""")
-                continue
-            else:
+                for i in [str(window_start),str(window_end)]:
+                    spf.validate(i)
+                    
+                if input_chaos == 'y':
+                
+                    dpt.jerk_detection_window(station = station,
+                              window_start = window_start, 
+                              window_end = window_end, 
+                              starttime = starttime, 
+                              endtime = endtime,
+                              df_station = df_station_jerk_detection,
+                              df_CHAOS = df_chaos,
+                              plot_detection = True,
+                              CHAOS_correction = True,
+                              plot_CHAOS_prediction = True)
+                
+                if input_chaos == 'n':
+                    dpt.jerk_detection_window(station = station,
+                              window_start = window_start, 
+                              window_end = window_end, 
+                              starttime = starttime, 
+                              endtime = endtime,
+                              df_station = df_station,
+                              df_CHAOS = None,
+                              plot_detection = True,
+                              CHAOS_correction = False,
+                              plot_CHAOS_prediction = False)
                 break
+            except:
+                print("""This is not the correct format. Please reenter. (correct format: yyyy-mm-dd)""")
+                        #create an option to save or not a plot
+           
         if condition == 'n':
             print('No linear segments adopted')
             break
-        else:
+        if condition not in ['y','n']:
             print('You must type y or n, try again!')
             
     return df_station[starttime:endtime]
@@ -1462,6 +1523,13 @@ def read_txt_SV(station, starttime, endtime):
 def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = None, apply_percentage:bool = False):
     '''
     '''
+    
+    
+    
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    
+    
     if save_plots == False and plot_data_type == None:
     
         samples = ['H','D','M','Y']

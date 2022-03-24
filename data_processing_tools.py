@@ -485,8 +485,8 @@ def external_field_correction_chaos_model(station, starttime, endtime,df_station
                           usecols=[0,1,2,3],
                           names = ['Imos','Latitude','Longitude','Elevation'],
                           index_col= ['Imos'])
-    if station not in df_IMOS.index:
-        print('Station must be an observatory IAGA CODE!')
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
         
     
     
@@ -595,13 +595,6 @@ def night_time_selection(station, dataframe, starttime, endtime):
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
-    for i in [starttime,endtime]:
-        spf.validate(i)
-    
-    f = []
-    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
-    f.sort()
-    
     df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
@@ -609,6 +602,15 @@ def night_time_selection(station, dataframe, starttime, endtime):
                           names = ['Imos','Latitude','Longitude','Elevation'],
                           index_col= ['Imos'])
     
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    
+    for i in [starttime,endtime]:
+        spf.validate(i)
+    
+    f = []
+    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
+    f.sort()
+
     Longitude = df_IMOS.loc[station]['Longitude']
     
     dif =  Longitude/15
@@ -673,7 +675,17 @@ def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
     assert isinstance(linear_segments,(list,int)), 'x must be a list of integers'
+    
     assert len(linear_segments) == 3, 'x must be a list with 3 integers'
+    
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
     for i in [starttime,endtime]:
         spf.validate(i)
@@ -865,7 +877,7 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
             tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if (tmp['count'].median().any()) <= 1 == True:
+            if tmp['count'].median().any() <= 1 == True:
 
                 df_station = df_station.resample('H').mean()
                 
@@ -886,8 +898,8 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
             tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if (tmp['count'].median().any()) <= 30 == True:
-
+            if (tmp['count'].median().any() <= 30) == True:
+                
                 df_station = df_station.resample('H').mean()
                 
                 df_station = tmp['mean'].where(tmp['count']>=24*0.85)
@@ -910,28 +922,29 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
             if (tmp['count'].median().any() <= 800) == True:
-
+                
                 df_station = df_station.resample('H').mean()
 
                 tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
-
+                
             else:
-            #tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
+            
                 tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24*60
             #print(tmp['count'].median())    
             #print(tmp['full day'])    
             X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['full day']*0.85]
             Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['full day']*0.85]
             Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.85]
-
             
-            df_station_resampled = pd.DataFrame()
-            df_station_resampled.index = df_station.index
-            df_station_resampled['X'] = X
-            df_station_resampled['Y'] = Y
-            df_station_resampled['Z'] = Z
             
-            df_station = df_station_resampled
+            
+            df_station = df_station.resample('M').mean()
+            #print(df_station_resampled)
+            df_station['X'] = X
+            df_station['Y'] = Y
+            df_station['Z'] = Z
+            
+            #df_station = df_station_resampled
             df_station = df_station.resample('M').mean()
             df_station.index = df_station.index + to_offset('-1M') + to_offset('15D')
             
@@ -949,17 +962,17 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             tmp = df_station.groupby(pd.Grouper(freq='Y')).agg(['mean','count']).swaplevel(0,1,axis=1)
             tmp['Days'] = Days['Days'].resample('Y').sum()
             
-            if (tmp['count'].median().any()) <= 8784:
+            if tmp['count'].median().any() <= 8784:
                 df_station = df_station.resample('H').mean()
 
-                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.85*24]
-                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.85*24]
-                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.85*24]
+                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24]
+                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24]
+                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24]
             else:
 
-                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.85*24*60]
-                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.85*24*60]
-                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.85*24*60]
+                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24*60]
+                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24*60]
+                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24*60]
             
             
             df_station['X'] = X
@@ -1062,6 +1075,7 @@ def jerk_detection_window(station, window_start,
                                                   endtime = endtime,
                                                   df_station = df_station,
                                                   df_chaos= df_chaos)
+        
     elif CHAOS_correction == True and df_CHAOS == None:
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                   starttime = starttime,
@@ -1069,9 +1083,11 @@ def jerk_detection_window(station, window_start,
                                                   df_station = df_station,
                                                   df_chaos = None)
     
+    elif CHAOS_correction == False and df_CHAOS == None:
+        
+        pass
     else:
         pass
-    
     #calculating SV from intermagnet files
     df_SV = calculate_SV(dataframe = df_station,
                              starttime = starttime,
@@ -1079,6 +1095,7 @@ def jerk_detection_window(station, window_start,
                              method = 'ADMM',
                              columns = None)
     if plot_CHAOS_prediction == False:
+        
         pass
     
     if CHAOS_correction and plot_CHAOS_prediction == True:
