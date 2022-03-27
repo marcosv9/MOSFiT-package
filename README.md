@@ -12,13 +12,13 @@ Actually works for every INTERMAGNET geomagnetic observatory (definitive and qua
 
 There are functions to reduce the external field contribution, calculate the secular variation, detect geomagnetic jerks...
 
-The functions are separetade in data processing, utility, support and main functions.
+The library is separetade in modules called data processing tools, utility tools, support functions and main functions. 
 
 
 
 ## Import function suggestion
 
-To use the developed funtions, is necessary to import them. I suggest to use the following statements.
+To use the developed funtions, is necessary to import them. I suggest to use the following statements to import the modules.
 
 ```bash
   from Thesis_Marcos import data_processing_tools as dpt
