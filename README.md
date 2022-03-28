@@ -35,7 +35,8 @@ Function to read INTERMAGNET observatory files, works with minute mean IAGA2002 
 ```python
 
 Load_INTERMAGNET_files(path = path to files,station = 'obs IAGA code',starttime = 'yyyy-mm-dd',endtime = 'yyyy-mm-dd')
-'''
+
+```
 
 ## SV_OBS Usage
 
