@@ -28,6 +28,14 @@ To use the developed funtions, is necessary to import them. I suggest to use the
 ```
 
 
+## Load_INTERMAGNET_files
+
+Function to read INTERMAGNET observatory files, works with minute mean IAGA2002 quasi-definitive and definitive files. 
+
+```python
+
+Load_INTERMAGNET_files(path = path to files,station = 'obs IAGA code',starttime = 'yyyy-mm-dd',endtime = 'yyyy-mm-dd')
+
 ## SV_OBS Usage
 
 SV_OBS is the main funcion, allowing the user to process the geomagnetic data in a interactive workflow, using most of the available data_processing functions.
