@@ -37,7 +37,9 @@ Function to read INTERMAGNET observatory files, works with minute mean IAGA2002 
 Load_INTERMAGNET_files(station = 'obs IAGA code',starttime = 'yyyy-mm-dd',endtime = 'yyyy-mm-dd',path = path to files)
 
 ```
-The returned dataframe can be manipulated by the user or processed with the others functions of the Library
+The returned dataframe can be manipulated by the user or processed with the others functions of the package. 
+
+You can set a specific directory or just use the default (automatically created when the files are downloaded using download_data_INTERMAGNET function).
 
 
 ## SV_OBS Usage
