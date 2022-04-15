@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.load\_RC\_datfile
+========================================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: load_RC_datfile

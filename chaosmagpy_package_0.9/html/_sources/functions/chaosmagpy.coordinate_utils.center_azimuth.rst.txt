@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.center\_azimuth
+============================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: center_azimuth

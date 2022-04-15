@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from numba import jit, njit
-import numba
 import glob
 from glob import glob
 import os
@@ -433,34 +431,4 @@ def sec2min_converter(data, winsize):
         filtered_data = np.append(filtered_data, np.nanmean(data[i:i+winsize]))
     return filtered_data
 
-@jit
-def hampel_filter_forloop_numba(input_series, window_size, n_sigmas=3):
 
-    n = len(input_series)
-    new_series = input_series.copy()
-    k = 1.4826 # scale factor for Gaussian distribution
-    
-    indices = []
-    
-    # possibly use np.nanmedian 
-    for i in range((window_size),(n - window_size)):
-        x0 = np.median(input_series[(i - window_size):(i + window_size)])
-        S0 = k * np.median(np.abs(input_series[(i - window_size):(i + window_size)] - x0))
-        if (np.abs(input_series[i] - x0) > n_sigmas * S0):
-            new_series[i] = x0
-    
-    fig, ax = plt.subplots(figsize = (16,5))
-    ax.plot(input_series, 'k', label = 'Removed Outliers')
-    ax.plot(new_series, 'r', label = 'New Series')
-    ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5), fontsize = 12)
-    plt.grid()
-    plt.show()
-
-    return new_series
-    
-    
-    
-    
-    
-    
- 

@@ -1,0 +1,6 @@
+﻿chaosmagpy.model\_utils.degree\_correlation
+===========================================
+
+.. currentmodule:: chaosmagpy.model_utils
+
+.. autofunction:: degree_correlation

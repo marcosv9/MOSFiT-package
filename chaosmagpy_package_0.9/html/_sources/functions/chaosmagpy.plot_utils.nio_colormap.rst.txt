@@ -1,0 +1,6 @@
+﻿chaosmagpy.plot\_utils.nio\_colormap
+====================================
+
+.. currentmodule:: chaosmagpy.plot_utils
+
+.. autofunction:: nio_colormap

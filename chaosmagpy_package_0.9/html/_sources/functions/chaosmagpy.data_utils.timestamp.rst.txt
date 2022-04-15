@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.timestamp
+================================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: timestamp

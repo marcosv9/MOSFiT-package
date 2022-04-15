@@ -1,0 +1,6 @@
+﻿chaosmagpy.model\_utils.power\_spectrum
+=======================================
+
+.. currentmodule:: chaosmagpy.model_utils
+
+.. autofunction:: power_spectrum

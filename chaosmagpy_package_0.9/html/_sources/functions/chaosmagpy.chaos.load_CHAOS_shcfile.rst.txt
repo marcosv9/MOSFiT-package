@@ -1,0 +1,6 @@
+﻿chaosmagpy.chaos.load\_CHAOS\_shcfile
+=====================================
+
+.. currentmodule:: chaosmagpy.chaos
+
+.. autofunction:: load_CHAOS_shcfile

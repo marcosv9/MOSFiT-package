@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.zenith\_angle
+==========================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: zenith_angle

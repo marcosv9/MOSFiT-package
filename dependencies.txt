@@ -1,0 +1,8 @@
+numpy
+pandas
+matplotlib
+glob2
+pathlib2
+pwlf
+chaosmagpy
+scikit-learn

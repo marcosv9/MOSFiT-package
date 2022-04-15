@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.matrix\_geo\_to\_base
+==================================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: matrix_geo_to_base

@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.mjd2000
+==============================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: mjd2000

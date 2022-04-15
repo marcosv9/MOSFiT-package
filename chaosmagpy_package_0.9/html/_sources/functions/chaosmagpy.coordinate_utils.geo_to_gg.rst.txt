@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.geo\_to\_gg
+========================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: geo_to_gg

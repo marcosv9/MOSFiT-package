@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.cartesian\_to\_spherical
+=====================================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: cartesian_to_spherical

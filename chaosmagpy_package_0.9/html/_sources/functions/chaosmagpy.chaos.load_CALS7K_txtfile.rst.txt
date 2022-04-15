@@ -1,0 +1,6 @@
+﻿chaosmagpy.chaos.load\_CALS7K\_txtfile
+======================================
+
+.. currentmodule:: chaosmagpy.chaos
+
+.. autofunction:: load_CALS7K_txtfile

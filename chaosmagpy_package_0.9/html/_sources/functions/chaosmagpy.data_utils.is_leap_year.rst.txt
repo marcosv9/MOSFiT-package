@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.is\_leap\_year
+=====================================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: is_leap_year

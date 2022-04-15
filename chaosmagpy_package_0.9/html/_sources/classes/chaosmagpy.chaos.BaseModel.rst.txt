@@ -1,0 +1,9 @@
+﻿chaosmagpy.chaos.BaseModel
+==========================
+
+.. currentmodule:: chaosmagpy.chaos
+
+.. autoclass:: BaseModel
+    :members:
+    :special-members: __call__
+    :show-inheritance:

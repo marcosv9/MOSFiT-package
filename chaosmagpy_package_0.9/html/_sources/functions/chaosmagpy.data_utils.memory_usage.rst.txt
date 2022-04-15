@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.memory\_usage
+====================================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: memory_usage

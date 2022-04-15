@@ -9,6 +9,7 @@ import ftplib
 import pathlib
 import matplotlib.gridspec as gridspec
 from datetime import datetime
+import matplotlib.dates as md
 import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
@@ -19,11 +20,11 @@ from sklearn.preprocessing import PolynomialFeatures
 
  
 
-def load_INTERMAGNET_files(station, starttime, endtime):
+def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
     '''
     
     Function to read and concat observatory data.
-    Works with every INTERMAGNET Observatory.
+        Works with every INTERMAGNET Observatory.
     ----------------------------------------------------------
     Data types:
     
@@ -63,8 +64,12 @@ def load_INTERMAGNET_files(station, starttime, endtime):
     
     assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
         
-    
-    
+    if files_path != None:
+        if files_path[-1] == '/':
+            pass
+        else:
+            files_path = files_path + '/'  
+   
     #starting reading files
     
     print('Reading files from '+ station.upper() +'...')
@@ -90,10 +95,15 @@ def load_INTERMAGNET_files(station, starttime, endtime):
     if station.upper() in L_26:
         skiprows = 26
     
-    for Year in Years:
-
     
-        files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+    if files_path == None:
+        for Year in Years:
+
+        
+            files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+            files_station.sort()
+    else:
+        files_station.extend(glob.glob(files_path + station + '*'))
         files_station.sort()
         
     #reading and concatenating the files
@@ -129,7 +139,8 @@ def SV_obs(station,
            starttime,
            endtime,
            plot_chaos: bool = False,
-           convert_HDZ_to_XYZ:bool = False):
+           convert_HDZ_to_XYZ:bool = False,
+           files_path = None):
     '''
     Interactive function for INTERMAGNET observatories secular variation data processing
     
@@ -174,7 +185,8 @@ def SV_obs(station,
     
     df_station = load_INTERMAGNET_files(station,
                                           starttime,
-                                          endtime)
+                                          endtime,
+                                       files_path)
     
 
     #detecting different data types
@@ -220,12 +232,12 @@ def SV_obs(station,
     
     # external field reduction interaction
     
-    options = ['Q','D','NT','E']
+    options = ['Q','D','NT','KP','E']
     while True: 
-        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time or E to Exit without actions [Q/D/NT/E]: "))
+        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time, KP to Kp-Index <=3 or E to Exit without actions [Q/D/NT/KP/E]: "))
         
         if all([inp != option for option in options]):
-            print('You must type Q, D, NT or E')
+            print('You must type Q, D, NT, KP or E')
         else:
             break
     
@@ -247,13 +259,18 @@ def SV_obs(station,
                                               df_station,
                                               starttime,
                                               endtime)
+    if inp == 'KP':
+        
+        df_station = dpt.Kp_index_correction(dataframe = df_station,
+                                             starttime = starttime,
+                                             endtime = endtime, kp = 3)
         
     if inp == 'E':
         print('No action')
         
     # condition for data resampling - not in use
     #resample_condition = float
-    if inp not in ['Q','D','NT'] or inp5 != 'y':
+    if inp not in ['Q','D','NT','KP'] or inp5 != 'y':
         resample_condition = True
     else:
         resample_condition = False    
@@ -271,7 +288,8 @@ def SV_obs(station,
                                                            starttime = starttime,
                                                            endtime = endtime,
                                                            df_station = df_station,
-                                                           df_chaos = None, apply_percentage = resample_condition)
+                                                           df_chaos = None,
+                                                            apply_percentage = resample_condition)
             break
         if input_chaos == 'n':
             print('Correction using CHAOS was not applied.')
@@ -431,6 +449,7 @@ def SV_obs(station,
                 ax[2].set_xlim(df_station2['Z'].index[0],df_station2['Z'].index[-1])
                 ax[2].set_ylabel('Z(nT)', fontsize = 12)
                 ax[2].grid()
+
                 
                 if First_QD_data != []:
                     ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], color = 'red',label = 'Quasi-definitive data')
@@ -439,6 +458,12 @@ def SV_obs(station,
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
+
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.YearLocator(1)) 
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
                 
                 plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
                 plt.show()
@@ -474,6 +499,12 @@ def SV_obs(station,
                     ax[1].legend()
                     ax[2].legend()
                 
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.YearLocator(1))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
+
                 plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
                 plt.show()
                     
@@ -534,6 +565,7 @@ def SV_obs(station,
             ax[2,0].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             ax[2,0].grid()
+ 
             
             if First_QD_data != []:
                 #computing date for SV
@@ -550,6 +582,8 @@ def SV_obs(station,
                 ax[0,1].legend()
                 ax[1,1].legend()
                 ax[2,1].legend()
+
+
             plt.savefig(directory + '/' + station + '_Var_SV.jpeg', bbox_inches='tight')
             plt.show()      
             
@@ -593,7 +627,7 @@ def SV_obs(station,
                 ax[1].legend()
                 ax[2].legend()
             
-            
+
             plt.savefig(directory + '/' + station + '_SV.jpeg', bbox_inches='tight')
             plt.show()
             
@@ -630,6 +664,7 @@ def SV_obs(station,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
+
                 
                 plt.savefig(directory + '/' + station + '_SV_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
@@ -664,6 +699,7 @@ def SV_obs(station,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
+
                 
                 plt.savefig(directory + '/' + station + '_SV_predicted_and_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
@@ -706,6 +742,7 @@ def SV_obs(station,
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
+  
                 
                 plt.show()
                 
@@ -736,7 +773,7 @@ def SV_obs(station,
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
-                
+
                 plt.show()
                 
             if First_QD_data != []:
@@ -811,7 +848,7 @@ def SV_obs(station,
                 ax[0,1].legend()
                 ax[1,1].legend()
                 ax[2,1].legend()
-            
+
             plt.show()      
             
              #plot of SV alone     
@@ -852,7 +889,8 @@ def SV_obs(station,
                 ax[0].legend()
                 ax[1].legend()
                 ax[2].legend()
-            
+
+
             plt.show()
             
             
@@ -921,7 +959,7 @@ def SV_obs(station,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
-                
+
                 plt.show()
          
             break
@@ -935,11 +973,11 @@ def SV_obs(station,
         
         if condition == 'y':
             try:  
-                window_start = input('type the  start date for the jerk window [yyyy-mm-15]: ')
-                window_end = input('type the end date for the jerk window [yyyy-mm-15]: ')
+                window_start = input('type the  start date for the jerk window [yyyy-mm]: ')
+                window_end = input('type the end date for the jerk window [yyyy-mm]: ')
                 
                 for i in [str(window_start),str(window_end)]:
-                    spf.validate(i)
+                    spf.validate_YM(i)
                     
                 if input_chaos == 'y':
                 
@@ -981,6 +1019,7 @@ def SV_obs(station,
 def SV_(stations, 
         starttime,
         endtime,
+        files_path = None,
         jerk_start_window = None,
         jerk_end_window = None,
         external_reduction = None,
@@ -1068,15 +1107,25 @@ def SV_(stations,
             try:
                 df_station =  load_INTERMAGNET_files(station,
                                                  starttime,
-                                                 endtime)
+                                                 endtime,
+                                                     files_path)
+
+                                                     
             except:
                 print('No files for ' + station.upper() + ' in the selected period')
                 continue
+            if len(df_station.resample('M').mean()) <= 24:
+    
+                print('not enought data for secular variation')
+                continue
+
+
             #converting hdz data to xyz
             if convert_HDZ_to_XYZ == True:
                 
                 df_station =  utt.HDZ_to_XYZ_conversion(station = station,
                                   dataframe = df_station,
+                                  files_path = files_path,
                                   starttime = str(df_station.index[0].date()),
                                   endtime = str(df_station.index[-1].date()))
             else:
@@ -1120,6 +1169,7 @@ def SV_(stations,
                 df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
                                                                    starttime = starttime,
                                                                    endtime = endtime,
+                                                                   files_path = files_path,
                                                                    df_station = df_station,
                                                                    df_chaos = None)
                 
@@ -1149,7 +1199,7 @@ def SV_(stations,
                 pathlib.Path(directory).mkdir(parents=True, exist_ok=True)    
                 
                 df_SV.replace(np.NaN,99999.0).to_csv(directory + 'SV_' + station + '_preliminary.txt',
-                                                     sep ='\t', index=True)
+                                                     sep ='\t')
                 
                 spf.Header_SV_files(station = station,
                                     data_denoise = hampel_filter,
@@ -1276,6 +1326,7 @@ def SV_(stations,
                                       starttime = starttime, 
                                       endtime = endtime,
                                       df_station = df_station_2,
+                                      files_path = files_path,
                                       df_CHAOS = None,
                                       plot_detection = True,
                                       CHAOS_correction = False,
@@ -1289,6 +1340,7 @@ def SV_(stations,
                                       starttime = starttime, 
                                       endtime = endtime,
                                       df_station = df_station_2,
+                                      files_path = files_path,
                                       df_CHAOS = df_chaos,
                                       plot_detection = True,
                                       CHAOS_correction = True,
@@ -1300,13 +1352,15 @@ def SV_(stations,
             
         df_station =  load_INTERMAGNET_files(station,
                                              starttime,
-                                             endtime)
+                                             endtime,
+                                             files_path = files_path)
         
         if convert_HDZ_to_XYZ == True:
                 
             df_station =  utt.HDZ_to_XYZ_conversion(station = station,
                                   dataframe = df_station,
                                   starttime = str(df_station.index[0].date()),
+                                                    files_path = files_path,
                                   endtime = str(df_station.index[-1].date()))
         else:
             pass  
@@ -1346,6 +1400,7 @@ def SV_(stations,
             df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
                                                                    starttime = starttime,
                                                                    endtime = endtime,
+                                                                   files_path = files_path,
                                                                    df_station = df_station,
                                                                    df_chaos = None)
             
@@ -1491,6 +1546,7 @@ def SV_(stations,
                                       starttime = starttime, 
                                       endtime = endtime,
                                       df_station = df_station_2,
+                                      files_path = files_path,
                                       df_CHAOS = None,
                                       plot_detection = True,
                                       CHAOS_correction = False,
@@ -1504,12 +1560,11 @@ def SV_(stations,
                                       starttime = starttime, 
                                       endtime = endtime,
                                       df_station = df_station_2,
+                                      files_path = files_path,
                                       df_CHAOS = df_chaos,
                                       plot_detection = True,
                                       CHAOS_correction = True,
                                       plot_CHAOS_prediction = True)
-        
-
                 
 def read_txt_SV(station, starttime, endtime):
     path = 'SV_update/'+ station.upper() +'_data/SV_' + station.upper() + '.txt'
@@ -1541,13 +1596,17 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
             df_station = dpt.resample_obs_data(dataframe = dataframe, sample = sample,apply_percentage = apply_percentage)
             fig, axes = plt.subplots(3,1,figsize = (16,10))
             plt.suptitle(station.upper() + ' ' + title + ' mean', fontsize = 18, y = 0.92)
-            plt.xlabel('Date(Years)', fontsize = 12)
+            plt.xlabel('Date (Years)', fontsize = 12)
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
                 ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
+                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
+                #ax.xaxis.get_ticklocs(minor=True)
+                #ax.yaxis.set_tick_params(which='minor', bottom=False)
+                #ax.minorticks_on() 
                 ax.grid()
 
             plt.show()
@@ -1563,7 +1622,7 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
             df_station = dpt.resample_obs_data(dataframe = dataframe, sample = sample,apply_percentage = apply_percentage)
             fig, axes = plt.subplots(3,1,figsize = (16,10))
             plt.suptitle(station.upper() + ' ' + title + ' mean', fontsize = 16, y = 0.92)
-            plt.xlabel('Date(Years)', fontsize = 12)
+            plt.xlabel('Date (Years)', fontsize = 12)
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
@@ -1572,6 +1631,10 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
                 ax.grid()
                 ax.plot(df_station.loc[df_station.index > First_QD_data][col],'-', color = 'red', label = 'Quasi-definitive data')
+                #ax.xaxis.set_major_locator(md.YearLocator(1))
+                #ax.xaxis.get_ticklocs(minor=True)
+                #ax.yaxis.set_tick_params(which='minor', bottom=False)
+                #ax.minorticks_on() 
                 ax.legend()
                 
             plt.show()
@@ -1595,6 +1658,10 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                 ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
+                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
+                #ax.xaxis.get_ticklocs(minor=True)
+                #ax.yaxis.set_tick_params(which='minor', bottom=False)
+                #ax.minorticks_on() 
                 ax.grid()
                 
             plt.savefig(directory + '/' + station + '_' + title + '_mean.jpeg', bbox_inches='tight')
@@ -1622,6 +1689,10 @@ def plot_samples(station, dataframe, save_plots:bool = False, plot_data_type = N
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
                 ax.plot(df_station.loc[df_station.index > First_QD_data][col],'-', color = 'red', label = 'Quasi-definitive data')
                 ax.legend()
+                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
+                #ax.xaxis.get_ticklocs(minor=True)
+                #ax.yaxis.set_tick_params(which='minor', bottom=False)
+                #ax.minorticks_on() 
                 ax.grid()
                 
             plt.savefig(directory + '/' + station + '_' + title + '_mean.jpeg', bbox_inches='tight')

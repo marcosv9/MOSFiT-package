@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.basevectors\_use
+=============================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: basevectors_use

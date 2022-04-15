@@ -1,0 +1,6 @@
+﻿chaosmagpy.data\_utils.load\_matfile
+====================================
+
+.. currentmodule:: chaosmagpy.data_utils
+
+.. autofunction:: load_matfile

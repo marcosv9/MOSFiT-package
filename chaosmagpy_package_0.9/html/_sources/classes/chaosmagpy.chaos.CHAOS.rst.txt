@@ -1,0 +1,9 @@
+﻿chaosmagpy.chaos.CHAOS
+======================
+
+.. currentmodule:: chaosmagpy.chaos
+
+.. autoclass:: CHAOS
+    :members:
+    :special-members: __call__
+    :show-inheritance:

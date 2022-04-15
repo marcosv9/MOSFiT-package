@@ -1,0 +1,6 @@
+﻿chaosmagpy.model\_utils.synth\_from\_pp
+=======================================
+
+.. currentmodule:: chaosmagpy.model_utils
+
+.. autofunction:: synth_from_pp

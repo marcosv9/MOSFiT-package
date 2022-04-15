@@ -1,0 +1,6 @@
+﻿chaosmagpy.plot\_utils.plot\_maps
+=================================
+
+.. currentmodule:: chaosmagpy.plot_utils
+
+.. autofunction:: plot_maps

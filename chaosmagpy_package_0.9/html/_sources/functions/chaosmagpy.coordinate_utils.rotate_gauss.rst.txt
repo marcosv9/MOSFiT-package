@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.rotate\_gauss
+==========================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: rotate_gauss

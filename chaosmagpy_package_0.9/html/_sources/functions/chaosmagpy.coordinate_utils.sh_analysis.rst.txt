@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.sh\_analysis
+=========================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: sh_analysis

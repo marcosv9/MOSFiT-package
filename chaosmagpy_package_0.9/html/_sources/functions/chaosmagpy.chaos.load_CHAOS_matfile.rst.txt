@@ -1,0 +1,6 @@
+﻿chaosmagpy.chaos.load\_CHAOS\_matfile
+=====================================
+
+.. currentmodule:: chaosmagpy.chaos
+
+.. autofunction:: load_CHAOS_matfile

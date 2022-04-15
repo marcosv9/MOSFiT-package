@@ -1,0 +1,6 @@
+﻿chaosmagpy.plot\_utils.plot\_power\_spectrum
+============================================
+
+.. currentmodule:: chaosmagpy.plot_utils
+
+.. autofunction:: plot_power_spectrum

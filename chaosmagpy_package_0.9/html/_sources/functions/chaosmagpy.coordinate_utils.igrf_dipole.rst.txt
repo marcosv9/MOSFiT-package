@@ -1,0 +1,6 @@
+﻿chaosmagpy.coordinate\_utils.igrf\_dipole
+=========================================
+
+.. currentmodule:: chaosmagpy.coordinate_utils
+
+.. autofunction:: igrf_dipole

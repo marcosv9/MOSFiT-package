@@ -1,0 +1,6 @@
+﻿chaosmagpy.model\_utils.design\_gauss
+=====================================
+
+.. currentmodule:: chaosmagpy.model_utils
+
+.. autofunction:: design_gauss

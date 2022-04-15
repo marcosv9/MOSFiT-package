@@ -14,7 +14,7 @@ import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
 from Thesis_Marcos import thesis_functions as mvs
-from Thesis_Marcos import support_functions as spf
+#from Thesis_Marcos import support_functions as spf
 
 
 def update_qd_and_dd(data):
@@ -181,7 +181,7 @@ def Header_SV_obs_files(station,
     os.remove(path_header +'/header_file.txt')
     os.remove(path)
     
-def data_type(station, starttime, endtime):
+def data_type(station, starttime, endtime, files_path = None):
     '''
     Function to verify the presence of Quasi-definitive data in the dataset
     
@@ -221,15 +221,19 @@ def data_type(station, starttime, endtime):
     
         
         
-        for Year in Years:
+
+        if files_path == None:
+            for Year in Years:
     
-        
-            files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+                files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+                files_station.sort()
+        else:
+            files_station.extend(glob.glob(files_path + station + '*'))
             files_station.sort()
     
         #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
         df_data_type = pd.DataFrame()
-        df_data_type = pd.concat( (pd.read_csv(file,sep = '\s+',
+        df_data_type = pd.concat((pd.read_csv(file,sep = '\s+',
                                              header = None,                                         
                                              skiprows = 11,
                                              nrows = 20,
@@ -352,3 +356,37 @@ def validate(str_date):
         datetime.strptime(str_date, '%Y-%m-%d')
     except ValueError:
         raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM-DD')
+
+def validate_YM(str_date):
+    try:
+        datetime.strptime(str_date, '%Y-%m')
+    except ValueError:
+        raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM')
+
+def IMO(station):
+    
+    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
+                      skiprows = 1,
+                      sep = '\s+',
+                      usecols=[0,1,2,3],
+                      names = ['Imos','Latitude','Longitude','Elevation'],
+                      index_col= ['Imos'])
+    
+    if station not in df_IMOS.index:
+        print('station must be an INTERMAGNET observatory.')
+        
+    
+    class IMOS_informations(object):
+        
+        def __init__(self,name: str, latitude: float, longitude: float, elevation:float):
+            
+            self.name = name
+            self.latitude = latitude
+            self.longitude = longitude
+            self.elevation = elevation
+            
+    station = IMOS_informations(str(station),
+                                df_IMOS.loc[station]['Latitude'],
+                                df_IMOS.loc[station]['Longitude'],
+                                df_IMOS.loc[station]['Elevation'])
+    return station
