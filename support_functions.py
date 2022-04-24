@@ -206,26 +206,22 @@ def data_type(station, starttime, endtime, files_path = None):
     
     assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
-    
-    if endtime >= '2018-06-30':
-        year  = []
-        for i in range((2019),int(endtime[0:4])+ 1):
-            Y = i
-            year.append(Y)
-        
-        Years = []
-        Years.extend([str(i) for i in year])
-        Years
-        #print(starttime)
-        files_station = []
-    
-        
-        
+    if files_path != None:
+        if files_path[-1] == '/':
+            pass
+        else:
+            files_path = files_path + '/'  
 
-        if files_path == None:
-            for Year in Years:
+    files_station = [] 
+
+    if endtime >= '2018-06-30':
+
+        years_interval = np.arange(int(starttime[0:4]),int(endtime[0:4])+ 1)
     
-                files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+        if files_path == None:
+            for year in years_interval:
+    
+                files_station.extend(glob.glob('Dados OBS\\' + str(year) + '/*/' + station + '*'))
                 files_station.sort()
         else:
             files_station.extend(glob.glob(files_path + station + '*'))
@@ -355,7 +351,7 @@ def validate(str_date):
     try:
         datetime.strptime(str_date, '%Y-%m-%d')
     except ValueError:
-        raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM-DD')
+        raise ValueError('Incorrect date format, should be YYYY-MM-DD')
 
 def validate_YM(str_date):
     try:
@@ -363,30 +359,29 @@ def validate_YM(str_date):
     except ValueError:
         raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM')
 
-def IMO(station):
-    
-    df_IMOS = pd.read_csv('Dados OBS/Data/Imos informations/Imos_INTERMAGNET.txt',
-                      skiprows = 1,
-                      sep = '\s+',
-                      usecols=[0,1,2,3],
-                      names = ['Imos','Latitude','Longitude','Elevation'],
-                      index_col= ['Imos'])
-    
-    if station not in df_IMOS.index:
-        print('station must be an INTERMAGNET observatory.')
-        
-    
-    class IMOS_informations(object):
-        
-        def __init__(self,name: str, latitude: float, longitude: float, elevation:float):
-            
-            self.name = name
-            self.latitude = latitude
-            self.longitude = longitude
-            self.elevation = elevation
-            
-    station = IMOS_informations(str(station),
-                                df_IMOS.loc[station]['Latitude'],
-                                df_IMOS.loc[station]['Longitude'],
-                                df_IMOS.loc[station]['Elevation'])
-    return station
+class year(object):
+    def __init__(self,year):
+        self.year = year
+    def check_leap_year(year):
+        if((year % 400 == 0) or  
+     (year % 100 != 0) and  
+     (year % 4 == 0)):
+            return True
+        else:
+            return False
+
+def skiprows_detection(files_station):
+    values_list = [[],[]]
+    for file in files_station:
+        idx = 0
+        skiprows = 12
+        x = pd.read_csv(file,sep = '\s+',skiprows = skiprows,nrows=50, usecols = [0], names = ['col'])
+        file = file
+        while x['col'][idx] != 'DATE':
+            skiprows += 1
+            idx +=1 
+            if x['col'][idx] == 'DATE':
+                skiprows += 1
+                values_list[0].append(skiprows)     
+                values_list[1].append(file)
+    return values_list            

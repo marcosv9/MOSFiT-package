@@ -10,6 +10,7 @@ import pathlib
 import matplotlib.gridspec as gridspec
 from datetime import datetime
 import pwlf
+import sqlite3
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
@@ -259,36 +260,101 @@ def HDZ_to_XYZ_conversion(station,
     
     return df_station
 
-def add_IMO(station: str,latitude: float,longitude: float,elevation: float):
+class IMO(object): 
     
-    conn = sqlite3.connect('Imos_database.db')
-    c = conn.cursor()
-    c.execute('INSERT INTO Imos_informations VALUES (?, ?, ?, ?)', (station,
-                                                                    latitude,
-                                                                    longitude,
-                                                                    elevation))
 
-    conn.commit()
-    sql_query = pd.read_sql_query ('''
-                               SELECT
+    
+    def __init__(self,station,latitude,longitude,elevation):
+        
+
+            #self.station = station
+        self.station = df_IMOS.loc[station].name
+        self.latitude = latitude
+        self.longitude = longitude
+        self.elevation = elevation
+        
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+              skiprows = 1,
+              sep = '\s+',
+              usecols=[0,1,2,3],
+              names = ['Imos','Latitude','Longitude','Elevation'],
+              index_col= ['Imos'])
+    
+    
+    def code(station):
+        if IMO.check_existence(station) == True:
+            pass
+        else:
+            raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
+
+        station = IMO.df_IMOS.loc[station].name
+        return station
+    
+    def latitude(station):
+        if IMO.check_existence(station) == True:
+            pass
+        else:
+            raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
+            
+        return IMO.df_IMOS.loc[station]['Latitude']
+    
+    def longitude(station):
+        
+        if IMO.check_existence(station) == True:
+            pass
+        else:
+            raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
+            
+        return IMO.df_IMOS.loc[station]['Longitude']
+    
+    def elevation(station):
+        
+        if IMO.check_existence(station) == True:
+            pass
+        else:
+            raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
+        
+        return IMO.df_IMOS.loc[station]['Elevation']
+    
+    def delete(station: str):
+    
+        conn = sqlite3.connect('Imos_database.db')
+        c = conn.cursor()
+        c.execute('DELETE FROM Imos_informations WHERE Imos =?',(station,))
+        conn.commit()
+        sql_query = pd.read_sql_query ('''
+                                   SELECT
                                *
                                FROM Imos_informations
                                ''', conn, index_col=['Imos'])
     
-    sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
-    conn.close()
-
-def del_IMO(station: str):
+        sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
+        conn.close()
     
-    conn = sqlite3.connect('Imos_database.db')
-    c = conn.cursor()
-    c.execute('DELETE FROM Imos_informations WHERE Imos =?',(station,))
-    conn.commit()
-    sql_query = pd.read_sql_query ('''
-                               SELECT
-                               *
-                               FROM Imos_informations
-                               ''', conn, index_col=['Imos'])
-    
-    sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
-    conn.close()
+    def check_existence(station):
+        
+        if station not in IMO.df_IMOS.index:
+            return False
+        else:
+            return True
+        
+    def add(station: str,latitude: float,longitude: float,elevation: float):
+        
+        
+        conn = sqlite3.connect('Imos_database.db')
+        c = conn.cursor()
+        c.execute('INSERT INTO Imos_informations VALUES (?, ?, ?, ?)', (station,
+                                                                                                       latitude,
+                                                                                                       longitude,
+                                                                                                       elevation))
+        #rows = c.execute("SELECT * FROM Imos_informations").fetchall()
+        #print(rows)
+        conn.commit()
+        sql_query = pd.read_sql_query ('''
+                                   SELECT
+                                   *
+                                   FROM Imos_informations
+                                   ''', conn, index_col=['Imos'])
+        
+        sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
+        conn.close()

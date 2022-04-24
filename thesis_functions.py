@@ -55,15 +55,15 @@ def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
         spf.validate(i)
         
     #checking the existence of the station argument
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
     
-    assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    if utt.IMO.check_existence(station.upper()) == False:
+        #print('Station must be an observatory IAGA CODE!')
+        raise ValueError('Station must be an observatory IAGA CODE!')
         
+    #creating a list to allocate the file paths
+    
+    files_station = []
+    
     if files_path != None:
         if files_path[-1] == '/':
             pass
@@ -73,17 +73,9 @@ def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
     #starting reading files
     
     print('Reading files from '+ station.upper() +'...')
-    year  = []
-    for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
-        Y = i
-        year.append(Y)
     
-    Years = []
-    Years.extend([str(i) for i in year])
-    Years
-    
-    files_station = []
-    
+    years_interval = np.arange(int(starttime[0:4]),int(endtime[0:4])+ 1)
+            
     L_27 = ['CZT','DRV','PAF']
     L_26 = ['NGK','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT']
     
@@ -97,25 +89,33 @@ def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
     
     
     if files_path == None:
-        for Year in Years:
+        for year in years_interval:
 
-        
-            files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+            files_station.extend(glob.glob('Dados OBS\\' + str(year) + '/*/' + station + '*'))
             files_station.sort()
     else:
         files_station.extend(glob.glob(files_path + station + '*'))
         files_station.sort()
+
+    skip_values = spf.skiprows_detection(files_station)    
         
     #reading and concatenating the files
 
     df_station = pd.DataFrame()
-    df_station = pd.concat( (pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
+    df_station = pd.concat((pd.read_csv(file, sep='\s+',usecols = [0,1,3,4,5], 
                    header = None,skiprows = skiprows, 
                    parse_dates = {'Date': ['date', 'Time']},
-                   names = ['date','Time','X','Y','Z']) for file in files_station), 
+                   names = ['date','Time','X','Y','Z']) for skiprows,file in zip(skip_values[0],skip_values[1])), 
                    ignore_index = True)
     
-    df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')     
+    try:
+        #df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
+        df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
+    except IOError:    
+        #df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
+        df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
+    except:
+        print('Wrong date format')
               
     df_station.set_index('Date', inplace = True)
 

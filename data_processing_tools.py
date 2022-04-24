@@ -211,7 +211,7 @@ def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None,
         columns = columns
         
     if method not in Method:
-        print('Info musdf_SV = pd.DataFrame()t be ADMM or YD')
+        print('Info must be ADMM or YD')
     
     if method == 'ADMM':
         df_ADMM = resample_obs_data(dataframe = df, sample = 'M',apply_percentage = apply_percentage)
@@ -333,26 +333,33 @@ def chaos_model_prediction(station, starttime, endtime):
     model = cp.load_CHAOS_matfile(chaos_path[0])
     
     station = station.upper()
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
+    #df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+    #                      skiprows = 1,
+    #                      sep = '\s+',
+    #                      usecols=[0,1,2,3],
+    #                      names = ['Imos','Latitude','Longitude','Elevation'],
+    #                      index_col= ['Imos'])
     
     
     R_REF = 6371.2
     
-    if station not in df_IMOS.index:
+    #if station not in df_IMOS.index:
+    #    print('Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) == False:
         print('Station must be an observatory IAGA CODE!')
 
-    Longitude = df_IMOS.loc[station]['Longitude']
+    Longitude = utt.IMO.longitude(station)
+
+    Latitude = 90 - utt.IMO.latitude(station)
+
+    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
+    #Longitude = df_IMOS.loc[station]['Longitude']
     
 
-    Latitude = 90 - df_IMOS.loc[station]['Latitude']
+    #Latitude = 90 - df_IMOS.loc[station]['Latitude']
  
 
-    Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
+    #Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
 
     Date = pd.date_range(starttime,endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
@@ -645,7 +652,6 @@ def night_time_selection(station, dataframe, starttime, endtime):
     print('The night time period was selected.')
     return df_NT
 
-
 def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool = False):
     '''
     
@@ -704,7 +710,6 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
         
     return denoised_dataframe
 
-
 def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
     '''
     Resample a pd.DataFrame to hourly, daily, monthly or annual means
@@ -756,7 +761,7 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
         if sample == 'H' and apply_percentage == False:
             
             df_station = df_station.resample('H').mean()
-            #df_station.index = df_station.index + to_offset('30min')
+            df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
         if sample == 'H' and apply_percentage == True:
                         
@@ -773,12 +778,12 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             
             df_station = df_station.resample('H').mean()
 
-            #df_station.index = df_station.index + to_offset('30min')
+            df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
         if sample == 'D' and apply_percentage == False:
             
             df_station = df_station.resample('D').mean()
-            #df_station.index = df_station.index + to_offset('12H')        
+            df_station.index = df_station.index + to_offset('11H') + to_offset('59min') + to_offset('30s')       
         
         elif sample == 'D' and apply_percentage == True:
             
@@ -795,7 +800,7 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
                 df_station = tmp['mean'].where(tmp['count']>=1440*0.9)
             
             df_station = df_station.resample('D').mean()
-            #df_station.index = df_station.index + to_offset('12H')
+            df_station.index = df_station.index  + to_offset('11H') + to_offset('59min') + to_offset('30s')
             
         if sample == 'M' and apply_percentage == False:
             
@@ -842,7 +847,15 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
         if sample == 'Y' and apply_percentage == False:
             
             df_station = df_station.resample('Y').mean()
-            df_station.index = df_station.index + to_offset('-6M') + to_offset('-15D')
+
+            leap_year = []
+            for years in df_station.index.year:
+                if spf.year.check_leap_year(years) == True:
+                    leap_year.append(years)
+
+            idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
+            idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
+            df_station.index = idx_normal.union(idx_leap)
             
         if sample == 'Y' and apply_percentage == True:
             
@@ -869,7 +882,15 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
             df_station['Y'] = Y
             df_station['Z'] = Z
             df_station = df_station.resample('Y').mean()
-            df_station.index = df_station.index + to_offset('-6M') + to_offset('-15D')
+
+            leap_year = []
+            for years in df_station.index.year:
+                if spf.year.check_leap_year(years) == True:
+                    leap_year.append(years)
+
+            idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
+            idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
+            df_station.index = idx_normal.union(idx_leap)
             
     return df_station
 
