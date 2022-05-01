@@ -375,7 +375,7 @@ def skiprows_detection(files_station):
     for file in files_station:
         idx = 0
         skiprows = 12
-        x = pd.read_csv(file,sep = '\s+',skiprows = skiprows,nrows=50, usecols = [0], names = ['col'])
+        x = pd.read_csv(file,sep = '\s+',skiprows = skiprows,nrows=40, usecols = [0], names = ['col'])
         file = file
         while x['col'][idx] != 'DATE':
             skiprows += 1

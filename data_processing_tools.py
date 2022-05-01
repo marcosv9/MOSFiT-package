@@ -348,8 +348,10 @@ def chaos_model_prediction(station, starttime, endtime):
     if utt.IMO.check_existence(station) == False:
         print('Station must be an observatory IAGA CODE!')
 
-    Longitude = utt.IMO.longitude(station)
-
+    if utt.IMO.longitude(station) < 0 :
+        Longitude = 360 - np.abs(utt.IMO.longitude(station))
+    else:
+        Longitude = utt.IMO.longitude(station)
     Latitude = 90 - utt.IMO.latitude(station)
 
     Elevation = (utt.IMO.elevation(station)/1000) +R_REF
@@ -376,7 +378,7 @@ def chaos_model_prediction(station, starttime, endtime):
     B_crust = model.synth_values_static(radius = Elevation,
                                         theta = Latitude,
                                         phi = Longitude,
-                                        nmax=70)
+                                        nmax = 70)
     
     # complete internal contribution
     B_radius_int = B_core[0] + B_crust[0]
@@ -399,8 +401,8 @@ def chaos_model_prediction(station, starttime, endtime):
                                  phi = Longitude,
                                  source='all')
     else:
-        Date_RC = pd.date_range(starttime,'2021-06-30' + ' 23:00:00', freq = 'H')
-        Date_NO_RC = pd.date_range('2021-07-01',endtime + ' 23:00:00', freq = 'H')
+        Date_RC = pd.date_range(starttime,'2022-02-28' + ' 23:00:00', freq = 'H')
+        Date_NO_RC = pd.date_range('2022-03-01',endtime + ' 23:00:00', freq = 'H')
         Time =cp.data_utils.mjd2000(Date_RC)
         Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
         
@@ -500,15 +502,8 @@ def external_field_correction_chaos_model(station,
     
     station = station.upper()
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
-    
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
-        
+    if utt.IMO.check_existence(station) == False:
+        print('Station must be an observatory IAGA CODE!')    
     
     
     if df_chaos is not None:
@@ -617,14 +612,8 @@ def night_time_selection(station, dataframe, starttime, endtime):
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
-    
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    if utt.IMO.check_existence(station) == False:
+        print('Station must be an observatory IAGA CODE!') 
     
     for i in [starttime,endtime]:
         spf.validate(i)
@@ -633,7 +622,7 @@ def night_time_selection(station, dataframe, starttime, endtime):
     f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
     f.sort()
 
-    Longitude = df_IMOS.loc[station]['Longitude']
+    Longitude = utt.IMO.longitude(station)
     
     dif =  Longitude/15
 
@@ -654,9 +643,7 @@ def night_time_selection(station, dataframe, starttime, endtime):
 
 def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool = False):
     '''
-    
-    
-    
+
     
     ------------------------------------------------------------------------------------
     
@@ -901,10 +888,11 @@ def jerk_detection_window(station, window_start,
                               df_station = None,
                               df_CHAOS = None,
                               files_path = None,
-                              hdz_conversion: bool = False,
                               plot_detection: bool = True,
                               CHAOS_correction: bool = True,
-                              plot_CHAOS_prediction:bool = False):
+                              plot_CHAOS_prediction:bool = False,
+                              convert_hdz_to_xyz:bool = False,
+                              save_plots:bool = False):
     '''
     Geomagnetic jerk detection based on two linear segments adoption in a
     chosen time window.
@@ -971,6 +959,9 @@ def jerk_detection_window(station, window_start,
     starttime = starttime
     endtime = endtime
            
+    directory = 'Filtered_data/'+ station +'_data'
+    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
+    
     if df_station is not None:
         
         df_station = df_station
@@ -982,13 +973,14 @@ def jerk_detection_window(station, window_start,
                                                 endtime = endtime,
                                                 files_path = files_path)
 
-    if hdz_conversion == True:
-        
+    
+    if convert_hdz_to_xyz == True:    
         df_station = utt.HDZ_to_XYZ_conversion(station = station,
                           dataframe = df_station,
-                          starttime = starttime,
-                          endtime = endtime,
                           files_path = files_path)
+    else: 
+        pass
+
     if df_CHAOS is not None:
         
         df_chaos = df_CHAOS
@@ -1112,6 +1104,12 @@ def jerk_detection_window(station, window_start,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
                 ax.legend()
+            if save_plots == True:
+                plt.savefig(directory + '/' + station + '_jerk_detection.jpeg', bbox_inches='tight')
+                plt.show()
+
+
+                    
             
             #plotting multiple figure
 
@@ -1132,6 +1130,9 @@ def jerk_detection_window(station, window_start,
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
+            if save_plots == True:
+                plt.savefig(directory + '/' + station + '_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.show()
         
         elif plot_detection and plot_CHAOS_prediction and CHAOS_correction == True:
             
@@ -1161,6 +1162,9 @@ def jerk_detection_window(station, window_start,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
                 ax.legend()
+            if save_plots == True:
+                plt.savefig(directory + '/' + station + '_jerk_detection.jpeg', bbox_inches='tight')
+                plt.show()
             
             #plotting multiple figure
 
@@ -1190,6 +1194,9 @@ def jerk_detection_window(station, window_start,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
                 ax.legend()
+            if save_plots == True:
+                plt.savefig(directory + '/' + station + '_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.show()
             
             
         

@@ -20,7 +20,12 @@ from sklearn.preprocessing import PolynomialFeatures
 
  
 
-def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
+def load_INTERMAGNET_files(station,
+    starttime,
+    endtime,
+    files_path = None
+    ):
+
     '''
     
     Function to read and concat observatory data.
@@ -51,7 +56,7 @@ def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
     
-    for i in [starttime,endtime]:
+    for i in [starttime, endtime]:
         spf.validate(i)
         
     #checking the existence of the station argument
@@ -72,29 +77,21 @@ def load_INTERMAGNET_files(station, starttime, endtime, files_path = None):
    
     #starting reading files
     
-    print('Reading files from '+ station.upper() +'...')
+    print(f'Reading files from {station.upper()}...')
     
     years_interval = np.arange(int(starttime[0:4]),int(endtime[0:4])+ 1)
             
-    L_27 = ['CZT','DRV','PAF']
-    L_26 = ['NGK','MAW','CNB','HAD','TSU','HON','KAK','BOU','KOU','HBK','BMT']
-    
-    skiprows = 26
-    if station == 'EBR' and endtime >= '2021-01-01':
-        skiprows = 32
-    if station.upper() in L_27:
-        skiprows = 27
-    if station.upper() in L_26:
-        skiprows = 26
-    
     
     if files_path == None:
+
         for year in years_interval:
 
-            files_station.extend(glob.glob('Dados OBS\\' + str(year) + '/*/' + station + '*'))
+            files_station.extend(glob.glob(f'Dados OBS\\{str(year)}/*/{station}*'))
+            
             files_station.sort()
     else:
-        files_station.extend(glob.glob(files_path + station + '*'))
+        files_station.extend(glob.glob(f'{files_path}{station}*'))
+
         files_station.sort()
 
     skip_values = spf.skiprows_detection(files_station)    
@@ -139,7 +136,6 @@ def SV_obs(station,
            starttime,
            endtime,
            plot_chaos: bool = False,
-           convert_HDZ_to_XYZ:bool = False,
            files_path = None):
     '''
     Interactive function for INTERMAGNET observatories secular variation data processing
@@ -201,14 +197,10 @@ def SV_obs(station,
     
     # HDZ to XYZ conversion
     
-    if convert_HDZ_to_XYZ == True:
-        df_station =  utt.HDZ_to_XYZ_conversion(station = station,
-                                  dataframe = df_station,
-                                  starttime = str(df_station.index[0].date()),
-                                  endtime = str(df_station.index[-1].date()))
-    else:
-        pass
     
+    df_station =  utt.HDZ_to_XYZ_conversion(station = station,
+                                            dataframe = df_station,files_path = files_path)
+
     df_station2 = df_station.copy()
     
     # Hampel filter interaction
@@ -473,21 +465,21 @@ def SV_obs(station,
                 fig, ax = plt.subplots(3,1, figsize = (16,10))
                 
                 ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
-                ax[0].plot(df_station['X'], 'o', color  = 'blue')
+                ax[0].plot(df_station['X'], color  = 'blue')
                 ax[0].set_xlim(df_station['X'].index[0],df_station['X'].index[-1])
-                ax[0].set_ylim(df_station['X'].min(), df_station['X'].max())
+               #ax[0].set_ylim(df_station['X'].min(), df_station['X'].max())
                 ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
                 ax[0].grid()
                 
-                ax[1].plot(df_station['Y'], 'o', color  = 'green')
+                ax[1].plot(df_station['Y'], color  = 'green')
                 ax[1].set_xlim(df_station['Y'].index[0],df_station['Y'].index[-1])
-                ax[1].set_ylim(df_station['Y'].min(), df_station['Y'].max())
+                #ax[1].set_ylim(df_station['Y'].min(), df_station['Y'].max())
                 ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
                 ax[1].grid()
                 
-                ax[2].plot(df_station['Z'], 'o', color  =  'black')
+                ax[2].plot(df_station['Z'], color  =  'black')
                 ax[2].set_xlim(df_station['Z'].index[0],df_station['Z'].index[-1])
-                ax[2].set_ylim(df_station['Z'].min(), df_station['Z'].max())
+                #ax[2].set_ylim(df_station['Z'].min(), df_station['Z'].max())
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].grid()
                 
@@ -978,6 +970,11 @@ def SV_obs(station,
                 
                 for i in [str(window_start),str(window_end)]:
                     spf.validate_YM(i)
+
+                if inp3 == 'y':
+                    save_plots = True
+                else:
+                    save_plots = False    
                     
                 if input_chaos == 'y':
                 
@@ -990,7 +987,9 @@ def SV_obs(station,
                               df_CHAOS = df_chaos,
                               plot_detection = True,
                               CHAOS_correction = True,
-                              plot_CHAOS_prediction = True)
+                              plot_CHAOS_prediction = True,
+                              convert_hdz_to_xyz = False,
+                              save_plots = save_plots)
                 
                 if input_chaos == 'n':
                     dpt.jerk_detection_window(station = station,
@@ -1002,7 +1001,9 @@ def SV_obs(station,
                               df_CHAOS = None,
                               plot_detection = True,
                               CHAOS_correction = False,
-                              plot_CHAOS_prediction = False)
+                              plot_CHAOS_prediction = False,
+                              convert_hdz_to_xyz = False,
+                              save_plots = save_plots)
                 break
             except:
                 print("""This is not the correct format. Please reenter. (correct format: yyyy-mm-dd)""")
@@ -1094,7 +1095,10 @@ def SV_(stations,
     
     #external_reduction_options = [None,'QD','DD','NT']
     
-    Files = ['save','update','off']
+    Files = ['save',
+            'update',
+            'off'
+            ]
     
     
     if external_reduction not in [None,'QD','DD','NT']:
@@ -1108,11 +1112,11 @@ def SV_(stations,
                 df_station =  load_INTERMAGNET_files(station,
                                                  starttime,
                                                  endtime,
-                                                     files_path)
+                                                files_path)
 
                                                      
             except:
-                print('No files for ' + station.upper() + ' in the selected period')
+                print(f'No files for { station.upper()} in the selected period')
                 continue
             if len(df_station.resample('M').mean()) <= 24:
     
@@ -1152,7 +1156,7 @@ def SV_(stations,
             
                 df_station = dpt.remove_Disturbed_Days(df_station,
                                                        starttime,
-                                                   endtime)
+                                                       endtime)
 
             
             if external_reduction =='NT':
@@ -1194,11 +1198,11 @@ def SV_(stations,
 
             if file == 'save':
                 
-                directory = 'SV_update/'+ station +'_data/'
+                directory = f'SV_update/{station}_data/'
                 
                 pathlib.Path(directory).mkdir(parents=True, exist_ok=True)    
                 
-                df_SV.replace(np.NaN,99999.0).to_csv(directory + 'SV_' + station + '_preliminary.txt',
+                df_SV.replace(np.NaN,99999.0).to_csv(f'{directory}SV_{station}_preliminary.txt',
                                                      sep ='\t')
                 
                 spf.Header_SV_files(station = station,
@@ -1209,12 +1213,15 @@ def SV_(stations,
                 
             if file == 'update':
                 
-                df1 = pd.read_csv('SV_update/' + station + '_data/SV_'+ station + '.txt', sep = '\t', skiprows = 9)
+                df1 = pd.read_csv(f'SV_update/{station}_data/SV_{station}.txt', sep = '\t', skiprows = 9)
+
                 df1['Date'] = pd.to_datetime(df1['Date'], infer_datetime_format=True)
+
                 df1.set_index('Date', inplace = True)
+
                 df2 = pd.concat([df1,df_SV])
                 #df2 = df2.sort_values(by=df2.index)
-                df2.replace(np.NaN,99999.0).drop_duplicates().sort_index().to_csv('SV_update/' + station + '_data/SV_'+ station + '_preliminary.txt', sep = '\t')
+                df2.replace(np.NaN,99999.0).drop_duplicates().sort_index().to_csv(f'SV_update/{station}_data/SV_{station}_preliminary.txt', sep = '\t')
                 
                 spf.Header_SV_files(station = station,
                                         data_denoise = hampel_filter,
@@ -1226,7 +1233,11 @@ def SV_(stations,
                 
                 pass
             
-            if file not in ['save','update','off']:
+            if file not in ['save',
+                           'update',
+                           'off'
+                           ]:
+
                 print('File must be None, update or off!')
             
             

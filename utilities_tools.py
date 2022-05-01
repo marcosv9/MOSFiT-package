@@ -125,8 +125,6 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
                    
 def HDZ_to_XYZ_conversion(station,
                           dataframe,
-                          starttime,
-                          endtime,
                           files_path = None):
     '''
     Automatically indentify the existence H, D and Z components in the 
@@ -169,8 +167,6 @@ def HDZ_to_XYZ_conversion(station,
     
     assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
-    for i in [starttime,endtime]:
-        spf.validate(i)
         
     if files_path != None:
         if files_path[-1] == '/':
@@ -180,53 +176,42 @@ def HDZ_to_XYZ_conversion(station,
     
     df_station = dataframe
     
-    year  = []
-    Reported = []
-    for i in range(int(starttime[0:4]),int(endtime[0:4])+ 1):
-        Y = i
-        year.append(Y)
+    starttime = str(df_station.index[0].date())
+    endtime = str(df_station.index[-1].date())
     
-    Years = []
-    Years.extend([str(i) for i in year])
-    Years
-    #print(starttime)
+    years_interval = np.arange(int(starttime[0:4]),int(endtime[0:4])+ 1)
     files_station = []
 
     
     if files_path == None:
-        for Year in Years:
-            files_station.extend(glob.glob('Dados OBS\\' + Year + '/*/' + station + '*'))
+        for year in years_interval:
+            files_station.extend(glob.glob('Dados OBS\\' + str(year) + '/*/' + station + '*'))
             files_station.sort()
     else:
         files_station.extend(glob.glob(files_path + station + '*'))
         files_station.sort()
             
             
-    #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
-    df_reported = pd.DataFrame()
-    df_reported = pd.concat( (pd.read_csv(file,sep = '\s+',
-                                         header = None,                                         
-                                         skiprows = 7,
-                                         nrows = 25,
-                                         usecols = [0,1],
-                                         names = ['Date','Reported'])
-                             for file in files_station))
+    values_list = []
+    for file in files_station:
+        x = pd.read_csv(file,sep = '\s+',skiprows = 12,nrows=40, usecols = [0,3], names = ['date','col'])
+        file = file
+        idx = 0
+        while x['col'][idx] != station.upper() + 'H':
+            idx+=1
     
-    Reported = df_reported.loc[[0],['Reported']]
-
-    date = df_reported.loc[[21],['Date']]
-    #date.set_index('Date', inplace = True)
-
-    Reported.set_index(date['Date'], inplace = True)
+            if x['col'][idx] == station.upper() + 'H':
+                
+                values_list.append(x['date'][idx + 1])     
+                #values_list[1].append(x['col'][idx])
     
-    Reported.sort_index()
-    #print(df_data_type)
+            if x['col'][idx] == station.upper() + 'X':
+                break
     
-    #Reported_HDZ = Reported.loc[Reported['Reported'] == 'HDZF']
     
-    Date_HDZ = pd.to_datetime(Reported.loc[Reported['Reported'] == 'HDZF'].index)
+    date_hdz = pd.to_datetime(values_list,infer_datetime_format = True)
     
-    for date in Date_HDZ.year.drop_duplicates():
+    for date in date_hdz.year.drop_duplicates():
     #print(date)
     #Data_HDZ = pd.concat([Data_HDZ,df_HER.loc[str(date)]])
         D = np.deg2rad(df_station['Y'].loc[str(date)]/60)
@@ -235,29 +220,6 @@ def HDZ_to_XYZ_conversion(station,
         
         df_station['X'].loc[str(date)] = X
         df_station['Y'].loc[str(date)] = Y
-    
-                 #for Reported in df_data_type['Reported']: 
-    #    
-    #    Reported = df_data_type.loc[df_data_type['Reported'] == 'HDZF']
-    #calculating declination
-    #D = np.deg2rad(df_station['Y'].loc[(df_station.index >= Reported.index[0] + ' 00:00:00') &
-    #                               (df_station.index <= Reported.index[-1] + ' 23:59:59')]/60)
-    #
-    ##converting H and D to X and Y.
-    #
-    #x = df_station['X'].loc[(df_station.index >= Reported.index[0] + ' 00:00:00') &
-    #                    (df_station.index <= Reported.index[-1] + ' 23:59:59')]*np.cos(D)
-    #
-    #y = df_station['X'].loc[(df_station.index >= Reported.index[0] + ' 00:00:00') &
-    #                    (df_station.index <= Reported.index[-1] + ' 23:59:59')]*np.sin(D)
-    #
-    #df_station['X'].loc[(df_station.index >= Reported.index[0] + ' 00:00:00') & 
-    #                (df_station.index <= Reported.index[-1] + ' 23:59:59')] = x
-    #df_station['Y'].loc[(df_station.index >= Reported.index[0] + ' 00:00:00') &
-    #                (df_station.index <= Reported.index[-1] + ' 23:59:59')] = y 
-#
-    
-    
     return df_station
 
 class IMO(object): 
