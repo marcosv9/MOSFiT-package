@@ -21,7 +21,10 @@ from Thesis_Marcos import support_functions as spf
 
 
 
-def remove_Disturbed_Days(dataframe, starttime, endtime):
+def remove_Disturbed_Days(dataframe,
+                          starttime,
+                          endtime
+                          ):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -54,12 +57,12 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     
     '''
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
     
     for i in [starttime,endtime]:
         spf.validate(i)    
     
-    df = dataframe.loc[starttime:endtime]
+    df = dataframe.loc[starttime : endtime]
     
     disturbed_index = pd.DataFrame()
     
@@ -68,7 +71,7 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
                      usecols = [0],
                      names = ['dd'],
                      parse_dates = {'D-Days': ['dd']},
-                    )
+                     )
     
     df_d['D-Days'] = pd.to_datetime(df_d['D-Days'], format = '%YYYY-%mm-%dd')
 
@@ -84,7 +87,7 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     
     for date in df_d.index.date:
         try:
-            disturbed_index = pd.concat([disturbed_index,df.loc[str(date)]])
+            disturbed_index = pd.concat([disturbed_index, df.loc[str(date)]])
         except:
             pass
 
@@ -94,7 +97,10 @@ def remove_Disturbed_Days(dataframe, starttime, endtime):
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
 
-def keep_Q_Days(dataframe, starttime, endtime):
+def keep_Q_Days(dataframe,
+                starttime,
+                endtime
+                ):
     ''' 
     Function created to keep only geomagnetic quiet 
     days from observatory geomagnetic data.
@@ -138,10 +144,10 @@ def keep_Q_Days(dataframe, starttime, endtime):
     df_q = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
                        header = None,
                        skiprows = 1, 
-                     usecols = [0],
-                     names = ['qd'],
-                     parse_dates = {'Q-Days': ['qd']},
-                    )
+                       usecols = [0],
+                       names = ['qd'],
+                       parse_dates = {'Q-Days': ['qd']},
+                       )
     
     df_q['Q-Days'] = pd.to_datetime(df_q['Q-Days'], format = '%YYYY-%mm-%dd')
     
@@ -149,11 +155,11 @@ def keep_Q_Days(dataframe, starttime, endtime):
     
     df_q.set_index('Q-Days', inplace = True)
     
-    df_q = df_q.loc[starttime:endtime]
+    df_q = df_q.loc[starttime : endtime]
 
     for date in df_q.index.date:
         try:
-            quiet_index = pd.concat([quiet_index,df.loc[str(date)]])
+            quiet_index = pd.concat([quiet_index, df.loc[str(date)]])
         except:
             pass
     df = quiet_index
@@ -161,7 +167,13 @@ def keep_Q_Days(dataframe, starttime, endtime):
     print('Only quiet top 10 quiet days for each month were kept in the data.')
     return df
 
-def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None, apply_percentage:bool = False):
+def calculate_SV(dataframe,
+                starttime,
+                endtime,
+                method = 'ADMM',
+                columns = None,
+                apply_percentage:bool = False
+                ):
     '''
     Calculate the secular variation of geomagnetic observatory data.
     
@@ -194,19 +206,20 @@ def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None,
     
     '''
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
 
     df = dataframe
-    df = df.loc[starttime:endtime]
+    df = df.loc[starttime : endtime]
     
     Method = ['ADMM','YD']
+    
     df_SV = pd.DataFrame()
     
     #if info is not in Info:
     #    print('info must be ADMM or YD')
 
     if columns == None:
-        columns = ['X','Y','Z']
+        columns = ['X', 'Y', 'Z']
     else:
         columns = columns
         
@@ -214,13 +227,19 @@ def calculate_SV(dataframe, starttime, endtime, method = 'ADMM', columns = None,
         print('Info must be ADMM or YD')
     
     if method == 'ADMM':
-        df_ADMM = resample_obs_data(dataframe = df, sample = 'M',apply_percentage = apply_percentage)
+        df_ADMM = resample_obs_data(dataframe = df,
+                                    sample = 'M',
+                                    apply_percentage = apply_percentage
+                                   )
         
         for col in columns:
             SV = (df_ADMM[col].diff(6) - df_ADMM[col].diff(-6)).round(3).dropna()
             df_SV[col] = SV  
     if method == 'YD':
-        df_YD = resample_obs_data(dataframe = df, sample = 'Y',apply_percentage = apply_percentage)
+        df_YD = resample_obs_data(dataframe = df,
+                                  sample = 'Y',
+                                  apply_percentage = apply_percentage
+                                 )
         for col in columns:
             SV = df[col].diff().round(3).dropna()
             df_SV[col] = SV
@@ -259,7 +278,7 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     for i in [starttime,endtime]:
         spf.validate(i)
             
-    if (kp <=0 ) or (kp>= 9): 
+    if (kp <= 0 ) or (kp >= 9): 
         print('kp must be a number from 0 to 9, try again!')
     df = pd.DataFrame()
     df = dataframe
@@ -269,8 +288,8 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
                   sep = '\s+', 
                   usecols = [7,8],
                   names = ['Kp','Ap'],
-                 )
-    Date = pd.date_range('1932-01-01 00:00:00','2022-01-29 21:00:00', freq = '3H')    
+                  )
+    Date = pd.date_range('1932-01-01 00:00:00', '2022-01-29 21:00:00', freq = '3H')    
     KP_.index = Date
     
     x=pd.DataFrame()
@@ -330,6 +349,7 @@ def chaos_model_prediction(station, starttime, endtime):
         spf.validate(i)
         
     chaos_path = glob.glob('Thesis_Marcos/chaosmagpy_package_*.*/data/CHAOS*')    
+
     model = cp.load_CHAOS_matfile(chaos_path[0])
     
     station = station.upper()
@@ -346,12 +366,11 @@ def chaos_model_prediction(station, starttime, endtime):
     #if station not in df_IMOS.index:
     #    print('Station must be an observatory IAGA CODE!')
     if utt.IMO.check_existence(station) == False:
-        print('Station must be an observatory IAGA CODE!')
+        print(f'Station must be an observatory IAGA CODE!')
 
-    if utt.IMO.longitude(station) < 0 :
-        Longitude = 360 - np.abs(utt.IMO.longitude(station))
-    else:
-        Longitude = utt.IMO.longitude(station)
+
+    Longitude = utt.IMO.longitude(station)
+
     Latitude = 90 - utt.IMO.latitude(station)
 
     Elevation = (utt.IMO.elevation(station)/1000) +R_REF
@@ -363,22 +382,25 @@ def chaos_model_prediction(station, starttime, endtime):
 
     #Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
 
-    Date = pd.date_range(starttime,endtime + ' 23:00:00', freq = 'H')
+    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
     
     # Internal field
-    print('Initiating geomagnetic field computation for ' + station.upper() +'.')
-    print('Computing core field.')
+    print(f'Initiating geomagnetic field computation for ' + station.upper() +'.')
+    print(f'Computing core field.')
     B_core = model.synth_values_tdep(time = Time,
                                      radius = Elevation,
                                      theta = Latitude ,
-                                     phi = Longitude)
+                                     phi = Longitude
+                                     )
 
-    print('Computing crustal field up to degree 70.')
+    print(f'Computing crustal field up to degree 70.')
+
     B_crust = model.synth_values_static(radius = Elevation,
                                         theta = Latitude,
                                         phi = Longitude,
-                                        nmax = 70)
+                                        nmax = 70
+                                        )
     
     # complete internal contribution
     B_radius_int = B_core[0] + B_crust[0]
@@ -390,7 +412,8 @@ def chaos_model_prediction(station, starttime, endtime):
                                    radius = Elevation, 
                                    theta = Latitude,
                                    phi = Longitude, 
-                                   source='all')
+                                   source='all'
+                                   )
 
     if endtime <= '2022-02-28':
         
@@ -399,10 +422,11 @@ def chaos_model_prediction(station, starttime, endtime):
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
-                                 source='all')
+                                 source='all'
+                                 )
     else:
-        Date_RC = pd.date_range(starttime,'2022-02-28' + ' 23:00:00', freq = 'H')
-        Date_NO_RC = pd.date_range('2022-03-01',endtime + ' 23:00:00', freq = 'H')
+        Date_RC = pd.date_range(starttime, '2022-02-28' + ' 23:00:00', freq = 'H')
+        Date_NO_RC = pd.date_range('2022-03-01', endtime + ' 23:00:00', freq = 'H')
         Time =cp.data_utils.mjd2000(Date_RC)
         Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
         
@@ -411,19 +435,23 @@ def chaos_model_prediction(station, starttime, endtime):
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
-                                 source='all')
+                                 source='all'
+                                 )
         
         B_sm_without_rc = model.synth_values_sm(time = Time_sm,
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
-                                 source='all',rc_e = False, rc_i = False)
+                                 source='all',
+                                 rc_e = False,
+                                 rc_i = False
+                                 )
         
         B_sm = []
-        B_sm_x = np.append(B_sm_with_rc[0],B_sm_without_rc[0])
-        B_sm_y = np.append(B_sm_with_rc[1],B_sm_without_rc[1])
-        B_sm_z = np.append(B_sm_with_rc[2],B_sm_without_rc[2])
-        B_sm = [B_sm_x,B_sm_y,B_sm_z]
+        B_sm_x = np.append(B_sm_with_rc[0], B_sm_without_rc[0])
+        B_sm_y = np.append(B_sm_with_rc[1], B_sm_without_rc[1])
+        B_sm_z = np.append(B_sm_with_rc[2], B_sm_without_rc[2])
+        B_sm = [B_sm_x, B_sm_y, B_sm_z]
 
     # complete external field contribution
     B_radius_ext = B_gsm[0] + B_sm[0]
@@ -463,7 +491,7 @@ def external_field_correction_chaos_model(station,
                                           df_station = None,
                                           df_chaos = None,
                                           files_path = None,
-                                          apply_percentage:bool = False):    
+                                          apply_percentage: bool = False):    
     '''
     Correct the INTERMAGNET observatory data with the CHAOS-7.9 model external geomagnetic field prediction.
     
@@ -508,13 +536,14 @@ def external_field_correction_chaos_model(station,
     
     if df_chaos is not None:
         df_chaos = df_chaos
-        df_chaos.loc[starttime:endtime] = df_chaos
+        df_chaos.loc[starttime : endtime] = df_chaos
     
     else:
         
         df_chaos = chaos_model_prediction(station = station,
                                          starttime = starttime,
-                                         endtime = endtime)
+                                         endtime = endtime
+                                         )
         
     #df_chaos.index = df_chaos.index + to_offset('30min')
         
@@ -531,7 +560,8 @@ def external_field_correction_chaos_model(station,
         df_station = mvs.load_INTERMAGNET_files(station = station,
                                                   starttime = starttime,
                                                   endtime = endtime,
-                                                  files_path = files_path)
+                                                  files_path = files_path
+                                                )
         
         df_station = df_station.loc[starttime:endtime]
     df_station = df_station.resample('H').mean()
@@ -542,7 +572,8 @@ def external_field_correction_chaos_model(station,
     
     df_station = resample_obs_data(df_station,
                                    'H',
-                                    apply_percentage = False)   
+                                    apply_percentage = apply_percentage
+                                   )   
     
     print('The external field predicted using CHAOS-model was removed from the data.')
     return df_station.loc[starttime:endtime], df_chaos    
@@ -577,7 +608,11 @@ def rms(predictions, real_data):
         #print('the rmse for ' + str(cols) + ' component is ' + str(rms) + '.')
     return x
 
-def night_time_selection(station, dataframe, starttime, endtime):
+def night_time_selection(station,
+                        dataframe,
+                        starttime,
+                        endtime
+                        ):
     
     '''
     Function to select the night time period (from 23 PM to 5 AM) from the geomagnetic data.
@@ -613,13 +648,13 @@ def night_time_selection(station, dataframe, starttime, endtime):
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
     if utt.IMO.check_existence(station) == False:
-        print('Station must be an observatory IAGA CODE!') 
+        print(f'Station must be an observatory IAGA CODE!') 
     
     for i in [starttime,endtime]:
         spf.validate(i)
     
     f = []
-    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
+    f.extend(glob.glob(f'Dados OBS/*/*/{station}*'))
     f.sort()
 
     Longitude = utt.IMO.longitude(station)
@@ -641,7 +676,10 @@ def night_time_selection(station, dataframe, starttime, endtime):
     print('The night time period was selected.')
     return df_NT
 
-def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool = False):
+def hampel_filter_denoising(dataframe,
+                            window_size,
+                            n_sigmas=3,
+                            plot_figure:bool = False):
     '''
 
     
@@ -666,18 +704,17 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
     
-    dataframe = resample_obs_data(dataframe,'H')
+    dataframe = resample_obs_data(dataframe,'H',apply_percentage=True)
     denoised_dataframe = dataframe.copy()
+
     print('Denoising the data')
+
     for column in dataframe:
         
         n = len(dataframe[column])
         #denoised_dataframe = dataframe.copy()
         k = 1.4826 # scale factor for Gaussian distribution
         
-        indices = []
-        
-        # possibly use np.nanmedian
         if plot_figure == True:
             for i in range((window_size),(n - window_size)):
                 x0 = np.median(dataframe[column][(i - window_size):(i + window_size)])
@@ -697,7 +734,9 @@ def hampel_filter_denoising(dataframe, window_size, n_sigmas=3, plot_figure:bool
         
     return denoised_dataframe
 
-def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
+def resample_obs_data(dataframe,
+                      sample,
+                      apply_percentage:bool = False):
     '''
     Resample a pd.DataFrame to hourly, daily, monthly or annual means
     
@@ -730,11 +769,14 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
     
     df_station = dataframe
     
-    samples = ['min','H','D','M','Y']
+    samples = ['min', 'H', 'D',
+               'M', 'Y'
+              ]
     
     
     if sample not in samples:
         print('sample must be min, H, D, M or Y!')
+
     else:
         
         if sample == 'min' and apply_percentage == False:
@@ -882,17 +924,17 @@ def resample_obs_data(dataframe, sample, apply_percentage:bool = False):
     return df_station
 
 def jerk_detection_window(station, window_start, 
-                              window_end, 
-                              starttime, 
-                              endtime,
-                              df_station = None,
-                              df_CHAOS = None,
-                              files_path = None,
-                              plot_detection: bool = True,
-                              CHAOS_correction: bool = True,
-                              plot_CHAOS_prediction:bool = False,
-                              convert_hdz_to_xyz:bool = False,
-                              save_plots:bool = False):
+                          window_end, 
+                          starttime, 
+                          endtime,
+                          df_station = None,
+                          df_CHAOS = None,
+                          files_path = None,
+                          plot_detection: bool = True,
+                          CHAOS_correction: bool = True,
+                          plot_CHAOS_prediction:bool = False,
+                          convert_hdz_to_xyz:bool = False,
+                          save_plots:bool = False):
     '''
     Geomagnetic jerk detection based on two linear segments adoption in a
     chosen time window.
@@ -959,7 +1001,8 @@ def jerk_detection_window(station, window_start,
     starttime = starttime
     endtime = endtime
            
-    directory = 'Filtered_data/'+ station +'_data'
+    directory = f'Filtered_data/{station}_data'
+
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
     
     if df_station is not None:
@@ -971,13 +1014,15 @@ def jerk_detection_window(station, window_start,
         df_station = mvs.load_INTERMAGNET_files(station = station,
                                                 starttime = starttime,
                                                 endtime = endtime,
-                                                files_path = files_path)
+                                                files_path = files_path
+                                                )
 
     
     if convert_hdz_to_xyz == True:    
         df_station = utt.HDZ_to_XYZ_conversion(station = station,
-                          dataframe = df_station,
-                          files_path = files_path)
+                                               dataframe = df_station,
+                                               files_path = files_path
+                                               )
     else: 
         pass
 
@@ -988,19 +1033,21 @@ def jerk_detection_window(station, window_start,
     if CHAOS_correction == True and df_CHAOS is not None:
         
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
-                                                  starttime = starttime,
-                                                  endtime = endtime,
-                                                  df_station = df_station,
-                                                  df_chaos= df_chaos,
-                                                  files_path = None)
+                                                                     starttime = starttime,
+                                                                     endtime = endtime,
+                                                                     df_station = df_station,
+                                                                     df_chaos= df_chaos,
+                                                                     files_path = None
+                                                                     )
         
     elif CHAOS_correction == True and df_CHAOS == None:
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
-                                                  starttime = starttime,
-                                                  endtime = endtime,
-                                                  df_station = df_station,
-                                                  df_chaos = None,
-                                                  files_path = None)
+                                                                     starttime = starttime,
+                                                                     endtime = endtime,
+                                                                     df_station = df_station,
+                                                                     df_chaos = None,
+                                                                     files_path = None
+                                                                     )
     
     elif CHAOS_correction == False and df_CHAOS == None:
         
@@ -1009,10 +1056,11 @@ def jerk_detection_window(station, window_start,
         pass
     #calculating SV from intermagnet files
     df_SV = calculate_SV(dataframe = df_station,
-                             starttime = starttime,
-                             endtime = endtime,
-                             method = 'ADMM',
-                             columns = None)
+                         starttime = starttime,
+                         endtime = endtime,
+                         method = 'ADMM',
+                         columns = None
+                         )
     if plot_CHAOS_prediction == False:
         
         pass
@@ -1020,10 +1068,11 @@ def jerk_detection_window(station, window_start,
     if CHAOS_correction and plot_CHAOS_prediction == True:
         
         df_CHAOS_SV = calculate_SV(dataframe = df_chaos,
-                                       starttime = starttime,
-                                       endtime = endtime,
-                                       method = 'ADMM',
-                                       columns = ['X_int','Y_int','Z_int'])
+                                   starttime = starttime,
+                                   endtime = endtime,
+                                   method = 'ADMM',
+                                   columns = ['X_int','Y_int','Z_int']
+                                   )
     else:
         
         pass
@@ -1033,6 +1082,7 @@ def jerk_detection_window(station, window_start,
     df_jerk_window.index = df_SV.loc[window_start:window_end].index
     
     date_jerk = []
+
     for date in df_jerk_window.index:
         date_jerk.append(spf.date_to_decinal_year_converter(date))
     
@@ -1058,10 +1108,6 @@ def jerk_detection_window(station, window_start,
         df_slopes[column] = slopes
         
         #calculate r_squared
-        
-
-        
-
         #se = myPWLF.se
         #print(se)
         xHat = date_jerk
@@ -1107,10 +1153,7 @@ def jerk_detection_window(station, window_start,
             if save_plots == True:
                 plt.savefig(directory + '/' + station + '_jerk_detection.jpeg', bbox_inches='tight')
                 plt.show()
-
-
-                    
-            
+ 
             #plotting multiple figure
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
@@ -1131,7 +1174,7 @@ def jerk_detection_window(station, window_start,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
             if save_plots == True:
-                plt.savefig(directory + '/' + station + '_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_jerk_detection_2.jpeg', bbox_inches='tight')
                 plt.show()
         
         elif plot_detection and plot_CHAOS_prediction and CHAOS_correction == True:
@@ -1163,7 +1206,7 @@ def jerk_detection_window(station, window_start,
                 ax.minorticks_on() 
                 ax.legend()
             if save_plots == True:
-                plt.savefig(directory + '/' + station + '_jerk_detection.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
                 plt.show()
             
             #plotting multiple figure
@@ -1175,16 +1218,18 @@ def jerk_detection_window(station, window_start,
             upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
             lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
 
-            for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV, axes.flatten(), colors):
+            for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV, axes.flatten(), colors):
                 
                 ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
                         'o-',
-                        color = color)
+                        color = color
+                        )
                 
                 ax.plot(df_CHAOS_SV[chaos_col].loc[str(lower_limit):str(upper_limit)],
                         '-',
                         linewidth = 2,
-                        label = 'CHAOS prediction')
+                        label = 'CHAOS prediction'
+                        )
                 
                 ax.plot(df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection')
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
@@ -1194,8 +1239,9 @@ def jerk_detection_window(station, window_start,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
                 ax.legend()
+
             if save_plots == True:
-                plt.savefig(directory + '/' + station + '_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_jerk_detection_2.jpeg', bbox_inches='tight')
                 plt.show()
             
             

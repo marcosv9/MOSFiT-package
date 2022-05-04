@@ -87,7 +87,7 @@ def load_INTERMAGNET_files(station,
         for year in years_interval:
 
             files_station.extend(glob.glob(f'Dados OBS\\{str(year)}/*/{station}*'))
-            
+
             files_station.sort()
     else:
         files_station.extend(glob.glob(f'{files_path}{station}*'))
@@ -182,7 +182,7 @@ def SV_obs(station,
     df_station = load_INTERMAGNET_files(station,
                                           starttime,
                                           endtime,
-                                       files_path)
+                                          files_path)
     
 
     #detecting different data types
@@ -199,7 +199,8 @@ def SV_obs(station,
     
     
     df_station =  utt.HDZ_to_XYZ_conversion(station = station,
-                                            dataframe = df_station,files_path = files_path)
+                                            dataframe = df_station,
+                                            files_path = files_path)
 
     df_station2 = df_station.copy()
     
@@ -214,9 +215,12 @@ def SV_obs(station,
                                                      n_sigmas=3,
                                                      plot_figure = True)
             break
+
         if inp5 == 'n':
+
             print('No data changed.')
             break
+
         else:
             print('You must type y or n, try again!')
         
@@ -224,13 +228,22 @@ def SV_obs(station,
     
     # external field reduction interaction
     
-    options = ['Q','D','NT','KP','E']
-    while True: 
-        inp = str(input("Press Q to use only Quiet Days, D to remove Disturbed Days, NT to use only the night-time, KP to Kp-Index <=3 or E to Exit without actions [Q/D/NT/KP/E]: "))
+    options = ['Q', 'D', 'NT',
+               'KP', 'E'
+              ]
+
+    while True:
+
+        inp = str(input(f'Press Q to use only Quiet Days, D to remove Disturbed Days, '
+                        f'NT to use only the night-time, KP to Kp-Index <=3 or '
+                        f'E to Exit without actions [Q/D/NT/KP/E]: '))
         
         if all([inp != option for option in options]):
+
             print('You must type Q, D, NT, KP or E')
+
         else:
+
             break
     
     if inp == 'Q':
@@ -255,23 +268,28 @@ def SV_obs(station,
         
         df_station = dpt.Kp_index_correction(dataframe = df_station,
                                              starttime = starttime,
-                                             endtime = endtime, kp = 3)
+                                             endtime = endtime,
+                                             kp = 3)
         
     if inp == 'E':
         print('No action')
         
-    # condition for data resampling - not in use
-    #resample_condition = float
-    if inp not in ['Q','D','NT','KP'] or inp5 != 'y':
+    
+    #condition for data resampling
+    if inp not in ['Q','D','NT','KP']:
+
         resample_condition = True
+
     else:
+
         resample_condition = False    
     
     #CHAOS model correction interaction
     
     while True:
     
-        input_chaos = input("Do You want to correct the external field using the CHAOS model? [y/n]: ")
+        input_chaos = input(f"Do You want to correct the external field using the CHAOS model? [y/n]: ")
+
         if input_chaos == 'y':
             
             df_station_jerk_detection = df_station.copy()
@@ -281,17 +299,22 @@ def SV_obs(station,
                                                            endtime = endtime,
                                                            df_station = df_station,
                                                            df_chaos = None,
-                                                            apply_percentage = resample_condition)
+                                                           apply_percentage = resample_condition)
             break
         if input_chaos == 'n':
+
             print('Correction using CHAOS was not applied.')
+
             break
+
         else:
+
             print('You must type y or n, try again!')
         
 
     
-    directory = 'Filtered_data/'+ station +'_data'
+    directory = f'Filtered_data/{station}_data'
+
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
     
 
@@ -320,12 +343,16 @@ def SV_obs(station,
     #option to save txt and plot files
     
     while True: 
-        inp2 = input("Do You Want To Save a File With the Variation? [y/n]: ")
+        inp2 = input(f"Do You Want To Save a File With the Variation? [y/n]: ")
+
         if inp2 == 'y':
 
             print('Saving files...')
 
-            for sample in ['Min','H','D', 'M', 'Y']:
+            for sample in [
+                'Min', 'H', 'D',
+                'M', 'Y'
+                ]:
                           
                 if sample == 'Min':
                 
@@ -339,9 +366,10 @@ def SV_obs(station,
                     
                     file = dpt.resample_obs_data(df_station, 'H',apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
 
-                    file.to_csv(directory + '/' + station.upper() + '_hourly_mean_preliminary.txt',
-                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
-                                sep ='\t', index=True)
+                    file.to_csv(f'{directory}/{station.upper()}_hourly_mean_preliminary.txt',
+                                header = [station.upper() + 'X',station.upper() + 'Y', station.upper() + 'Z'],
+                                sep = '\t',
+                                 index=True)
                 
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'hourly_mean',
@@ -350,12 +378,13 @@ def SV_obs(station,
                                         chaos_model = input_chaos)               
                 if sample == 'D':
                     
-                    file = dpt.resample_obs_data(df_station, 'D',apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                    file = dpt.resample_obs_data(df_station, 'D',
+                                                 apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
 
-                    file.to_csv(directory + '/' + station.upper() + '_daily_mean_preliminary.txt',
+                    file.to_csv(f'{directory}/{station.upper()}_daily_mean_preliminary.txt',
                                 header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
-                                sep ='\t',
-                                index=True)
+                                sep = '\t',
+                                index = True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'daily_mean',
@@ -364,14 +393,19 @@ def SV_obs(station,
                                         chaos_model = input_chaos) 
                 if sample == 'M':
                     
-                    file = dpt.resample_obs_data(df_station, 'M', apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                    file = dpt.resample_obs_data(df_station,
+                                                 'M',
+                                                  apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
                     
                     file_SV = df_SV.replace(np.NaN,99999.0)
                     
-                    file.to_csv(directory + '/' + station.upper() +'_monthly_mean_preliminary.txt',
-                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
-                                sep ='\t',
-                                index=True)
+                    file.to_csv(f'{directory}/{station.upper()}_monthly_mean_preliminary.txt',
+                                header = [station.upper() + 'X',
+                                          station.upper() + 'Y',
+                                          station.upper() + 'Z'
+                                         ],
+                                sep = '\t',
+                                index = True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'monthly_mean',
@@ -379,10 +413,13 @@ def SV_obs(station,
                                         external_correction = inp,
                                         chaos_model = input_chaos) 
                     
-                    file_SV.to_csv(directory + '/' + station.upper() +'_secular_variation_preliminary.txt',
-                     header = [station.upper() + 'SV_X',station.upper() + 'SV_Y',station.upper() + 'SV_Z'],
-                     sep ='\t',
-                      index=True)
+                    file_SV.to_csv(f'{directory}/{station.upper()}_secular_variation_preliminary.txt',
+                                   header = [station.upper() + 'SV_X',
+                                             station.upper() + 'SV_Y',
+                                             station.upper() + 'SV_Z'
+                                            ],
+                                   sep = '\t',
+                                   index = True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'secular_variation',
@@ -391,12 +428,17 @@ def SV_obs(station,
                                         chaos_model = input_chaos) 
                 if sample == 'Y':
                     
-                    file = dpt.resample_obs_data(df_station, 'Y', apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                    file = dpt.resample_obs_data(df_station,
+                                                 'Y',
+                                                  apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
                     
-                    file.to_csv(directory + '/' + station.upper() + '_annual_mean_preliminary.txt',
-                                header = [station.upper() + 'X',station.upper() + 'Y',station.upper() + 'Z'],
-                                sep ='\t',
-                                index=True)
+                    file.to_csv(f'{directory}/{station.upper()}_annual_mean_preliminary.txt',
+                                header = [station.upper() + 'X',
+                                          station.upper() + 'Y',
+                                          station.upper() + 'Z'
+                                         ],
+                                sep = '\t',
+                                index = True)
                     
                     spf.Header_SV_obs_files(station = station,
                                         filename = 'annual_mean',
@@ -404,29 +446,34 @@ def SV_obs(station,
                                         external_correction = inp,
                                         chaos_model = input_chaos) 
                     
-            print('Minute, Hourly, Daily, Monthly, Annual means and Secular Variation were saved on directory:')
+            print(f'Minute, Hourly, Daily, Monthly, Annual means and Secular Variation were saved on directory:')
             print(directory)   
             break
 
         elif inp2 =='n':
-            print('No files saved!')
+
+            print(f'No files saved!')
+
             break
+
         else:
-            print('You musy type y or n.')
+
+            print(f'You must type y or n.')
         
         
     while True:
        
-        inp3 = input("Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
+        inp3 = input(f"Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
-            directory = 'Filtered_data/'+ station +'_data'
+            directory = f'Filtered_data/{station}_data'
+
             pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
             
             #plot minute mean
             if input_chaos == 'y' or inp5 == 'y':
                 fig, ax = plt.subplots(3,1, figsize = (16,10))
                 
-                ax[0].set_title(station.upper() + ' minute mean', fontsize = 18)
+                ax[0].set_title(f'{station.upper()} minute mean', fontsize = 18)
                 ax[0].plot(df_station2['X'], color  = 'blue')
                 ax[0].set_xlim(df_station2['X'].index[0],df_station2['X'].index[-1])
                 ax[0].set_ylabel('X(nT)', fontsize = 12)
@@ -444,6 +491,7 @@ def SV_obs(station,
 
                 
                 if First_QD_data != []:
+
                     ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], color = 'red',label = 'Quasi-definitive data')
                     ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], color = 'red',label = 'Quasi-definitive data')
                     ax[2].plot(df_station2.loc[df_station2.index > First_QD_data]['Z'], color = 'red',label = 'Quasi-definitive data')
@@ -457,7 +505,7 @@ def SV_obs(station,
                     ax.yaxis.set_tick_params(which='minor', bottom=False)
                     ax.minorticks_on() 
                 
-                plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_minute_mean.jpeg', bbox_inches='tight')
                 plt.show()
                 
             else:
@@ -497,7 +545,7 @@ def SV_obs(station,
                     ax.yaxis.set_tick_params(which='minor', bottom=False)
                     ax.minorticks_on() 
 
-                plt.savefig(directory + '/' + station + '_minute_mean.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_minute_mean.jpeg', bbox_inches='tight')
                 plt.show()
                     
             
@@ -519,8 +567,8 @@ def SV_obs(station,
             
             #calculating dataframe with minthly mean
             df_monthly_mean = dpt.resample_obs_data(df_station,
-                                               sample = 'M',
-                                               apply_percentage = resample_condition)
+                                                    sample = 'M',
+                                                    apply_percentage = resample_condition)
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
@@ -576,14 +624,14 @@ def SV_obs(station,
                 ax[2,1].legend()
 
 
-            plt.savefig(directory + '/' + station + '_Var_SV.jpeg', bbox_inches='tight')
+            plt.savefig(f'{directory}/{station}_Var_SV.jpeg', bbox_inches='tight')
             plt.show()      
             
              #plot of SV alone     
                   
             fig, ax = plt.subplots(3,1, figsize = (16,10))
             
-            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 18)
+            ax[0].set_title(f'{station.upper()} Secular Variation (ADMM)', fontsize = 18)
     
             ax[0].plot(df_SV['X'], 'o', color  = 'blue')
             ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
@@ -620,7 +668,7 @@ def SV_obs(station,
                 ax[2].legend()
             
 
-            plt.savefig(directory + '/' + station + '_SV.jpeg', bbox_inches='tight')
+            plt.savefig(f'{directory}/{station}_SV.jpeg', bbox_inches='tight')
             plt.show()
             
 
@@ -658,7 +706,7 @@ def SV_obs(station,
                 ax[2].grid()
 
                 
-                plt.savefig(directory + '/' + station + '_SV_correction_comparison.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_SV_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
                 
                 #plotting chaos predicted and corrected SV
@@ -693,7 +741,7 @@ def SV_obs(station,
                 ax[2].grid()
 
                 
-                plt.savefig(directory + '/' + station + '_SV_predicted_and_correction_comparison.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_SV_predicted_and_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
                 
             
@@ -701,7 +749,9 @@ def SV_obs(station,
             print(directory)    
             
             break
+
         elif inp3 == 'n':
+
             print('No plots saved')
             
             #plot minute mean
@@ -787,8 +837,8 @@ def SV_obs(station,
             #calculating monthly mean dataframe
             
             df_monthly_mean = dpt.resample_obs_data(df_station,
-                                               sample = 'M',
-                                               apply_percentage = resample_condition)
+                                                    sample = 'M',
+                                                    apply_percentage = resample_condition)
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
@@ -958,15 +1008,16 @@ def SV_obs(station,
 
                    
         else:
-            print('You must type y or n!')
+            print(f'You must type y or n!')
     
     while True:
-        condition = input("Do you want to detect a geomagnetic jerk? [y/n]: ")
+
+        condition = input(f"Do you want to detect a geomagnetic jerk? [y/n]: ")
         
         if condition == 'y':
             try:  
-                window_start = input('type the  start date for the jerk window [yyyy-mm]: ')
-                window_end = input('type the end date for the jerk window [yyyy-mm]: ')
+                window_start = input(f'type the  start date for the jerk window [yyyy-mm]: ')
+                window_end = input(f'type the end date for the jerk window [yyyy-mm]: ')
                 
                 for i in [str(window_start),str(window_end)]:
                     spf.validate_YM(i)
@@ -1007,7 +1058,7 @@ def SV_obs(station,
                 break
             except:
                 print("""This is not the correct format. Please reenter. (correct format: yyyy-mm-dd)""")
-                        #create an option to save or not a plot
+                        
            
         if condition == 'n':
             print('No linear segments adopted')
@@ -1112,7 +1163,7 @@ def SV_(stations,
                 df_station =  load_INTERMAGNET_files(station,
                                                  starttime,
                                                  endtime,
-                                                files_path)
+                                                 files_path)
 
                                                      
             except:
@@ -1169,7 +1220,9 @@ def SV_(stations,
             
             
             df_station_2 = df_station.copy()
+
             if CHAOS_correction == True:
+                
                 df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
                                                                    starttime = starttime,
                                                                    endtime = endtime,

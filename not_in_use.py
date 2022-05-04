@@ -368,3 +368,95 @@ def HDZ_to_XYZ_conversion(station,
     
     
     return df_station
+
+def update_qd_and_dd(data):
+    '''
+    
+    '''
+    
+    if data not in ['DD','QD']:
+        
+        print('Data must be QD or DD!')
+        
+    path = f'Thesis_Marcos/Data/Disturbed and Quiet Days/' 
+    files = glob.glob(f'{path}qd*')
+    files.sort()
+    
+    if data == 'DD':
+
+        df = pd.concat((pd.read_csv(file,skiprows = 4,sep = '\s+',
+                        header = None,
+                        usecols = [0,1,12,13,14,15,16],
+                        names = ['Month','Year','D1','D2','D3','D4','D5'])
+                        for file in files),
+                        ignore_index=True)
+        
+         
+        columns = ['D1','D2',
+                   'D3','D4',
+                   'D5'
+                  ]
+        
+        df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
+        
+        for col in columns:
+            df['Test' +  col] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('*','')
+        
+        df_DD = pd.DataFrame()
+        
+        df_DD['DD'] = pd.concat([df['TestD1'] ,df['TestD2'],
+                                 df['TestD3'], df['TestD4'],
+                                df['TestD5']]
+                               )
+        
+        df_DD['DD'] = pd.to_datetime(df_DD['DD'], infer_datetime_format=True)
+        
+        
+        df_DD.set_index('DD', inplace = True)
+        
+        df_DD = df_DD.sort_index()
+        
+        df_DD.to_csv(path + 'Disturbed_Days_list.txt',index = True)
+        
+    if data == 'QD':
+        df = pd.concat((pd.read_csv(file,
+                                    skiprows = 4,
+                                    sep = '\s+',
+                                    header = None,
+                                    usecols = [0, 1, 2,
+                                               3, 4, 5,
+                                               6, 7, 8,
+                                               9, 10, 11
+                                               ],
+                                    names = ['Month', 'Year', 'Q1',
+                                             'Q2', 'Q3', 'Q4', 'Q5',
+                                             'Q6', 'Q7', 'Q8', 'Q9',
+                                             'Q10'
+                                             ]) for file in files),
+                                                ignore_index = True
+                       )
+        
+        columns = [f'Q{i}' for i in range(1, 11)]
+        
+        df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
+        
+        for col in columns:
+            df['Test' +  col] = df['Year'].astype(str) + '-' + df['Month'].astype(str) + '-' + df[col].astype(str)
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('A','')
+        for col in columns:
+            df['Test' + col] = df['Test' + col].str.replace('K','')
+        
+        df_QD = pd.DataFrame()
+        df_QD['QD'] = pd.concat([df['TestQ1'],df['TestQ2'],df['TestQ3'],df['TestQ4'],df['TestQ5'],df['TestQ6'],df['TestQ7'],df['TestQ8'],df['TestQ9'],df['TestQ10']])
+        
+        df_QD['QD'] = pd.to_datetime(df_QD['QD'],infer_datetime_format=True)
+        
+        
+        df_QD.set_index('QD', inplace = True)
+        
+        df_QD = df_QD.sort_index()
+        
+        df_QD.to_csv(path + 'Quiet_Days_list.txt',index = True)    
