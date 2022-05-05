@@ -66,6 +66,11 @@ def remove_Disturbed_Days(dataframe,
     
     disturbed_index = pd.DataFrame()
     
+
+    #updating disturbed days list
+    
+    spf.update_qd_and_dd(data = 'DD')
+
     df_d = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
                        skiprows = 1, 
                      usecols = [0],
@@ -140,6 +145,10 @@ def keep_Q_Days(dataframe,
     df = dataframe.loc[starttime:endtime]
     
     quiet_index = pd.DataFrame()
+
+    #updating disturbed days list
+    
+    spf.update_qd_and_dd(data = 'QD')
 
     df_q = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
                        header = None,
@@ -281,16 +290,17 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     if (kp <= 0 ) or (kp >= 9): 
         print('kp must be a number from 0 to 9, try again!')
     df = pd.DataFrame()
-    df = dataframe
+    df = dataframe.copy()
     
-    KP_ = pd.read_csv('Thesis_Marcos/Data/Kp index/Kp_ap_since_1932.txt', skiprows = 30,
+    KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt', skiprows = 30,
                   header = None,
                   sep = '\s+', 
-                  usecols = [7,8],
-                  names = ['Kp','Ap'],
-                  )
-    Date = pd.date_range('1932-01-01 00:00:00', '2022-01-29 21:00:00', freq = '3H')    
-    KP_.index = Date
+                  usecols = [0,1,2,3,7,8],
+                  parse_dates = {'Date': ['Y', 'M','D','H']},
+                  names = ['Y','M','D','H','Kp','Ap'],
+                 )
+    #Date = pd.date_range('1932-01-01 00:00:00','2022-01-29 21:00:00', freq = '3H')
+    KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
     x=pd.DataFrame()
     x['Date'] = KP_[starttime:endtime].loc[KP_['Kp'] > kp].index.date
@@ -391,15 +401,16 @@ def chaos_model_prediction(station, starttime, endtime):
     B_core = model.synth_values_tdep(time = Time,
                                      radius = Elevation,
                                      theta = Latitude ,
-                                     phi = Longitude
+                                     phi = Longitude,
+                                     nmax = 20
                                      )
 
-    print(f'Computing crustal field up to degree 70.')
+    print(f'Computing crustal field up to degree 110.')
 
     B_crust = model.synth_values_static(radius = Elevation,
                                         theta = Latitude,
                                         phi = Longitude,
-                                        nmax = 70
+                                        nmax = 110
                                         )
     
     # complete internal contribution
@@ -412,7 +423,8 @@ def chaos_model_prediction(station, starttime, endtime):
                                    radius = Elevation, 
                                    theta = Latitude,
                                    phi = Longitude, 
-                                   source='all'
+                                   source='all',
+                                   nmax = 2
                                    )
 
     if endtime <= '2022-02-28':
@@ -422,7 +434,8 @@ def chaos_model_prediction(station, starttime, endtime):
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
-                                 source='all'
+                                 source='all',
+                                 nmax = 2,
                                  )
     else:
         Date_RC = pd.date_range(starttime, '2022-02-28' + ' 23:00:00', freq = 'H')
