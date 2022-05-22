@@ -43,7 +43,11 @@ def check_data_availability(station):
     print('The first available date for ' + station.upper() + ' is ' +  f[0][21:29])
     print('The last available date for '  + station.upper() + ' is ' +  f[-1][21:29])
             
-def download_data_INTERMAGNET(datatype, Year, Months, files = None):
+def download_data_INTERMAGNET(datatype,
+                              Year,
+                              Months,
+                              files = None
+                             ):
     
     '''
     Download observatory files from Intermagnet FTP server and save in
@@ -60,7 +64,12 @@ def download_data_INTERMAGNET(datatype, Year, Months, files = None):
     
     example of use - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
     '''
-    List_Months = ['01','02','03','04','05','06','07','08','09','10','11','12']
+    List_Months = ['01', '02', '03',
+                   '04', '05', '06',
+                   '07', '08', '09',
+                   '10', '11', '12'
+                   ]
+    
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
     ftp.login('anonymous', 'email@email.com')
     
@@ -179,22 +188,27 @@ def HDZ_to_XYZ_conversion(station,
     starttime = str(df_station.index[0].date())
     endtime = str(df_station.index[-1].date())
     
-    years_interval = np.arange(int(starttime[0:4]),int(endtime[0:4])+ 1)
+    years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4])+ 1)
     files_station = []
 
     
     if files_path == None:
         for year in years_interval:
-            files_station.extend(glob.glob('Dados OBS\\' + str(year) + '/*/' + station + '*'))
+            files_station.extend(glob.glob(f'Dados OBS\\{str(year)}/*/{station}*'))
             files_station.sort()
     else:
-        files_station.extend(glob.glob(files_path + station + '*'))
+        files_station.extend(glob.glob(f'{files_path}{station}*'))
         files_station.sort()
             
             
     values_list = []
     for file in files_station:
-        x = pd.read_csv(file,sep = '\s+',skiprows = 12,nrows=40, usecols = [0,3], names = ['date','col'])
+        x = pd.read_csv(file,
+                        sep = '\s+',
+                        skiprows = 12,
+                        nrows=40,
+                        usecols = [0,3],
+                        names = ['date','col'])
         file = file
         idx = 0
         while x['col'][idx] != station.upper() + 'H':
@@ -209,7 +223,7 @@ def HDZ_to_XYZ_conversion(station,
                 break
     
     
-    date_hdz = pd.to_datetime(values_list,infer_datetime_format = True)
+    date_hdz = pd.to_datetime(values_list, infer_datetime_format = True)
     
     for date in date_hdz.year.drop_duplicates():
     #print(date)

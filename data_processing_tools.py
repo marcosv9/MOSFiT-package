@@ -21,10 +21,7 @@ from Thesis_Marcos import support_functions as spf
 
 
 
-def remove_Disturbed_Days(dataframe,
-                          starttime,
-                          endtime
-                          ):
+def remove_Disturbed_Days(dataframe):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -42,10 +39,6 @@ def remove_Disturbed_Days(dataframe,
     
     dataframe - a pandas dataframe with geomagnetic data.
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
-    
     ---------------------------------------------------------------------
     Example of use:
     
@@ -58,11 +51,9 @@ def remove_Disturbed_Days(dataframe,
     '''
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
+      
     
-    for i in [starttime,endtime]:
-        spf.validate(i)    
-    
-    df = dataframe.loc[starttime : endtime]
+    df = dataframe
     
     disturbed_index = pd.DataFrame()
     
@@ -73,10 +64,10 @@ def remove_Disturbed_Days(dataframe,
 
     df_d = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
                        skiprows = 1, 
-                     usecols = [0],
-                     names = ['dd'],
-                     parse_dates = {'D-Days': ['dd']},
-                     )
+                       usecols = [0],
+                       names = ['dd'],
+                       parse_dates = {'D-Days': ['dd']},
+                       )
     
     df_d['D-Days'] = pd.to_datetime(df_d['D-Days'], format = '%YYYY-%mm-%dd')
 
@@ -102,10 +93,8 @@ def remove_Disturbed_Days(dataframe,
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
 
-def keep_Q_Days(dataframe,
-                starttime,
-                endtime
-                ):
+def keep_Q_Days(dataframe):
+    
     ''' 
     Function created to keep only geomagnetic quiet 
     days from observatory geomagnetic data.
@@ -123,10 +112,6 @@ def keep_Q_Days(dataframe,
     
     dataframe - a pandas dataframe with geomagnetic data.
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
-    
     ---------------------------------------------------------------------------
     Example of use:
     
@@ -139,10 +124,9 @@ def keep_Q_Days(dataframe,
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
-    for i in [starttime,endtime]:
-        spf.validate(i)
+
     
-    df = dataframe.loc[starttime:endtime]
+    df = dataframe
     
     quiet_index = pd.DataFrame()
 
@@ -164,7 +148,7 @@ def keep_Q_Days(dataframe,
     
     df_q.set_index('Q-Days', inplace = True)
     
-    df_q = df_q.loc[starttime : endtime]
+    df_q = df_q.loc[str(df.index[0].date()):str(df.index[-1].date())]
 
     for date in df_q.index.date:
         try:
@@ -177,8 +161,6 @@ def keep_Q_Days(dataframe,
     return df
 
 def calculate_SV(dataframe,
-                starttime,
-                endtime,
                 method = 'ADMM',
                 columns = None,
                 apply_percentage:bool = False
@@ -218,7 +200,6 @@ def calculate_SV(dataframe,
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
 
     df = dataframe
-    df = df.loc[starttime : endtime]
     
     Method = ['ADMM','YD']
     
@@ -255,7 +236,7 @@ def calculate_SV(dataframe,
             
     return df_SV
 
-def Kp_index_correction(dataframe, starttime, endtime, kp):
+def Kp_index_correction(dataframe, kp):
     '''
     Function o filter geomagnetic data based on Kp index
     
@@ -263,10 +244,6 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     inputs:
     
     dataframe - a pandas dataframe with geomagnetic data.
-    
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
     
     kp = limit kp index value (float or int), from 0 to 9.
     --------------------------------------------------------
@@ -283,9 +260,6 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
     assert isinstance(kp, int) or isinstance(kp, float), 'kp must be a number from 0 to 9'
-    
-    for i in [starttime,endtime]:
-        spf.validate(i)
             
     if (kp <= 0 ) or (kp >= 9): 
         print('kp must be a number from 0 to 9, try again!')
@@ -303,7 +277,7 @@ def Kp_index_correction(dataframe, starttime, endtime, kp):
     KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
     x=pd.DataFrame()
-    x['Date'] = KP_[starttime:endtime].loc[KP_['Kp'] > kp].index.date
+    x['Date'] = KP_[str(df.index[0].date()):str(df.index[-1].date())].loc[KP_['Kp'] > kp].index.date
     x['Date'] = x['Date'].drop_duplicates()
     x.index = x['Date']
     x =x.dropna()
@@ -622,10 +596,7 @@ def rms(predictions, real_data):
     return x
 
 def night_time_selection(station,
-                        dataframe,
-                        starttime,
-                        endtime
-                        ):
+                        dataframe):
     
     '''
     Function to select the night time period (from 23 PM to 5 AM) from the geomagnetic data.
@@ -637,19 +608,11 @@ def night_time_selection(station,
     
     dataframe - a pandas dataframe with geomagnetic data.
     
-    dataframe - 3 letters IAGA code for a INTERMAGNET observatory.
-    
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
-    
     ---------------------------------------------------------------------------
         
     Example of use:
     night_time_selection(station = 'VSS',
-                         dataframe = name_of_dataframe,
-                         starttime = 'yyyy-mm-dd',
-                         endtime = 'yyyy-mm-dd')
+                         dataframe = name_of_dataframe)
     
     ------------------------------------------------------------------------------
     
@@ -663,9 +626,6 @@ def night_time_selection(station,
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!') 
     
-    for i in [starttime,endtime]:
-        spf.validate(i)
-    
     f = []
     f.extend(glob.glob(f'Dados OBS/*/*/{station}*'))
     f.sort()
@@ -676,7 +636,6 @@ def night_time_selection(station,
 
     
     df = dataframe
-    df = df.loc[starttime:endtime]
     
     df_lt = df.shift(round(dif, 3), freq = 'H')
     

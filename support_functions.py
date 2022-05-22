@@ -404,7 +404,7 @@ def validate_YM(str_date):
     try:
         datetime.strptime(str_date, '%Y-%m')
     except ValueError:
-        raise ValueError('Incorrect ' + str_date + ' format, should be YYYY-MM')
+        raise ValueError(f'Incorrect {str_date} format, should be YYYY-MM')
 
 class year(object):
     def __init__(self,year):
@@ -422,7 +422,12 @@ def skiprows_detection(files_station):
     for file in files_station:
         idx = 0
         skiprows = 12
-        x = pd.read_csv(file,sep = '\s+', skiprows = skiprows, nrows=40, usecols = [0], names = ['col'])
+        x = pd.read_csv(file,
+                        sep = '\s+',
+                        skiprows = skiprows,
+                        nrows=40,
+                        usecols = [0],
+                        names = ['col'])
         file = file
         while x['col'][idx] != 'DATE':
             skiprows += 1

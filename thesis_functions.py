@@ -180,17 +180,19 @@ def SV_obs(station,
     #reading the files
     
     df_station = load_INTERMAGNET_files(station,
-                                          starttime,
-                                          endtime,
-                                          files_path)
+                                        starttime,
+                                        endtime,
+                                        files_path
+                                        )
     
 
     #detecting different data types
     if endtime > '2018-12-31':
         
         First_QD_data = spf.data_type(station = station,
-                              starttime = starttime,
-                              endtime = endtime)
+                                      starttime = starttime,
+                                      endtime = endtime
+                                      )
     else:
         First_QD_data = []
     
@@ -200,7 +202,8 @@ def SV_obs(station,
     
     df_station =  utt.HDZ_to_XYZ_conversion(station = station,
                                             dataframe = df_station,
-                                            files_path = files_path)
+                                            files_path = files_path
+                                            )
 
     df_station2 = df_station.copy()
     
@@ -248,27 +251,19 @@ def SV_obs(station,
     
     if inp == 'Q':
         
-        df_station = dpt.keep_Q_Days(df_station,
-                                     starttime,
-                                     endtime)
+        df_station = dpt.keep_Q_Days(df_station)
         
     if inp == 'D':
         
-        df_station = dpt.remove_Disturbed_Days(df_station,
-                                               starttime,
-                                               endtime)
+        df_station = dpt.remove_Disturbed_Days(df_station)
         
     if inp == 'NT':
         
         df_station = dpt.night_time_selection(station,
-                                              df_station,
-                                              starttime,
-                                              endtime)
+                                              df_station)
     if inp == 'KP':
         
         df_station = dpt.Kp_index_correction(dataframe = df_station,
-                                             starttime = starttime,
-                                             endtime = endtime,
                                              kp = 3)
         
     if inp == 'E':
@@ -276,7 +271,7 @@ def SV_obs(station,
         
     
     #condition for data resampling
-    if inp not in ['Q','D','NT','KP']:
+    if inp not in ['Q', 'D', 'NT', 'KP']:
 
         resample_condition = True
 
@@ -319,22 +314,19 @@ def SV_obs(station,
     
 
     df_SV = dpt.calculate_SV(df_station,
-                             starttime = starttime,
-                             endtime = endtime,
-                             apply_percentage = resample_condition)
+                             apply_percentage = resample_condition
+                            )
     
     df_SV_not_corrected = dpt.calculate_SV(df_station2,
-                                           starttime = starttime,
-                                           endtime = endtime,
-                                           apply_percentage = resample_condition)
+                                           apply_percentage = resample_condition
+                                           )
     
     if input_chaos == 'y':
         
         df_chaos_SV = dpt.calculate_SV(df_chaos,
-                                       starttime = starttime,
-                                       endtime = endtime,
                                        columns = ['X_int','Y_int','Z_int'],
-                                       apply_percentage = False)   
+                                       apply_percentage = False
+                                      )   
     else:
         
         pass    
@@ -349,10 +341,9 @@ def SV_obs(station,
 
             print('Saving files...')
 
-            for sample in [
-                'Min', 'H', 'D',
-                'M', 'Y'
-                ]:
+            for sample in ['Min', 'H', 'D',
+                           'M', 'Y'
+                          ]:
                           
                 if sample == 'Min':
                 
@@ -372,10 +363,11 @@ def SV_obs(station,
                                  index=True)
                 
                     spf.Header_SV_obs_files(station = station,
-                                        filename = 'hourly_mean',
-                                        data_denoise = inp5,
-                                        external_correction = inp,
-                                        chaos_model = input_chaos)               
+                                            filename = 'hourly_mean',
+                                            data_denoise = inp5,
+                                            external_correction = inp,
+                                            chaos_model = input_chaos
+                                            )               
                 if sample == 'D':
                     
                     file = dpt.resample_obs_data(df_station, 'D',
@@ -387,10 +379,11 @@ def SV_obs(station,
                                 index = True)
                     
                     spf.Header_SV_obs_files(station = station,
-                                        filename = 'daily_mean',
-                                        data_denoise = inp5,
-                                        external_correction = inp,
-                                        chaos_model = input_chaos) 
+                                            filename = 'daily_mean',
+                                            data_denoise = inp5,
+                                            external_correction = inp,
+                                            chaos_model = input_chaos
+                                            ) 
                 if sample == 'M':
                     
                     file = dpt.resample_obs_data(df_station,
