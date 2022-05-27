@@ -256,7 +256,7 @@ def data_type(station,
                           names = ['Imos','Latitude','Longitude','Elevation'],
                           index_col= ['Imos'])
     
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
     if files_path != None:
         if files_path[-1] == '/':

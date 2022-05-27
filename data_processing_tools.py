@@ -160,10 +160,10 @@ def keep_Q_Days(dataframe):
     print('Only quiet top 10 quiet days for each month were kept in the data.')
     return df
 
-def calculate_SV(dataframe,
-                method = 'ADMM',
-                columns = None,
-                apply_percentage:bool = False
+def calculate_SV(dataframe: pd.DataFrame(),
+                 method: str = 'ADMM',
+                 columns = None,
+                 apply_percentage:bool = False
                 ):
     '''
     Calculate the secular variation of geomagnetic observatory data.
@@ -221,6 +221,7 @@ def calculate_SV(dataframe,
                                     sample = 'M',
                                     apply_percentage = apply_percentage
                                    )
+        
         
         for col in columns:
             SV = (df_ADMM[col].diff(6) - df_ADMM[col].diff(-6)).round(3).dropna()
@@ -377,7 +378,7 @@ def chaos_model_prediction(station, starttime, endtime):
                                      theta = Latitude ,
                                      phi = Longitude,
                                      nmax = 20
-                                     )
+                                    )
 
     print(f'Computing crustal field up to degree 110.')
 
@@ -385,7 +386,7 @@ def chaos_model_prediction(station, starttime, endtime):
                                         theta = Latitude,
                                         phi = Longitude,
                                         nmax = 110
-                                        )
+                                       )
     
     # complete internal contribution
     B_radius_int = B_core[0] + B_crust[0]
@@ -400,45 +401,53 @@ def chaos_model_prediction(station, starttime, endtime):
                                    source='all',
                                    nmax = 2
                                    )
-
-    if endtime <= '2022-02-28':
-        
-        print('Computing field due to external sources, incl. induced field: SM.')
-        B_sm = model.synth_values_sm(time = Time,
+    
+    B_sm = model.synth_values_sm(time = Time,
                                  radius = Elevation,
                                  theta = Latitude,
                                  phi = Longitude,
                                  source='all',
                                  nmax = 2,
                                  )
-    else:
-        Date_RC = pd.date_range(starttime, '2022-02-28' + ' 23:00:00', freq = 'H')
-        Date_NO_RC = pd.date_range('2022-03-01', endtime + ' 23:00:00', freq = 'H')
-        Time =cp.data_utils.mjd2000(Date_RC)
-        Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
-        
-        print('Computing field due to external sources, incl. induced field: SM.')
-        B_sm_with_rc = model.synth_values_sm(time = Time,
-                                 radius = Elevation,
-                                 theta = Latitude,
-                                 phi = Longitude,
-                                 source='all'
-                                 )
-        
-        B_sm_without_rc = model.synth_values_sm(time = Time_sm,
-                                 radius = Elevation,
-                                 theta = Latitude,
-                                 phi = Longitude,
-                                 source='all',
-                                 rc_e = False,
-                                 rc_i = False
-                                 )
-        
-        B_sm = []
-        B_sm_x = np.append(B_sm_with_rc[0], B_sm_without_rc[0])
-        B_sm_y = np.append(B_sm_with_rc[1], B_sm_without_rc[1])
-        B_sm_z = np.append(B_sm_with_rc[2], B_sm_without_rc[2])
-        B_sm = [B_sm_x, B_sm_y, B_sm_z]
+
+    #if endtime <= '2022-02-28':
+    #    
+    #    print('Computing field due to external sources, incl. induced field: SM.')
+    #    B_sm = model.synth_values_sm(time = Time,
+    #                             radius = Elevation,
+    #                             theta = Latitude,
+    #                             phi = Longitude,
+    #                             source='all',
+    #                             nmax = 2,
+    #                             )
+    #else:
+    #    Date_RC = pd.date_range(starttime, '2022-02-28' + ' 23:00:00', freq = 'H')
+    #    Date_NO_RC = pd.date_range('2022-03-01', endtime + ' 23:00:00', freq = 'H')
+    #    Time =cp.data_utils.mjd2000(Date_RC)
+    #    Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
+    #    
+    #    print('Computing field due to external sources, incl. induced field: SM.')
+    #    B_sm_with_rc = model.synth_values_sm(time = Time,
+    #                             radius = Elevation,
+    #                             theta = Latitude,
+    #                             phi = Longitude,
+    #                             source='all'
+    #                             )
+    #    
+    #    B_sm_without_rc = model.synth_values_sm(time = Time_sm,
+    #                             radius = Elevation,
+    #                             theta = Latitude,
+    #                             phi = Longitude,
+    #                             source='all',
+    #                             rc_e = False,
+    #                             rc_i = False
+    #                             )
+    #    
+    #    B_sm = []
+    #    B_sm_x = np.append(B_sm_with_rc[0], B_sm_without_rc[0])
+    #    B_sm_y = np.append(B_sm_with_rc[1], B_sm_without_rc[1])
+    #    B_sm_z = np.append(B_sm_with_rc[2], B_sm_without_rc[2])
+    #    B_sm = [B_sm_x, B_sm_y, B_sm_z]
 
     # complete external field contribution
     B_radius_ext = B_gsm[0] + B_sm[0]
@@ -458,9 +467,14 @@ def chaos_model_prediction(station, starttime, endtime):
     df_station['Y_tot'] = B_phi.round(3)
     df_station['Z_tot'] = B_radius.round(3)*-1    
     
-    df_station['X_int'] = B_theta_int.round(3)*-1
-    df_station['Y_int'] = B_phi_int.round(3)
-    df_station['Z_int'] = B_radius_int.round(3)*-1
+    df_station['X_int'] = B_core[1].round(3)*-1
+    df_station['Y_int'] = B_core[2].round(3)
+    df_station['Z_int'] = B_core[0].round(3)*-1
+    
+    df_station['X_crust'] = B_crust[1].round(3)*-1
+    df_station['Y_crust'] = B_crust[2].round(3)
+    df_station['Z_crust'] = B_crust[0].round(3)*-1
+    
 
     df_station['X_ext_gsm'] = B_gsm[1].round(3)*-1
     df_station['Y_ext_gsm'] = B_gsm[2].round(3)
@@ -769,7 +783,7 @@ def resample_obs_data(dataframe,
             
             tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if tmp['count'].median().any() <= 1 == True:
+            if any(tmp['count'].median()) <= 1 == True:
 
                 df_station = df_station.resample('H').mean()
                 
@@ -790,7 +804,7 @@ def resample_obs_data(dataframe,
             
             tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if (tmp['count'].median().any() <= 30) == True:
+            if any(tmp['count'].median() <= 30) == True:
                 
                 df_station = df_station.resample('H').mean()
                 
@@ -815,7 +829,7 @@ def resample_obs_data(dataframe,
             
             tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if (tmp['count'].median().any() <= 800) == True:
+            if any(tmp['count'].median() <= 800) == True:
                 
                 df_station = df_station.resample('H').mean()
 
