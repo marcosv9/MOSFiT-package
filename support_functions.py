@@ -18,7 +18,7 @@ from Thesis_Marcos import data_processing_tools as dpt
 from Thesis_Marcos import utilities_tools as utt
 #from Thesis_Marcos import support_functions as spf
 
-def update_qd_and_dd(data):
+def update_qd_and_dd(data: str) -> None:
     '''
     
     '''
@@ -45,7 +45,7 @@ def update_qd_and_dd(data):
         file.close()
     ftp.quit()
     
-    if data not in ['DD','QD']:
+    if data not in ['DD', 'QD']:
         
         print('Data must be QD or DD!')
         
@@ -60,7 +60,10 @@ def update_qd_and_dd(data):
                          sep = '\s+',
                          header = None,
                          usecols = [0,1,12,13,14,15,16],
-                         names = ['Month','Year','D1','D2','D3','D4','D5'])
+                         names = ['Month', 'Year', 'D1',
+                                  'D2', 'D3', 'D4', 'D5'
+                                  ]
+                         )
                         
          
         columns = ['D1','D2',
@@ -78,7 +81,8 @@ def update_qd_and_dd(data):
         
         df_DD['DD'] = pd.concat([df['TestD1'] ,df['TestD2'],
                                  df['TestD3'], df['TestD4'],
-                                df['TestD5']]
+                                 df['TestD5']
+                                ]
                                )
         
         df_DD['DD'] = pd.to_datetime(df_DD['DD'], format= '%Y-%m-%d')
@@ -116,7 +120,8 @@ def update_qd_and_dd(data):
                         names = ['Month', 'Year', 'Q1',
                                  'Q2', 'Q3', 'Q4', 'Q5',
                                  'Q6', 'Q7', 'Q8', 'Q9',
-                                 'Q10']
+                                 'Q10'
+                                ]
                          )
         
         columns = [f'Q{i}' for i in range(1, 11)]
@@ -131,9 +136,14 @@ def update_qd_and_dd(data):
             df['Test' + col] = df['Test' + col].str.replace('K','')
         
         df_QD = pd.DataFrame()
-        df_QD['QD'] = pd.concat([df['TestQ1'],df['TestQ2'],df['TestQ3'],df['TestQ4'],df['TestQ5'],df['TestQ6'],df['TestQ7'],df['TestQ8'],df['TestQ9'],df['TestQ10']])
+        df_QD['QD'] = pd.concat([df['TestQ1'], df['TestQ2'], df['TestQ3'],
+                                 df['TestQ4'], df['TestQ5'], df['TestQ6'],
+                                 df['TestQ7'], df['TestQ8'], df['TestQ9'],
+                                 df['TestQ10']
+                                ]
+                               )
         
-        df_QD['QD'] = pd.to_datetime(df_QD['QD'],infer_datetime_format=True)
+        df_QD['QD'] = pd.to_datetime(df_QD['QD'], infer_datetime_format=True)
         
         
         #df_QD.set_index('QD', inplace = True)
@@ -147,10 +157,10 @@ def update_qd_and_dd(data):
         df_new = pd.concat([df_list,df_QD], ignore_index=False)
         
         df_new['QD'] = pd.to_datetime(df_new['QD'], infer_datetime_format=True)
-        df_new.set_index('QD',inplace=True)
+        df_new.set_index('QD', inplace=True)
         
         
-        df_new.drop_duplicates().dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt',index = True)
+        df_new.drop_duplicates().dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
         
 def Header_SV_obs_files(station,
                         filename,
@@ -418,10 +428,12 @@ class year(object):
             return False
 
 def skiprows_detection(files_station):
+    
     values_list = [[],[]]
+    
     for file in files_station:
         idx = 0
-        skiprows = 12
+        skiprows = 10
         x = pd.read_csv(file,
                         sep = '\s+',
                         skiprows = skiprows,

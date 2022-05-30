@@ -21,7 +21,7 @@ from Thesis_Marcos import support_functions as spf
 
 
 
-def remove_Disturbed_Days(dataframe):
+def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -93,7 +93,7 @@ def remove_Disturbed_Days(dataframe):
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
 
-def keep_Q_Days(dataframe):
+def keep_Q_Days(dataframe: pd.DataFrame()):
     
     ''' 
     Function created to keep only geomagnetic quiet 
@@ -237,7 +237,9 @@ def calculate_SV(dataframe: pd.DataFrame(),
             
     return df_SV
 
-def Kp_index_correction(dataframe, kp):
+def Kp_index_correction(dataframe,
+                        kp
+                        ):
     '''
     Function o filter geomagnetic data based on Kp index
     
@@ -293,7 +295,10 @@ def Kp_index_correction(dataframe, kp):
     
     return df
 
-def chaos_model_prediction(station, starttime, endtime):
+def chaos_model_prediction(station: str,
+                           starttime: str,
+                           endtime: str
+                           ):
     '''
     Compute the CHAOS-7.10 model geomagnetic field prediction for a INTERMAGNET observatory.
     
@@ -486,9 +491,9 @@ def chaos_model_prediction(station, starttime, endtime):
     
     return df_station 
         
-def external_field_correction_chaos_model(station,
-                                          starttime,
-                                          endtime,
+def external_field_correction_chaos_model(station: str,
+                                          starttime: str,
+                                          endtime: str,
                                           df_station = None,
                                           df_chaos = None,
                                           files_path = None,
@@ -542,8 +547,8 @@ def external_field_correction_chaos_model(station,
     else:
         
         df_chaos = chaos_model_prediction(station = station,
-                                         starttime = starttime,
-                                         endtime = endtime
+                                          starttime = starttime,
+                                          endtime = endtime
                                          )
         
     #df_chaos.index = df_chaos.index + to_offset('30min')
@@ -559,9 +564,9 @@ def external_field_correction_chaos_model(station,
         df_station.loc[starttime:endtime] = df_station
     else:
         df_station = mvs.load_INTERMAGNET_files(station = station,
-                                                  starttime = starttime,
-                                                  endtime = endtime,
-                                                  files_path = files_path
+                                                starttime = starttime,
+                                                endtime = endtime,
+                                                files_path = files_path
                                                 )
         
         df_station = df_station.loc[starttime:endtime]
@@ -573,7 +578,7 @@ def external_field_correction_chaos_model(station,
     
     df_station = resample_obs_data(df_station,
                                    'H',
-                                    apply_percentage = apply_percentage
+                                   apply_percentage = apply_percentage
                                    )   
     
     print('The external field predicted using CHAOS-model was removed from the data.')

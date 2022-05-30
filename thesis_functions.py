@@ -63,7 +63,7 @@ def load_INTERMAGNET_files(station: str,
     
     if utt.IMO.check_existence(station.upper()) == False:
         #print('Station must be an observatory IAGA CODE!')
-        raise ValueError('Station must be an observatory IAGA CODE!')
+        raise ValueError('station must be an observatory IAGA CODE!')
         
     #creating a list to allocate the file paths
     
@@ -90,7 +90,7 @@ def load_INTERMAGNET_files(station: str,
 
             files_station.sort()
     else:
-        files_station.extend(glob.glob(f'{files_path}{station}*'))
+        files_station.extend(glob.glob(f'{files_path}{station.lower()}*'))
 
         files_station.sort()
 
@@ -1667,7 +1667,9 @@ def read_txt_SV(station: str,
     
     path = f'SV_update/{station.upper()}_data/SV_{station.upper()}.txt'
 
-    df_SV = pd.read_csv(path,sep = '\s+', index_col = [0])
+    df_SV = pd.read_csv(path,
+                        sep = '\s+',
+                        index_col = [0])
     df_SV.index = pd.to_datetime(df_SV.index, infer_datetime_format=True)
     df_SV = df_SV.loc[starttime:endtime]
     

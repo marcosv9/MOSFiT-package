@@ -19,7 +19,7 @@ from Thesis_Marcos import support_functions as spf
 from Thesis_Marcos import data_processing_tools as dpt
 
 
-def check_data_availability(station):
+def check_data_availability(station: str) -> None:
     '''
     check the available data period, based on the IAGA code.
     
@@ -38,10 +38,10 @@ def check_data_availability(station):
     assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
     
     f = []
-    f.extend(glob.glob('Dados OBS/*/*/' + station + '*'))
+    f.extend(glob.glob(f'Dados OBS/*/*/{station}*'))
     f.sort()
-    print('The first available date for ' + station.upper() + ' is ' +  f[0][21:29])
-    print('The last available date for '  + station.upper() + ' is ' +  f[-1][21:29])
+    print(f'The first available date for {station.upper()} is {f[0][21:29]}')
+    print(f'The last available date for {station.upper()} is {f[-1][21:29]}')
             
 def download_data_INTERMAGNET(datatype,
                               Year,
@@ -132,9 +132,9 @@ def download_data_INTERMAGNET(datatype,
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
                    
-def HDZ_to_XYZ_conversion(station,
-                          dataframe,
-                          files_path = None):
+def HDZ_to_XYZ_conversion(station: str,
+                          dataframe: pd.DataFrame(),
+                          files_path: str = None) -> pd.DataFrame():
     '''
     Automatically indentify the existence H, D and Z components in the 
     geomagnetic data, and convert to X, Y and Z.
@@ -206,9 +206,10 @@ def HDZ_to_XYZ_conversion(station,
         x = pd.read_csv(file,
                         sep = '\s+',
                         skiprows = 12,
-                        nrows=40,
-                        usecols = [0,3],
-                        names = ['date','col'])
+                        nrows = 40,
+                        usecols = [0, 3],
+                        names = ['date', 'col']
+                        )
         file = file
         idx = 0
         while x['col'][idx] != station.upper() + 'H':
@@ -238,9 +239,20 @@ def HDZ_to_XYZ_conversion(station,
 
 class IMO(object): 
     
-
-    
-    def __init__(self,station,latitude,longitude,elevation):
+   
+    def __init__(self,
+                 station,
+                 latitude,
+                 longitude,
+                 elevation
+                ):
+        
+        df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+                               skiprows = 1,
+                               sep = '\s+',
+                               usecols=[0, 1, 2, 3],
+                               names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
+                               index_col= ['Imos'])
         
 
             #self.station = station
@@ -249,13 +261,13 @@ class IMO(object):
         self.longitude = longitude
         self.elevation = elevation
         
+
     df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
-              skiprows = 1,
-              sep = '\s+',
-              usecols=[0,1,2,3],
-              names = ['Imos','Latitude','Longitude','Elevation'],
-              index_col= ['Imos'])
-    
+                               skiprows = 1,
+                               sep = '\s+',
+                               usecols=[0, 1, 2, 3],
+                               names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
+                               index_col= ['Imos'])
     
     def code(station):
         if IMO.check_existence(station) == True:
@@ -283,7 +295,7 @@ class IMO(object):
             
         return IMO.df_IMOS.loc[station]['Longitude']
     
-    def elevation(station):
+    def elevation(station: str):
         
         if IMO.check_existence(station) == True:
             pass
@@ -294,18 +306,9 @@ class IMO(object):
     
     def delete(station: str):
     
-        conn = sqlite3.connect('Imos_database.db')
-        c = conn.cursor()
-        c.execute('DELETE FROM Imos_informations WHERE Imos =?',(station,))
-        conn.commit()
-        sql_query = pd.read_sql_query ('''
-                                   SELECT
-                               *
-                               FROM Imos_informations
-                               ''', conn, index_col=['Imos'])
-    
-        sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
-        conn.close()
+        IMO.df_IMOS.drop(station)
+        
+        IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
     
     def check_existence(station):
         
@@ -314,23 +317,21 @@ class IMO(object):
         else:
             return True
         
-    def add(station: str,latitude: float,longitude: float,elevation: float):
+    def add(station: str,
+            latitude: float,
+            longitude: float,
+            elevation: float
+            ):
         
+        imo_info = {'Imos': [station],
+                    'Latitude': [latitude],
+                    'Longitude': [longitude],
+                    'Elevation': [elevation]
+                    }
         
-        conn = sqlite3.connect('Imos_database.db')
-        c = conn.cursor()
-        c.execute('INSERT INTO Imos_informations VALUES (?, ?, ?, ?)', (station,
-                                                                                                       latitude,
-                                                                                                       longitude,
-                                                                                                       elevation))
-        #rows = c.execute("SELECT * FROM Imos_informations").fetchall()
-        #print(rows)
-        conn.commit()
-        sql_query = pd.read_sql_query ('''
-                                   SELECT
-                                   *
-                                   FROM Imos_informations
-                                   ''', conn, index_col=['Imos'])
+        df_new_imo = pd.DataFrame(imo_info)
+        df_new_imo.set_index('Imos', inplace=True)
         
-        sql_query.round(3).to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = ' ')
-        conn.close()
+        IMO.df_IMOS = pd.concat([IMO.df_IMOS, df_new_imo])
+        
+        IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
