@@ -603,9 +603,9 @@ def rms(predictions, real_data):
     Return a list with the RMSE for each X, Y and Z
     '''
     
-    columns = ['X_int','Y_int','Z_int']
+    #columns = ['X_int','Y_int','Z_int']
     x = []
-    for col,cols in zip(columns,real_data.columns):
+    for col,cols in zip(predictions.columns,real_data.columns):
         y = (real_data[cols].resample('M').mean().diff(6) - real_data[cols].resample('M').mean().diff(-6)).dropna()
         ypred = (predictions[col].resample('M').mean().diff(6) - predictions[col].resample('M').mean().diff(-6)).dropna()
         ypred = ypred.reindex(y.index)
@@ -976,10 +976,10 @@ def jerk_detection_window(station, window_start,
              R² between the data and the linear segments.
     '''
     
-    for i in [starttime,endtime]:
+    for i in [starttime, endtime]:
         spf.validate(i)
 
-    for i in [window_start,window_end]:
+    for i in [window_start, window_end]:
         spf.validate_YM(i)
         
     assert len(station) == 3, 'station must be a three letters IAGA Code'
@@ -1090,7 +1090,7 @@ def jerk_detection_window(station, window_start,
     
     for column in df_SV.columns:
 
-        myPWLF = pwlf.PiecewiseLinFit(date_jerk,df_SV.loc[window_start:window_end][column])
+        myPWLF = pwlf.PiecewiseLinFit(date_jerk, df_SV.loc[window_start:window_end][column])
         
         breakpoints[column] = myPWLF.fit(2)
         
@@ -1123,42 +1123,61 @@ def jerk_detection_window(station, window_start,
         #plotting single figure
 
         if plot_detection == True and plot_CHAOS_prediction == False or CHAOS_correction == False:
-            colors = ['blue','green','black']
+            colors = ['blue', 'green', 'black']
             fig, axes = plt.subplots(3,1,figsize = (12,10))
-            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.92)
             plt.xlabel('Date (Years)', fontsize = 12)
             
             for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
-                ax.plot(df_SV[col],'o-',color = color)
+                ax.plot(df_SV[col],
+                        'o-',
+                        color = color
+                        )
                 ax.plot(df_jerk_window[col].index,
-                        df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection') 
+                        df_jerk_window[col],
+                        color = 'red',
+                        linewidth = 3,
+                        label = 'jerk detection'
+                        ) 
                         #label = 'JOT ' + 
                         #str(round((df_jerk_window.index[int(z[col][1].round())].year+
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
-                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-                ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
+                ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
                 ax.legend()
             if save_plots == True:
-                plt.savefig(directory + '/' + station + '_jerk_detection.jpeg', bbox_inches='tight')
+                plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
                 plt.show()
  
             #plotting multiple figure
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
-            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
-            fig.text(0.5, 0.04, 'Date (Years)', ha='center', fontsize = 12)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.93)
+            fig.text(0.5,
+                     0.04,
+                     'Date (Years)',
+                     ha='center',
+                     fontsize = 12
+                     )
          
             upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
             lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
     
             for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
                 
-                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],'o-',color = color)
-                ax.plot(df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection')
-                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
+                        'o-',
+                        color = color
+                        )
+                ax.plot(df_jerk_window[col],
+                        color = 'red',
+                        linewidth = 3,
+                        label = 'jerk detection'
+                        )
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y'))
                 ax.xaxis.get_ticklocs(minor=True)
@@ -1174,24 +1193,32 @@ def jerk_detection_window(station, window_start,
 
             colors = ['blue','green','black']
             fig, axes = plt.subplots(3,1,figsize = (12,10))
-            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.92)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.92)
             plt.xlabel('Date (Years)', fontsize = 12)
             
-            for col,chaos_col, ax, color in zip(df_SV.columns,df_CHAOS_SV.columns, axes.flatten(), colors):
-                ax.plot(df_SV[col],'o-',color = color)
+            for col,chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV.columns, axes.flatten(), colors):
+                ax.plot(df_SV[col],
+                        'o-',
+                        color = color
+                        )
                 
                 ax.plot(df_CHAOS_SV[chaos_col],
                         '-',
                         linewidth = 2,
-                        label = 'CHAOS prediction')
+                        label = 'CHAOS prediction'
+                        )
                 
                 ax.plot(df_jerk_window[col].index,
-                        df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection') 
+                        df_jerk_window[col],
+                        color = 'red',
+                        linewidth = 3,
+                        label = 'jerk detection'
+                        ) 
                         #label = 't0 ' + 
                         #str(round((df_jerk_window.index[int(z[col][1].round())].year+
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
-                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
-                ax.set_xlim(df_SV[col].index[0],df_SV[col].index[-1])
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
+                ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
@@ -1203,10 +1230,10 @@ def jerk_detection_window(station, window_start,
             #plotting multiple figure
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
-            plt.suptitle(station.upper() +' secular variation', fontsize = 14, y = 0.93)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.93)
             fig.text(0.5, 0.04, 'Date (Years)', ha='center', fontsize = 12)
          
-            upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
+            upper_limit = int(str(datetime.strptime(window_end,'%Y-%m-%d'))[0:4]) +1
             lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
 
             for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV, axes.flatten(), colors):
@@ -1222,10 +1249,14 @@ def jerk_detection_window(station, window_start,
                         label = 'CHAOS prediction'
                         )
                 
-                ax.plot(df_jerk_window[col],color = 'red', linewidth = 3, label = 'jerk detection')
+                ax.plot(df_jerk_window[col],
+                        color = 'red',
+                        linewidth = 3,
+                        label = 'jerk detection'
+                        )
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y')) 
-                ax.set_ylabel('d' + col.upper() +'/dt (nT)', fontsize = 12)
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 

@@ -1098,7 +1098,7 @@ def SV_(stations: str,
         hampel_filter: bool = False,
         plot_chaos: bool = False,
         convert_HDZ_to_XYZ:bool = False
-       ) -> None:
+        ) -> None:
     
     '''
     
@@ -1137,7 +1137,7 @@ def SV_(stations: str,
     
     -------------------------------------------------------------------------------------
     Use example:
-    
+
     SV_(stations = ['VSS','NGK','TTB'],
         starttime = '2000-01-01',
         endtime = '2021-06-30',
@@ -1152,6 +1152,7 @@ def SV_(stations: str,
         
     ---------------------------------------------------------------------------------------    
     
+
     '''
     
     
@@ -1210,7 +1211,8 @@ def SV_(stations: str,
                 df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                          window_size = 100,
                                                          n_sigmas=3,
-                                                         plot_figure = True)
+                                                         plot_figure = True
+                                                         )
             else:
                 pass
             if external_reduction == None:
@@ -1679,9 +1681,12 @@ def plot_samples(station: str,
                  dataframe: pd.DataFrame(),
                  save_plots: bool = False,
                  plot_data_type = None,
-                 apply_percentage: bool = False):
-    '''
-    '''
+                 apply_percentage: bool = False
+                 ):
+                 
+    """_summary_
+    """
+    
     
     
     
