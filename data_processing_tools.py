@@ -615,7 +615,8 @@ def rms(predictions, real_data):
     return x
 
 def night_time_selection(station,
-                        dataframe):
+                         dataframe
+                         ):
     
     '''
     Function to select the night time period (from 23 PM to 5 AM) from the geomagnetic data.
@@ -695,8 +696,11 @@ def hampel_filter_denoising(dataframe,
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
     
-    dataframe = resample_obs_data(dataframe,'H',apply_percentage=True)
-    denoised_dataframe = dataframe.copy()
+    dataframe = resample_obs_data(dataframe,'H',
+                                  apply_percentage=True
+                                  )
+    
+    df_denoised = dataframe.copy()
 
     print('Denoising the data')
 
@@ -706,24 +710,26 @@ def hampel_filter_denoising(dataframe,
         #denoised_dataframe = dataframe.copy()
         k = 1.4826 # scale factor for Gaussian distribution
         
+        for i in range((window_size),(n - window_size)):
+            x0 = np.median(dataframe[column][(i - window_size):(i + window_size)])
+            S0 = k * np.median(np.abs(dataframe[column][(i - window_size):(i + window_size)] - x0))
+            if (np.abs(dataframe[column][i] - x0) > n_sigmas * S0):
+                df_denoised[column][i] = x0
         if plot_figure == True:
-            for i in range((window_size),(n - window_size)):
-                x0 = np.median(dataframe[column][(i - window_size):(i + window_size)])
-                S0 = k * np.median(np.abs(dataframe[column][(i - window_size):(i + window_size)] - x0))
-                if (np.abs(dataframe[column][i] - x0) > n_sigmas * S0):
-                    denoised_dataframe[column][i] = x0
             
-            fig, ax = plt.subplots(figsize = (16,4))
-            ax.plot(dataframe[column], 'k', label = 'Removed Outliers')
-            ax.plot(denoised_dataframe[column], 'r', label = 'Denoised ' + column)
-            ax.set_xlim(dataframe[column].index[0],dataframe[column].index[-1])
-            ax.legend(loc='center left', bbox_to_anchor=(1.0, 0.5), fontsize = 12)
-            plt.grid()
-            plt.show()
+            fig, axis = plt.subplots(figsize = (16,4))
+            for col, ax in zip(dataframe.columns, axis.flatten()):
+                
+                ax.plot(dataframe[col], 'k', label = 'Removed Outliers')
+                ax.plot(df_denoised[col], 'r', label = 'Denoised ' + col)
+                ax.set_xlim(dataframe[col].index[0], dataframe[col].index[-1])
+                ax.legend(loc='best', fontsize = 12)
+                plt.grid()
+                plt.show()    
         else:
             pass
         
-    return denoised_dataframe
+    return df_denoised
 
 def resample_obs_data(dataframe,
                       sample,
