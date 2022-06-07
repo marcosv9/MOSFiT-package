@@ -102,12 +102,15 @@ def update_qd_and_dd(data: str) -> None:
         df_new = pd.concat([df_list,df_DD], ignore_index=False)
         
         df_new['DD'] = pd.to_datetime(df_new['DD'], infer_datetime_format=True)
+        
+        df_new = df_new.drop_duplicates()
+        
         df_new.set_index('DD',inplace=True)
         
-        
-        df_new.drop_duplicates().dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt',index = True)
+        df_new.dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt',index = True)
         
     if data == 'QD':
+        
         df = pd.read_csv(f'{path_local}/qdrecent.txt',
                         skiprows = 4,
                         sep = '\s+',
@@ -157,10 +160,12 @@ def update_qd_and_dd(data: str) -> None:
         df_new = pd.concat([df_list,df_QD], ignore_index=False)
         
         df_new['QD'] = pd.to_datetime(df_new['QD'], infer_datetime_format=True)
+        
+        df_new = df_new.drop_duplicates()
+        
         df_new.set_index('QD', inplace=True)
         
-        
-        df_new.drop_duplicates().dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
+        df_new.dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
         
 def Header_SV_obs_files(station,
                         filename,
