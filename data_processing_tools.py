@@ -715,19 +715,21 @@ def hampel_filter_denoising(dataframe,
             S0 = k * np.median(np.abs(dataframe[column][(i - window_size):(i + window_size)] - x0))
             if (np.abs(dataframe[column][i] - x0) > n_sigmas * S0):
                 df_denoised[column][i] = x0
-        if plot_figure == True:
-            
-            fig, axis = plt.subplots(figsize = (16,4))
-            for col, ax in zip(dataframe.columns, axis.flatten()):
                 
-                ax.plot(dataframe[col], 'k', label = 'Removed Outliers')
-                ax.plot(df_denoised[col], 'r', label = 'Denoised ' + col)
-                ax.set_xlim(dataframe[col].index[0], dataframe[col].index[-1])
-                ax.legend(loc='best', fontsize = 12)
-                plt.grid()
-                plt.show()    
-        else:
-            pass
+    if plot_figure == True:
+        
+        fig, axis = plt.subplots(3 ,1, figsize = (16,10))
+        for col, ax in zip(dataframe.columns, axis.flatten()):
+            
+            ax.plot(dataframe[col], 'k', label = 'Removed Outliers')
+            ax.plot(df_denoised[col], 'r', label = 'Denoised ' + col)
+            ax.set_xlim(dataframe[col].index[0], dataframe[col].index[-1])
+            ax.legend(loc='best', fontsize = 12)
+            ax.grid()
+        plt.show()
+               
+    else:
+        pass
         
     return df_denoised
 
@@ -1037,7 +1039,7 @@ def jerk_detection_window(station, window_start,
                                                                      files_path = None
                                                                      )
         
-    elif CHAOS_correction == True and df_CHAOS == None:
+    if CHAOS_correction == True and df_CHAOS == None:
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
@@ -1046,15 +1048,8 @@ def jerk_detection_window(station, window_start,
                                                                      files_path = None
                                                                      )
     
-    elif CHAOS_correction == False and df_CHAOS == None:
-        
-        pass
-    else:
-        pass
     #calculating SV from intermagnet files
     df_SV = calculate_SV(dataframe = df_station,
-                         starttime = starttime,
-                         endtime = endtime,
                          method = 'ADMM',
                          columns = None
                          )
@@ -1065,8 +1060,6 @@ def jerk_detection_window(station, window_start,
     if CHAOS_correction and plot_CHAOS_prediction == True:
         
         df_CHAOS_SV = calculate_SV(dataframe = df_chaos,
-                                   starttime = starttime,
-                                   endtime = endtime,
                                    method = 'ADMM',
                                    columns = ['X_int','Y_int','Z_int']
                                    )
@@ -1093,7 +1086,7 @@ def jerk_detection_window(station, window_start,
 
     
     #eqn_list = []
-    
+    r2 = []
     for column in df_SV.columns:
 
         myPWLF = pwlf.PiecewiseLinFit(date_jerk, df_SV.loc[window_start:window_end][column])
@@ -1105,6 +1098,9 @@ def jerk_detection_window(station, window_start,
         df_slopes[column] = slopes
         
         #calculate r_squared
+        
+        r2.append(myPWLF.r_squared().round(2))
+        
         #se = myPWLF.se
         #print(se)
         xHat = date_jerk
@@ -1274,4 +1270,4 @@ def jerk_detection_window(station, window_start,
             
             
         
-    return df_jerk_window, df_slopes,breakpoints
+    return df_jerk_window, df_slopes, breakpoints, r2
