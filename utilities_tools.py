@@ -112,7 +112,7 @@ def download_data_INTERMAGNET(datatype,
                 ftp = ftplib.FTP('seismo.nrcan.gc.ca')
                 ftp.login('anonymous', 'email@email.com')
                 ftp.cwd(path)
-                filenames = ftp.nlst(file + '*') # get filenames within the directory
+                filenames = ftp.nlst(file.lower() + '*') # get filenames within the directory
                 filenames.sort()
                 print('List of files that will be downloaded')
                 for filename in filenames:

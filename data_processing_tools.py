@@ -208,10 +208,8 @@ def calculate_SV(dataframe: pd.DataFrame(),
     #if info is not in Info:
     #    print('info must be ADMM or YD')
 
-    if columns == None:
-        columns = ['X', 'Y', 'Z']
-    else:
-        columns = columns
+
+    columns = columns
         
     if method not in Method:
         print('Info must be ADMM or YD')
@@ -223,9 +221,9 @@ def calculate_SV(dataframe: pd.DataFrame(),
                                    )
         
         
-        for col in columns:
-            SV = (df_ADMM[col].diff(6) - df_ADMM[col].diff(-6)).round(3).dropna()
-            df_SV[col] = SV  
+        
+        df_SV = (df_ADMM.diff(6) - df_ADMM.diff(-6)).round(3).dropna()
+              
     if method == 'YD':
         df_YD = resample_obs_data(dataframe = df,
                                   sample = 'Y',
