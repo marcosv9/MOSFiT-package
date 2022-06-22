@@ -176,10 +176,6 @@ def calculate_SV(dataframe: pd.DataFrame(),
 
     dataframe - a pandas dataframe with geomagnetic data.
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
-    
     method- 'ADMM' or 'YD'
     
     columns - name of the geomagnetic components columns of your dataframe.
@@ -188,8 +184,9 @@ def calculate_SV(dataframe: pd.DataFrame(),
     --------------------------------------------------------------------------------------------
     Example of use:
     
-    calculate_SV(dataframe = name_of_your_dataframe, starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',
-                 method = 'ADMM', columns = ['X','Y','Z']) 
+    calculate_SV(dataframe = name_of_your_dataframe,
+                 method = 'ADMM',
+                 columns = ['X','Y','Z']) 
                 
     
     --------------------------------------------------------------------------------------------
@@ -205,10 +202,6 @@ def calculate_SV(dataframe: pd.DataFrame(),
     
     df_SV = pd.DataFrame()
     
-    #if info is not in Info:
-    #    print('info must be ADMM or YD')
-
-
     columns = columns
         
     if method not in Method:
@@ -219,8 +212,6 @@ def calculate_SV(dataframe: pd.DataFrame(),
                                     sample = 'M',
                                     apply_percentage = apply_percentage
                                    )
-        
-        
         
         df_SV = (df_ADMM.diff(6) - df_ADMM.diff(-6)).round(3).dropna()
               
@@ -250,7 +241,7 @@ def Kp_index_correction(dataframe,
     --------------------------------------------------------
     Example of use:
     
-    Kp_index_correction(dataframe = name_of_dataframe, starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',
+    Kp_index_correction(dataframe = name_of_dataframe,
                         kp = 3.3)    
     
     ----------------------------------------------------------
@@ -267,13 +258,14 @@ def Kp_index_correction(dataframe,
     df = pd.DataFrame()
     df = dataframe.copy()
     
-    KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt', skiprows = 30,
-                  header = None,
-                  sep = '\s+', 
-                  usecols = [0,1,2,3,7,8],
-                  parse_dates = {'Date': ['Y', 'M','D','H']},
-                  names = ['Y','M','D','H','Kp','Ap'],
-                 )
+    KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt',
+                      skiprows = 30,
+                      header = None,
+                      sep = '\s+', 
+                      usecols = [0,1,2,3,7,8],
+                      parse_dates = {'Date': ['Y', 'M','D','H']},
+                      names = ['Y','M','D','H','Kp','Ap']
+                      )
     #Date = pd.date_range('1932-01-01 00:00:00','2022-01-29 21:00:00', freq = '3H')
     KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
@@ -374,7 +366,7 @@ def chaos_model_prediction(station: str,
     Time =cp.data_utils.mjd2000(Date)
     
     # Internal field
-    print(f'Initiating geomagnetic field computation for ' + station.upper() +'.')
+    print(f'Initiating geomagnetic field computation for {station.upper()}.')
     print(f'Computing core field.')
     B_core = model.synth_values_tdep(time = Time,
                                      radius = Elevation,
@@ -495,7 +487,8 @@ def external_field_correction_chaos_model(station: str,
                                           df_station = None,
                                           df_chaos = None,
                                           files_path = None,
-                                          apply_percentage: bool = False):    
+                                          apply_percentage: bool = False
+                                          ):    
     '''
     Correct the INTERMAGNET observatory data with the CHAOS-7.9 model external geomagnetic field prediction.
     
@@ -669,7 +662,8 @@ def night_time_selection(station,
 def hampel_filter_denoising(dataframe,
                             window_size,
                             n_sigmas=3,
-                            plot_figure:bool = False):
+                            plot_figure:bool = False
+                            ):
     '''
 
     
@@ -733,7 +727,8 @@ def hampel_filter_denoising(dataframe,
 
 def resample_obs_data(dataframe,
                       sample,
-                      apply_percentage:bool = False):
+                      apply_percentage:bool = False
+                      ):
     '''
     Resample a pd.DataFrame to hourly, daily, monthly or annual means
     
@@ -747,11 +742,14 @@ def resample_obs_data(dataframe,
     dataframe - a pandas dataframe with geomagnetic data. 
     
     sample - string, must be 'min','H','D','M' or 'Y'
-             *min - minute mean data
+             *min - Minute mean data
              *H - Hourly mean data
              *D - Daily mean data
              *M - Monthly mean data
              *Y - Annual mean data
+             
+    apply_percentage - a condition to resample the data. If True, must have at least 90%
+    of data availability in the interval to be resampled. If False, all the intervals are resampled.
     
     ---------------------------------------------------------------------
     Use example:
@@ -920,10 +918,11 @@ def resample_obs_data(dataframe,
             
     return df_station
 
-def jerk_detection_window(station, window_start, 
-                          window_end, 
-                          starttime, 
-                          endtime,
+def jerk_detection_window(station: str,
+                          window_start: str, 
+                          window_end: str, 
+                          starttime: str, 
+                          endtime: str,
                           df_station = None,
                           df_CHAOS = None,
                           files_path = None,
@@ -931,7 +930,8 @@ def jerk_detection_window(station, window_start,
                           CHAOS_correction: bool = True,
                           plot_CHAOS_prediction:bool = False,
                           convert_hdz_to_xyz:bool = False,
-                          save_plots:bool = False):
+                          save_plots:bool = False
+                          ):
     '''
     Geomagnetic jerk detection based on two linear segments adoption in a
     chosen time window.
@@ -982,6 +982,8 @@ def jerk_detection_window(station, window_start,
              R² between the data and the linear segments.
     '''
     
+    #validating the inputs
+    
     for i in [starttime, endtime]:
         spf.validate(i)
 
@@ -990,7 +992,9 @@ def jerk_detection_window(station, window_start,
         
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    assert isinstance(df_station,pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
+    
+    
      
     station = station
     window_start = window_start + '-15'
