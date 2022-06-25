@@ -18,24 +18,32 @@ from Thesis_Marcos import data_processing_tools as dpt
 from Thesis_Marcos import utilities_tools as utt
 #from Thesis_Marcos import support_functions as spf
 
-def update_qd_and_dd(data: str) -> None:
-    '''
+def update_qd_and_dd(data: str):
+    """
     
-    '''
+    """
 
+    #validating input parameter
+    
+    if data not in ['DD', 'QD']:
+            
+        print('Data must be QD or DD!')
+        
     #connecting to the ftp server 
     ftp = ftplib.FTP('ftp.gfz-potsdam.de')
     ftp.login('anonymous', 'email@email.com')
     
     ##path to read the already stored QD and DD
     path_local = f'Thesis_Marcos/Data/Disturbed and Quiet Days' 
-    #
+    
     ##path inside ftp server
     path_ftp = f'/pub/home/obs/kp-ap/quietdst'
-    #
-    ##getting the file
+    
+    #getting the file
     ftp.cwd(path_ftp)
+    
     filenames = ftp.nlst('qdrecen*')
+    
     pathlib.Path(path_local).mkdir(parents=True, exist_ok=True)
     #writting file in the local computer
     for filename in filenames:
@@ -44,10 +52,6 @@ def update_qd_and_dd(data: str) -> None:
         ftp.retrbinary('RETR '+ filename, file.write)
         file.close()
     ftp.quit()
-    
-    if data not in ['DD', 'QD']:
-        
-        print('Data must be QD or DD!')
         
     
     #files = glob.glob(f'{path}qd*')
@@ -172,7 +176,7 @@ def Header_SV_obs_files(station,
                         data_denoise,
                         external_correction,
                         chaos_model):
-    '''
+    """"
     Function to add a header in the txt outputs of the Function SV_obs.
     
     Output with informations about the used observatory
@@ -187,7 +191,7 @@ def Header_SV_obs_files(station,
     chaos_model
     
     
-    '''  
+    """  
     df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
@@ -246,32 +250,37 @@ def Header_SV_obs_files(station,
     os.remove(path)
     
 def data_type(station,
-             starttime,
-             endtime,
-             files_path = None):
+              starttime,
+              endtime,
+              files_path = None):
     '''
     Function to verify the presence of Quasi-definitive data in the dataset
     
-    ---------------------------------------------------------------------------------
+    ----------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code
-    starttime - Begin of the time interest
-    endtime - The end of the period.
+    station - 3 letters IAGA code (str)
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd', str)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd', str)
+    
+    files_path - path to the IAGA-2002 intermagnet files (str) or None
+                 if None it will use the default path for the files
+    
     --------------------------------------------------------------------------------------
     Usage example:
-    load_INTERMAGNET_files(station = 'VSS', starttime = '2006-01-25', endtime = '2006-01-25')
+    
+    data_type(station = 'VSS',
+              starttime = '2000-01-25',
+              endtime = '2021-01-25')
     
     
     '''
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
     
     if files_path != None:
         if files_path[-1] == '/':
@@ -331,15 +340,12 @@ def Header_SV_files(station,
                     chaos_model):
     '''    
     '''
+    #validating inputs
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
     
     path = f'SV_update/{station}_data/SV_{station.upper()}_preliminary.txt'
     path_header = f'SV_update/{station}_data'
@@ -410,47 +416,69 @@ def date_to_decinal_year_converter(date):
         float((year_end - year_start).total_seconds()))
 
 def validate(str_date):
+    """
+    Function to validate input format "YYYY-MM-DD"
+    
+    """
     try:
         datetime.strptime(str_date, '%Y-%m-%d')
     except ValueError:
         raise ValueError('Incorrect date format, should be YYYY-MM-DD')
 
 def validate_YM(str_date):
+    """
+    Function to validate input format "YYYY-MM"
+    
+    """
     try:
         datetime.strptime(str_date, '%Y-%m')
     except ValueError:
         raise ValueError(f'Incorrect {str_date} format, should be YYYY-MM')
 
 class year(object):
+    """
+    class representing the year
+    used to find leap years
+
+    """
     def __init__(self,year):
         self.year = year
     def check_leap_year(year):
         if((year % 400 == 0) or  
-     (year % 100 != 0) and  
-     (year % 4 == 0)):
+        (year % 100 != 0) and  
+        (year % 4 == 0)):
             return True
         else:
             return False
 
 def skiprows_detection(files_station):
+    """Function to detect the correct number of skiprows
+    for each file
+
+    Args:
+        files_station (list of files): _description_
+
+    Returns:
+        list: contains the number of skiprows for each file and the path
+    """
     
-    values_list = [[],[]]
+    skiprows_list = [[],[]]
     
     for file in files_station:
         idx = 0
         skiprows = 10
-        x = pd.read_csv(file,
+        df_station = pd.read_csv(file,
                         sep = '\s+',
                         skiprows = skiprows,
                         nrows=40,
                         usecols = [0],
                         names = ['col'])
         file = file
-        while x['col'][idx] != 'DATE':
+        while df_station['col'][idx] != 'DATE':
             skiprows += 1
             idx +=1 
-            if x['col'][idx] == 'DATE':
+            if df_station['col'][idx] == 'DATE':
                 skiprows += 1
-                values_list[0].append(skiprows)     
-                values_list[1].append(file)
-    return values_list            
+                skiprows_list[0].append(skiprows)     
+                skiprows_list[1].append(file)
+    return skiprows_list            

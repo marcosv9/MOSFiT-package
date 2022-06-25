@@ -18,9 +18,6 @@ from Thesis_Marcos import thesis_functions as mvs
 from Thesis_Marcos import utilities_tools as utt
 from Thesis_Marcos import support_functions as spf
 
-
-
-
 def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ''' 
     Function created to remove geomagnetic disturbed 
@@ -52,7 +49,6 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
       
-    
     df = dataframe
     
     disturbed_index = pd.DataFrame()
@@ -124,13 +120,11 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
     
-
-    
     df = dataframe
     
     quiet_index = pd.DataFrame()
 
-    #updating disturbed days list
+    #updating quiet days list
     
     spf.update_qd_and_dd(data = 'QD')
 
@@ -157,7 +151,7 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
             pass
     df = quiet_index
     
-    print('Only quiet top 10 quiet days for each month were kept in the data.')
+    print('Only top 10 quiet days for each month were kept in the data.')
     return df
 
 def calculate_SV(dataframe: pd.DataFrame(),
@@ -193,38 +187,40 @@ def calculate_SV(dataframe: pd.DataFrame(),
     Return a dataframe with the secular variation
     
     '''
+    #validating inputs
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
 
+        
+    if method not in ['ADMM', 'YD']:
+        print('Info must be ADMM or YD')
+        
     df = dataframe
     
-    Method = ['ADMM','YD']
-    
-    df_SV = pd.DataFrame()
+    df_sv = pd.DataFrame()
     
     columns = columns
-        
-    if method not in Method:
-        print('Info must be ADMM or YD')
     
+    #computing SV from ADMM
     if method == 'ADMM':
-        df_ADMM = resample_obs_data(dataframe = df,
+        df_admm = resample_obs_data(dataframe = df,
                                     sample = 'M',
                                     apply_percentage = apply_percentage
                                    )
         
-        df_SV = (df_ADMM.diff(6) - df_ADMM.diff(-6)).round(3).dropna()
-              
+        df_sv = (df_admm.diff(6) - df_admm.diff(-6)).round(3).dropna()
+        
+    #computing SV from YD          
     if method == 'YD':
-        df_YD = resample_obs_data(dataframe = df,
+        df_yd = resample_obs_data(dataframe = df,
                                   sample = 'Y',
                                   apply_percentage = apply_percentage
                                  )
         for col in columns:
-            SV = df[col].diff().round(3).dropna()
-            df_SV[col] = SV
+            sv = df_yd[col].diff().round(3).dropna()
+            df_sv[col] = sv
             
-    return df_SV
+    return df_sv
 
 def Kp_index_correction(dataframe,
                         kp
@@ -248,6 +244,7 @@ def Kp_index_correction(dataframe,
     return a dataframe filtered by the selected Kp-index
     
     '''
+    #validating the inputs
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
@@ -255,9 +252,11 @@ def Kp_index_correction(dataframe,
             
     if (kp <= 0 ) or (kp >= 9): 
         print('kp must be a number from 0 to 9, try again!')
-    df = pd.DataFrame()
-    df = dataframe.copy()
+        
+    df_station = pd.DataFrame()
+    df_station = dataframe.copy()
     
+    #updating the Kp_index for the most recent data
     KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt',
                       skiprows = 30,
                       header = None,
@@ -266,24 +265,23 @@ def Kp_index_correction(dataframe,
                       parse_dates = {'Date': ['Y', 'M','D','H']},
                       names = ['Y','M','D','H','Kp','Ap']
                       )
-    #Date = pd.date_range('1932-01-01 00:00:00','2022-01-29 21:00:00', freq = '3H')
+
     KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
-    x=pd.DataFrame()
-    x['Date'] = KP_[str(df.index[0].date()):str(df.index[-1].date())].loc[KP_['Kp'] > kp].index.date
-    x['Date'] = x['Date'].drop_duplicates()
-    x.index = x['Date']
-    x =x.dropna()
+    df_kp=pd.DataFrame()
+    df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
+    df_kp['Date'] = df_kp['Date'].drop_duplicates()
+    df_kp.index = df_kp['Date']
+    df_kp =df_kp.dropna()
     
-    df_x = pd.DataFrame()
+    df_disturbed = pd.DataFrame()
     
-    for i in x.index:
-        df_x = pd.concat([df_x,df.loc[str(i)]])
+    for i in df_kp.index:
+        df_disturbed = pd.concat([df_disturbed, df_station.loc[str(i)]])
 
-    df.drop(df_x.index,inplace = True)
+    df_station.drop(df_disturbed.index, inplace = True)
     
-    
-    return df
+    return df_station
 
 def chaos_model_prediction(station: str,
                            starttime: str,
@@ -328,27 +326,20 @@ def chaos_model_prediction(station: str,
     for i in [starttime,endtime]:
         spf.validate(i)
         
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')    
+    
+    #loading CHAOS model    
     chaos_path = glob.glob('Thesis_Marcos/chaosmagpy_package_*.*/data/CHAOS*')    
 
     model = cp.load_CHAOS_matfile(chaos_path[0])
     
     station = station.upper()
-    #df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-    #                      skiprows = 1,
-    #                      sep = '\s+',
-    #                      usecols=[0,1,2,3],
-    #                      names = ['Imos','Latitude','Longitude','Elevation'],
-    #                      index_col= ['Imos'])
     
-    
+    #setting the Earth radius reference
     R_REF = 6371.2
-    
-    #if station not in df_IMOS.index:
-    #    print('Station must be an observatory IAGA CODE!')
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
 
-
+    #getting coordenates for the stations
     Longitude = utt.IMO.longitude(station)
 
     Latitude = 90 - utt.IMO.latitude(station)
@@ -518,12 +509,12 @@ def external_field_correction_chaos_model(station: str,
     
     '''
     
+    #validant inputs
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
     assert isinstance(df_station,pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
     assert isinstance(df_chaos,pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
-    
     
     station = station.upper()
     
@@ -684,6 +675,8 @@ def hampel_filter_denoising(dataframe,
     Return a hourly dataframe denoised 
     '''
     
+    #validating the inputs
+    
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe.'
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
@@ -760,7 +753,7 @@ def resample_obs_data(dataframe,
     Return a pandas dataframe converted for the selected sample
     '''
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe.'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe.'
     
     df_station = dataframe
     
@@ -994,6 +987,8 @@ def jerk_detection_window(station: str,
     
     assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
+    assert isinstance(df_station, pd.DataFrame) or df_CHAOS == None, 'df_station must be a pandas dataframe or None'
+    
     
      
     station = station
@@ -1003,7 +998,9 @@ def jerk_detection_window(station: str,
     endtime = endtime
            
     directory = f'Filtered_data/{station}_data'
-
+    
+    # creating directory if it doesn't exist
+    
     pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
     
     if df_station is not None:
@@ -1019,6 +1016,7 @@ def jerk_detection_window(station: str,
                                                 )
 
     
+    #cheking existence of HDZ components
     if convert_hdz_to_xyz == True:    
         df_station = utt.HDZ_to_XYZ_conversion(station = station,
                                                dataframe = df_station,
@@ -1026,7 +1024,8 @@ def jerk_detection_window(station: str,
                                                )
     else: 
         pass
-
+    
+    # conditions to load CHAOS dataframe
     if df_CHAOS is not None:
         
         df_chaos = df_CHAOS
@@ -1055,6 +1054,7 @@ def jerk_detection_window(station: str,
                          method = 'ADMM',
                          columns = None
                          )
+    
     if plot_CHAOS_prediction == False:
         
         pass
@@ -1068,6 +1068,7 @@ def jerk_detection_window(station: str,
     else:
         
         pass
+    
     
     df_jerk_window = pd.DataFrame()
     

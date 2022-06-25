@@ -37,22 +37,29 @@ def load_INTERMAGNET_files(station: str,
     ----------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code
+    station - 3 letters IAGA code (str)
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
+    starttime - first day of the data (format = 'yyyy-mm-dd', str)
     
-    endtime - last day of the data (format = 'yyyy-mm-dd)
+    endtime - last day of the data (format = 'yyyy-mm-dd', str)
+    
+    files_path - path to the IAGA-2002 intermagnet files (str) or None
+                 if None it will use the default path for the files
     
     ----------------------------------------------------------
     Example of use:
     
-    load_INTERMAGNET_files(station = 'VSS', starttime = '2000-01-25', endtime = '2021-12-31')
+    load_INTERMAGNET_files(station = 'VSS',
+                           starttime = '2000-01-25',
+                           endtime = '2021-12-31',
+                           files_path = files_path)
     
     ------------------------------------------------------------------------------------------
     
     Return a pandas DataFrame of all readed data with X, Y and Z components.
     
     '''
+    #Validating the inputs
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
     
@@ -61,10 +68,9 @@ def load_INTERMAGNET_files(station: str,
         
     #checking the existence of the station argument
     
-    if utt.IMO.check_existence(station.upper()) == False:
-        #print('Station must be an observatory IAGA CODE!')
-        raise ValueError('station must be an observatory IAGA CODE!')
-        
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
+   
     #creating a list to allocate the file paths
     
     files_station = []
@@ -93,7 +99,9 @@ def load_INTERMAGNET_files(station: str,
         files_station.extend(glob.glob(f'{files_path}{station.lower()}*'))
 
         files_station.sort()
-
+    
+    #detecting the correct number of skiprows for each file
+    
     skip_values = spf.skiprows_detection(files_station)    
         
     #reading and concatenating the files
@@ -107,7 +115,7 @@ def load_INTERMAGNET_files(station: str,
                                         parse_dates = {'Date': ['date', 'Time']},
                                         names = ['date','Time','X','Y','Z']
                                         ) for skiprows,
-                                              file in zip(skip_values[0],skip_values[1])), 
+                                              file in zip(skip_values[0], skip_values[1])), 
                                               ignore_index = True
                            )
     
@@ -118,7 +126,7 @@ def load_INTERMAGNET_files(station: str,
         #df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
         df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
     except:
-        print('Wrong date format')
+        print('Wrong date format in the files')
               
     df_station.set_index('Date', inplace = True)
 
@@ -275,7 +283,10 @@ def SV_obs(station: str,
         
     
     #condition for data resampling
-    if inp not in ['Q', 'D', 'NT', 'KP']:
+    
+    if inp not in ['Q', 'D',
+                   'NT', 'KP'
+                   ]:
 
         resample_condition = True
 
@@ -303,8 +314,6 @@ def SV_obs(station: str,
         if input_chaos == 'n':
 
             print('Correction using CHAOS was not applied.')
-
-            break
 
         else:
 
@@ -339,6 +348,7 @@ def SV_obs(station: str,
     #option to save txt and plot files
     
     while True: 
+        
         inp2 = input(f"Do You Want To Save a File With the Variation? [y/n]: ")
 
         if inp2 == 'y':
@@ -1684,13 +1694,29 @@ def plot_samples(station: str,
                  apply_percentage: bool = False
                  ):
                  
-    """_summary_
+    """
+    Function to plot Hourly, daily, monthly and annual means from  the dataframe.
+    
+    Inputs ----------------------------------------------------
+    
+    station: 3 letters IAGA CODE (str)
+    
+    dataframe: pd.DataFrame containing the data
+    
+    save_plots: option to save the plots (bool = True or False, default = False)
+    
+    apply_percentage: option to apply data availability percentage 
+                      condition (at least 90%) to resample_the data
+                      (bool = True or False, default = False)
+                      
     """
     
-    
-    
+    #validating the inputs
     
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')    
     
     if save_plots == False and plot_data_type == None:
     
@@ -1801,7 +1827,7 @@ def plot_samples(station: str,
                 #ax.minorticks_on() 
                 ax.grid()
                 
-            plt.savefig(directory + '/' + station + '_' + title + '_mean.jpeg', bbox_inches='tight')
+            plt.savefig(f'{directory}/{station}_{title}_mean.jpeg', bbox_inches='tight')
             plt.show()
             
     if save_plots == True and plot_data_type != None:

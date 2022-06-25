@@ -143,40 +143,35 @@ def HDZ_to_XYZ_conversion(station: str,
     
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    station - 3 letters IAGA code for a INTERMAGNET observatory (str).
     
-    dataframe - a pandas dataframe with geomagnetic data.
+    dataframe - a pandas dataframe with geomagnetic data (pd.dataframe).
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
-    
-    endtime - last day of the data (format = 'yyyy-mm-dd)
-    
+    files_path - path to the IAGA-2002 intermagnet files (str) or None
+                 if None it will use the default path for the files
+                 
     ----------------------------------------------------------------
     
     Usage example:
     
-    HDZ_to_XYZ_conversion(station = 'VSS',dataframe = 'name_of_datafrme', starttime = '2000-01-01', endtime = '2021-10-20')
+    HDZ_to_XYZ_conversion(station = 'VSS',
+                          dataframe = name_of_datafrme,
+                          files_path = files_path)
     
     ------------------------------------------------------------------
     
     Return a dataframe with only X, Y and Z components
     
     '''
+    #validating inputs
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
-    
-    assert station.upper() in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
-    
-        
+    if IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')  
+          
     if files_path != None:
         if files_path[-1] == '/':
             pass
@@ -238,8 +233,7 @@ def HDZ_to_XYZ_conversion(station: str,
     return df_station
 
 class IMO(object): 
-    
-   
+     
     def __init__(self,
                  station,
                  latitude,
@@ -270,6 +264,7 @@ class IMO(object):
                                index_col= ['Imos'])
     
     def code(station):
+        
         if IMO.check_existence(station) == True:
             pass
         else:
@@ -311,7 +306,7 @@ class IMO(object):
         IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
     
     def check_existence(station):
-        
+        station = station.upper()
         if station not in IMO.df_IMOS.index:
             return False
         else:
