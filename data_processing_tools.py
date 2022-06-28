@@ -190,8 +190,7 @@ def calculate_SV(dataframe: pd.DataFrame(),
     #validating inputs
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
-
-        
+ 
     if method not in ['ADMM', 'YD']:
         print('Info must be ADMM or YD')
         
@@ -222,8 +221,8 @@ def calculate_SV(dataframe: pd.DataFrame(),
             
     return df_sv
 
-def Kp_index_correction(dataframe,
-                        kp
+def Kp_index_correction(dataframe: pd.DataFrame(),
+                        kp: float,
                         ):
     '''
     Function o filter geomagnetic data based on Kp index
@@ -254,6 +253,7 @@ def Kp_index_correction(dataframe,
         print('kp must be a number from 0 to 9, try again!')
         
     df_station = pd.DataFrame()
+
     df_station = dataframe.copy()
     
     #updating the Kp_index for the most recent data
@@ -323,7 +323,7 @@ def chaos_model_prediction(station: str,
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    for i in [starttime,endtime]:
+    for i in [starttime, endtime]:
         spf.validate(i)
         
     if utt.IMO.check_existence(station) == False:
@@ -512,9 +512,14 @@ def external_field_correction_chaos_model(station: str,
     #validant inputs
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    assert isinstance(df_station,pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(df_chaos,pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_chaos, pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
+    
+    assert isinstance(files_path, str) or files_path == None, 'files_path must be a string or None'
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
     
     station = station.upper()
     
@@ -564,9 +569,12 @@ def external_field_correction_chaos_model(station: str,
                                    )   
     
     print('The external field predicted using CHAOS-model was removed from the data.')
+    
     return df_station.loc[starttime:endtime], df_chaos    
 
-def rms(predictions, real_data):
+def rms(predictions: pd.DataFrame(),
+        observed_data: pd.DataFrame()
+        ):
     '''
     Function to calculate the Root mean square error.
     
@@ -586,9 +594,14 @@ def rms(predictions, real_data):
     '''
     
     #columns = ['X_int','Y_int','Z_int']
+    
+    assert isinstance(predictions, pd.DataFrame), 'predictions must be a pandas dataframe'
+    
+    assert isinstance(observed_data, pd.DataFrame) or observed_data == None, 'observed_data must be a pandas dataframe'
     x = []
-    for col,cols in zip(predictions.columns,real_data.columns):
-        y = (real_data[cols].resample('M').mean().diff(6) - real_data[cols].resample('M').mean().diff(-6)).dropna()
+    for col,cols in zip(predictions.columns, observed_data.columns):
+        
+        y = (observed_data[cols].resample('M').mean().diff(6) - observed_data[cols].resample('M').mean().diff(-6)).dropna()
         ypred = (predictions[col].resample('M').mean().diff(6) - predictions[col].resample('M').mean().diff(-6)).dropna()
         ypred = ypred.reindex(y.index)
         rms = np.sqrt(((ypred - y) ** 2).mean()).round(3)
@@ -596,8 +609,8 @@ def rms(predictions, real_data):
         #print('the rmse for ' + str(cols) + ' component is ' + str(rms) + '.')
     return x
 
-def night_time_selection(station,
-                         dataframe
+def night_time_selection(station: str,
+                         dataframe: pd.DataFrame()
                          ):
     
     '''
@@ -623,20 +636,15 @@ def night_time_selection(station,
     '''
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
     
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!') 
-    
-    f = []
-    f.extend(glob.glob(f'Dados OBS/*/*/{station}*'))
-    f.sort()
 
     Longitude = utt.IMO.longitude(station)
     
     dif =  Longitude/15
 
-    
     df = dataframe
     
     df_lt = df.shift(round(dif, 3), freq = 'H')
@@ -650,8 +658,8 @@ def night_time_selection(station,
     print('The night time period was selected.')
     return df_NT
 
-def hampel_filter_denoising(dataframe,
-                            window_size,
+def hampel_filter_denoising(dataframe: pd.DataFrame(),
+                            window_size: int,
                             n_sigmas=3,
                             plot_figure:bool = False
                             ):
@@ -677,7 +685,7 @@ def hampel_filter_denoising(dataframe,
     
     #validating the inputs
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe.'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe.'
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
     
@@ -718,8 +726,8 @@ def hampel_filter_denoising(dataframe,
         
     return df_denoised
 
-def resample_obs_data(dataframe,
-                      sample,
+def resample_obs_data(dataframe: pd.DataFrame(),
+                      sample: str,
                       apply_percentage:bool = False
                       ):
     '''
@@ -761,7 +769,6 @@ def resample_obs_data(dataframe,
                'M', 'Y'
               ]
     
-    
     if sample not in samples:
         print('sample must be min, H, D, M or Y!')
 
@@ -781,8 +788,7 @@ def resample_obs_data(dataframe,
             df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
         if sample == 'H' and apply_percentage == True:
-                        
-            
+                          
             tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
             if any(tmp['count'].median()) <= 1 == True:

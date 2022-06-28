@@ -171,11 +171,11 @@ def update_qd_and_dd(data: str):
         
         df_new.dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
         
-def Header_SV_obs_files(station,
-                        filename,
-                        data_denoise,
-                        external_correction,
-                        chaos_model):
+def Header_SV_obs_files(station: str,
+                        filename: str,
+                        data_denoise: str,
+                        external_correction: str,
+                        chaos_model: str):
     """"
     Function to add a header in the txt outputs of the Function SV_obs.
     
@@ -192,18 +192,12 @@ def Header_SV_obs_files(station,
     
     
     """  
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
     
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
-    
-    path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'_preliminary.txt'
-    path_header = 'Filtered_data/'+ station +'_data'
-    destiny_path = 'Filtered_data/'+ station +'_data/'+ station.upper() + '_' + filename +'.txt'
+    path = f'Filtered_data/{station}_data/{station.upper()}_{filename}_preliminary.txt'
+    path_header = f'Filtered_data/{station}_data'
+    destiny_path = f'Filtered_data/{station}_data/{station.upper()}_{filename}.txt'
     
     external_options = {'D': 'Disturbed Days removed',
                         'Q': 'Quiet Days selection', 
@@ -234,7 +228,7 @@ def Header_SV_obs_files(station,
               f'\nCHAOS model correction: {chaos_options[chaos_model]}'
               f'\n\n')
     
-    with open(f'{path_header}/header_file.txt','w+') as f2:
+    with open(f'{path_header}/header_file.txt', 'w+') as f2:
         f2.write(Header)
         header = f2.read()
     
@@ -249,12 +243,12 @@ def Header_SV_obs_files(station,
     os.remove(f'{path_header}/header_file.txt')
     os.remove(path)
     
-def data_type(station,
-              starttime,
-              endtime,
+def data_type(station: str,
+              starttime: str,
+              endtime: str,
               files_path = None):
     '''
-    Function to verify the presence of Quasi-definitive data in the dataset
+    Function to verify the existence of Quasi-definitive data type in the dataset
     
     ----------------------------------------------------------
     Inputs:
@@ -281,6 +275,9 @@ def data_type(station,
     
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')
+        
+    for i in [starttime, endtime]:
+        validate(i)
     
     if files_path != None:
         if files_path[-1] == '/':
@@ -334,10 +331,11 @@ def data_type(station,
         
     return Date
 
-def Header_SV_files(station,
-                    data_denoise,
-                    external_correction,
-                    chaos_model):
+def Header_SV_files(station: str,
+                    data_denoise: str,
+                    external_correction: str,
+                    chaos_model:str
+                    ):
     '''    
     '''
     #validating inputs

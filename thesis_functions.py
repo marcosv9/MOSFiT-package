@@ -62,7 +62,6 @@ def load_INTERMAGNET_files(station: str,
     #Validating the inputs
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    
     for i in [starttime, endtime]:
         spf.validate(i)
         
@@ -150,7 +149,8 @@ def SV_obs(station: str,
            starttime: str,
            endtime: str,
            plot_chaos: bool = False,
-           files_path: str = None):
+           files_path: str = None
+           ):
     '''
     Interactive function for INTERMAGNET observatories secular variation data processing
     

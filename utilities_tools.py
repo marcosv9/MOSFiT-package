@@ -19,7 +19,7 @@ from Thesis_Marcos import support_functions as spf
 from Thesis_Marcos import data_processing_tools as dpt
 
 
-def check_data_availability(station: str) -> None:
+def check_data_availability(station: str):
     '''
     check the available data period, based on the IAGA code.
     
@@ -28,15 +28,9 @@ def check_data_availability(station: str) -> None:
     
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0,1,2,3],
-                          names = ['Imos','Latitude','Longitude','Elevation'],
-                          index_col= ['Imos'])
-    
-    assert station in df_IMOS.index, 'station must be an INTERMAGNET observatory IAGA code'
-    
+    if IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
+        
     f = []
     f.extend(glob.glob(f'Dados OBS/*/*/{station}*'))
     f.sort()
