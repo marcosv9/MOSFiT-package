@@ -14,9 +14,9 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-from Thesis_Marcos import thesis_functions as mvs
-from Thesis_Marcos import utilities_tools as utt
-from Thesis_Marcos import support_functions as spf
+import thesis_functions as mvs
+import utilities_tools as utt
+import support_functions as spf
 
 def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ''' 

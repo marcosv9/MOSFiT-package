@@ -14,9 +14,9 @@ import sqlite3
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-from Thesis_Marcos import thesis_functions as mvs
-from Thesis_Marcos import support_functions as spf
-from Thesis_Marcos import data_processing_tools as dpt
+import thesis_functions as mvs
+import support_functions as spf
+import data_processing_tools as dpt
 
 
 def check_data_availability(station: str):

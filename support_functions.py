@@ -13,9 +13,9 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-from Thesis_Marcos import thesis_functions as mvs
-from Thesis_Marcos import data_processing_tools as dpt
-from Thesis_Marcos import utilities_tools as utt
+import thesis_functions as mvs
+import data_processing_tools as dpt
+import utilities_tools as utt
 #from Thesis_Marcos import support_functions as spf
 
 def update_qd_and_dd(data: str):
