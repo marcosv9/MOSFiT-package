@@ -1,3 +1,5 @@
+import sys
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -198,7 +200,10 @@ def calculate_SV(dataframe: pd.DataFrame(),
     
     df_sv = pd.DataFrame()
     
-    columns = columns
+    if columns == None:
+            columns = ['X', 'Y', 'Z']
+    else:
+        columns = columns
     
     #computing SV from ADMM
     if method == 'ADMM':
@@ -206,8 +211,9 @@ def calculate_SV(dataframe: pd.DataFrame(),
                                     sample = 'M',
                                     apply_percentage = apply_percentage
                                    )
-        
-        df_sv = (df_admm.diff(6) - df_admm.diff(-6)).round(3).dropna()
+        for col in columns:
+            SV = (df_admm[col].diff(6) - df_admm[col].diff(-6)).round(3).dropna()
+            df_sv[col] = SV 
         
     #computing SV from YD          
     if method == 'YD':
@@ -993,7 +999,7 @@ def jerk_detection_window(station: str,
     
     assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(df_station, pd.DataFrame) or df_CHAOS == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_CHAOS, pd.DataFrame) or df_CHAOS == None, 'df_station must be a pandas dataframe or None'
     
     
      
@@ -1004,6 +1010,7 @@ def jerk_detection_window(station: str,
     endtime = endtime
            
     directory = f'Filtered_data/{station}_data'
+    df_CHAOS = df_CHAOS
     
     # creating directory if it doesn't exist
     
@@ -1034,20 +1041,20 @@ def jerk_detection_window(station: str,
     # conditions to load CHAOS dataframe
     if df_CHAOS is not None:
         
-        df_chaos = df_CHAOS
+        df_CHAOS = df_CHAOS
     
     if CHAOS_correction == True and df_CHAOS is not None:
         
-        df_station, df_chaos = external_field_correction_chaos_model(station = station,
+        df_station, df_CHAOS = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
-                                                                     df_chaos= df_chaos,
+                                                                     df_chaos= df_CHAOS,
                                                                      files_path = None
                                                                      )
         
-    if CHAOS_correction == True and df_CHAOS == None:
-        df_station, df_chaos = external_field_correction_chaos_model(station = station,
+    elif CHAOS_correction == True and df_CHAOS == None:
+        df_station, df_CHAOS = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
@@ -1067,7 +1074,7 @@ def jerk_detection_window(station: str,
     
     if CHAOS_correction and plot_CHAOS_prediction == True:
         
-        df_CHAOS_SV = calculate_SV(dataframe = df_chaos,
+        df_CHAOS_SV = calculate_SV(dataframe = df_CHAOS,
                                    method = 'ADMM',
                                    columns = ['X_int','Y_int','Z_int']
                                    )
@@ -1207,14 +1214,14 @@ def jerk_detection_window(station: str,
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.92)
             plt.xlabel('Date (Years)', fontsize = 12)
             
-            for col,chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV.columns, axes.flatten(), colors):
+            for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV.columns, axes.flatten(), colors):
+                
                 ax.plot(df_SV[col],
                         'o-',
                         color = color
                         )
-                
+                                
                 ax.plot(df_CHAOS_SV[chaos_col],
-                        '-',
                         linewidth = 2,
                         label = 'CHAOS prediction'
                         )

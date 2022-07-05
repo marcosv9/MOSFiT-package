@@ -1,3 +1,4 @@
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -314,6 +315,8 @@ def SV_obs(station: str,
         if input_chaos == 'n':
 
             print('Correction using CHAOS was not applied.')
+            
+            break
 
         else:
 
@@ -491,7 +494,6 @@ def SV_obs(station: str,
             directory = f'Filtered_data/{station}_data'
 
             pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
-            
             #plot minute mean
             if input_chaos == 'y' or inp5 == 'y':
                 fig, ax = plt.subplots(3,1, figsize = (16,10))
@@ -704,7 +706,7 @@ def SV_obs(station: str,
                 
                 fig, ax = plt.subplots(3,1, figsize = (16,10))
                 
-                ax[0].set_title(station.upper() + ' Secular Variation (ADMM) - Real data SV x corrected data SV (CHAOS)', fontsize = 18)
+                ax[0].set_title(station.upper() + ' Secular Variation (ADMM) - Observed data SV x corrected data SV (CHAOS)', fontsize = 18)
                 ax[0].plot(df_SV_not_corrected['X'], 'o', color  = 'red', label = 'Real data SV')
                 ax[0].plot(df_SV['X'], 'o', color  = 'blue', label = 'Corrected SV')
                 ax[0].set_xlim(df_SV['X'].index[0], df_SV['X'].index[-1])
@@ -1045,7 +1047,7 @@ def SV_obs(station: str,
                 window_start = input(f'type the  start date for the jerk window [yyyy-mm]: ')
                 window_end = input(f'type the end date for the jerk window [yyyy-mm]: ')
                 
-                for i in [str(window_start),str(window_end)]:
+                for i in [str(window_start), str(window_end)]:
                     spf.validate_YM(i)
 
                 if inp3 == 'y':
@@ -1085,7 +1087,7 @@ def SV_obs(station: str,
                                               )
                 break
             except:
-                print("""This is not the correct format. Please reenter. (correct format: yyyy-mm-dd)""")
+                print("""This is not the correct format. Please reenter. (correct format: yyyy-mm)""")
                         
            
         if condition == 'n':
@@ -1108,9 +1110,9 @@ def SV_(stations: str,
         hampel_filter: bool = False,
         plot_chaos: bool = False,
         convert_HDZ_to_XYZ:bool = False
-        ) -> None:
+        ):
     
-    '''
+    """
     
     ---------------------------------------------------------------------
     Inputs:
@@ -1163,10 +1165,10 @@ def SV_(stations: str,
     ---------------------------------------------------------------------------------------    
     
 
-    '''
+    """
     
     
-    df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
