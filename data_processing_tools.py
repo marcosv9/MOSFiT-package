@@ -1,4 +1,5 @@
 import sys
+from time import time
 sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -193,8 +194,7 @@ def calculate_SV(dataframe: pd.DataFrame(),
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
  
-    if method not in ['ADMM', 'YD']:
-        print('Info must be ADMM or YD')
+    assert method.upper() in ['ADMM', 'YD'], 'method must be ADMM or YD'
         
     df = dataframe
     
@@ -227,7 +227,7 @@ def calculate_SV(dataframe: pd.DataFrame(),
             
     return df_sv
 
-def Kp_index_correction(dataframe: pd.DataFrame(),
+def kp_index_correction(dataframe: pd.DataFrame(),
                         kp: float,
                         ):
     '''
@@ -254,11 +254,8 @@ def Kp_index_correction(dataframe: pd.DataFrame(),
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
     assert isinstance(kp, int) or isinstance(kp, float), 'kp must be a number from 0 to 9'
-            
-    if (kp <= 0 ) or (kp >= 9): 
-        print('kp must be a number from 0 to 9, try again!')
-        
-    df_station = pd.DataFrame()
+    
+    assert kp >= 0 and kp <= 9, 'kp must be between 0 and 9'
 
     df_station = dataframe.copy()
     
@@ -649,17 +646,17 @@ def night_time_selection(station: str,
 
     Longitude = utt.IMO.longitude(station)
     
-    dif =  Longitude/15
+    time_to_shift =  Longitude/15
 
-    df = dataframe
+    df_obs = dataframe
     
-    df_lt = df.shift(round(dif, 3), freq = 'H')
+    df_lt = df_obs.shift(round(time_to_shift, 0), freq = 'H')
     
-    
+    df_NT_lt = pd.DataFrame()
     df_NT_lt = df_lt.drop(df_lt.loc[(df_lt.index.hour > 5) & (df_lt.index.hour < 23)].index).dropna()
     
     df_NT = pd.DataFrame()
-    df_NT = df_NT_lt.shift(round(-dif, 3), freq = 'H')
+    df_NT = df_NT_lt.shift(round(-time_to_shift, 0), freq = 'H')
     
     print('The night time period was selected.')
     return df_NT
@@ -695,9 +692,9 @@ def hampel_filter_denoising(dataframe: pd.DataFrame(),
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
     
-    dataframe = resample_obs_data(dataframe,'H',
-                                  apply_percentage=True
-                                  )
+    #dataframe = resample_obs_data(dataframe,'H',
+    #                              apply_percentage=True
+    #                              )
     
     df_denoised = dataframe.copy()
 
@@ -1087,20 +1084,15 @@ def jerk_detection_window(station: str,
     
     df_jerk_window.index = df_SV.loc[window_start:window_end].index
     
-    date_jerk = []
-
-    for date in df_jerk_window.index:
-        date_jerk.append(spf.date_to_decinal_year_converter(date))
+    date_jerk= [spf.date_to_decinal_year_converter(date) for date in df_jerk_window.index]
     
     breakpoints = pd.DataFrame()
     #starting with window jerk detection
-    
     
     df_slopes = pd.DataFrame()
     #rsq = pd.DataFrame()
     df_rsq = pd.DataFrame()
 
-    
     #eqn_list = []
     r2 = []
     for column in df_SV.columns:
