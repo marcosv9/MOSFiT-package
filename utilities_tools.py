@@ -39,8 +39,8 @@ def check_data_availability(station: str):
     print(f'The last available date for {station.upper()} is {f[-1][21:29]}')
             
 def download_data_INTERMAGNET(datatype,
-                              Year,
-                              Months,
+                              year,
+                              months,
                               files = None
                              ):
     
@@ -59,6 +59,16 @@ def download_data_INTERMAGNET(datatype,
     
     example of use - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
     '''
+    
+    assert datatype in ['QD','D'], 'datatype must be QD or D'
+    
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+                           skiprows = 1,
+                           sep = '\s+',
+                           usecols=[0, 1, 2, 3],
+                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
+                           index_col= ['Imos'])
+    
     List_Months = ['01', '02', '03',
                    '04', '05', '06',
                    '07', '08', '09',
@@ -68,46 +78,24 @@ def download_data_INTERMAGNET(datatype,
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
     ftp.login('anonymous', 'email@email.com')
     
-    if Months == None:
-        Months = List_Months
+    if months == None:
+        months = List_Months
         
-    for month in Months:
-        directory = 'Dados OBS/' + Year + '/' + month
-        print(directory)
-        if datatype == 'QD':
-            path = 'intermagnet/minute/quasi-definitive/IAGA2002/' + Year + '/' + month
-            
-        if datatype == 'D':
-            path = 'intermagnet/minute/definitive/IAGA2002/' + Year + '/' + month
-        
-        if files == None:
-            ftp = ftplib.FTP('seismo.nrcan.gc.ca')
-            ftp.login('anonymous', 'email@email.com')
-            ftp.cwd(path)
-            filenames = ftp.nlst('*') # get filenames within the directory
-            filenames.sort()
-            print('List of files that will be downloaded')
-            for filename in filenames:
-                print(filename)
+    for month in months:
+        for station in df_IMOS.index[0:150]:
+            directory = 'Dados OBS/' + year + '/' + month
+            print(directory)
+            if datatype == 'QD':
+                path = f'intermagnet/minute/quasi-definitive/IAGA2002/{year}/{month}'
                 
+            if datatype == 'D':
+                path = f'intermagnet/minute/definitive/IAGA2002/{year}/{month}'
             
-            while input("Do You Want To Continue? [y/n]") == "y":
-                pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
-                for filename in filenames:    
-                    print('File ' + filename  + ' downloaded!')   
-                    local_filename = os.path.join(directory, filename)
-                    file = open(local_filename, 'wb')
-                    ftp.retrbinary('RETR '+ filename, file.write)
-                    
-                ftp.quit()
-                break
-
-        if files != None:
-            for file in files:
+            if files == None:
                 ftp = ftplib.FTP('seismo.nrcan.gc.ca')
                 ftp.login('anonymous', 'email@email.com')
                 ftp.cwd(path)
-                filenames = ftp.nlst(file.lower() + '*') # get filenames within the directory
+                filenames = ftp.nlst(f'{station.upper()}*') # get filenames within the directory
                 filenames.sort()
                 print('List of files that will be downloaded')
                 for filename in filenames:
@@ -122,8 +110,31 @@ def download_data_INTERMAGNET(datatype,
                         file = open(local_filename, 'wb')
                         ftp.retrbinary('RETR '+ filename, file.write)
                         
-                    
+                    ftp.quit()
                     break
+    
+            if files != None:
+                for file in files:
+                    ftp = ftplib.FTP('seismo.nrcan.gc.ca')
+                    ftp.login('anonymous', 'email@email.com')
+                    ftp.cwd(path)
+                    filenames = ftp.nlst(file.lower() + '*') # get filenames within the directory
+                    filenames.sort()
+                    print('List of files that will be downloaded')
+                    for filename in filenames:
+                        print(filename)
+                    
+                
+                    while input("Do You Want To Continue? [y/n]") == "y":
+                        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
+                        for filename in filenames:    
+                            print('File ' + filename  + ' downloaded!')   
+                            local_filename = os.path.join(directory, filename)
+                            file = open(local_filename, 'wb')
+                            ftp.retrbinary('RETR '+ filename, file.write)
+                            
+                        
+                        break
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
                    
@@ -325,3 +336,68 @@ class IMO(object):
         IMO.df_IMOS = pd.concat([IMO.df_IMOS, df_new_imo])
         
         IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
+        
+                
+def check_duplicate_files(station,
+                          start_year,
+                          end_year):
+    
+    end_year = str(int(end_year) + 1)
+    
+    
+    if station != None:
+        station = station.lower()
+    
+    months_list = ['01', '02', '03',
+                   '04', '05', '06',
+                   '07', '08', '09',
+                   '10', '11', '12'
+                   ]
+    
+    year_period = pd.date_range(start_year, end_year, freq = 'Y')
+    
+    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+                          skiprows = 1,
+                           sep = '\s+',
+                           usecols=[0, 1, 2, 3],
+                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
+                           index_col= ['Imos'])
+    if station == None:
+        for station in df_IMOS.index[0:150]:
+            for year in year_period.year:
+                directory = f'Dados OBS/{year}/*'
+                files = glob.glob(f'{directory}/{station}*')
+                if len(files) > 366:
+                    print(f'{len(files)} in {year} for {station.upper()}')
+                    for file in files:                        
+                        filename = os.path.basename(file)
+                        filename = filename[0:11]
+                        if len(glob.glob(f'{directory}/{filename}*')) > 1:
+                            
+                            try:
+                                os.remove(glob.glob(f'{directory}/{filename}qmin*')[0])
+                            except:
+                                os.remove(glob.glob(f'{directory}/{filename}dmin*')[0])
+                            print(f'file {os.path.basename(file)} removed')
+                        #print(f'{files} in {year} for {station}.')
+    if station != None:
+        for year in year_period.year:
+            directory = f'Dados OBS/{year}/*'
+            files = glob.glob(f'{directory}/{station}*')
+            if len(files) > 366:
+                print(f'{len(files)} in {year} for {station.upper()}')
+                for file in files: 
+                    filename = os.path.basename(file)
+                    filename = filename[0:11]
+                    
+                    if len(glob.glob(f'{directory}/{filename}*')) > 1:
+                        
+                        try:
+                            os.remove(glob.glob(f'{directory}/{filename}qmin*')[0])
+                        except:
+                            os.remove(glob.glob(f'{directory}/{filename}dmin*')[0])
+                        print(f'file {os.path.basename(file)} removed')
+
+
+    
+    #return files

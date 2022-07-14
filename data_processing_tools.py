@@ -1,3 +1,4 @@
+from operator import index
 import sys
 from time import time
 sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
@@ -12,7 +13,7 @@ import ftplib
 import pathlib
 import matplotlib.gridspec as gridspec
 import matplotlib.dates as md
-from datetime import datetime
+from datetime import datetime, timedelta
 import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
@@ -58,27 +59,28 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     
 
     #updating disturbed days list
-    
-    spf.update_qd_and_dd(data = 'DD')
 
     df_d = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
                        skiprows = 1, 
                        usecols = [0],
                        names = ['dd'],
                        parse_dates = {'D-Days': ['dd']},
+                       index_col = ['D-Days']
                        )
-    
-    df_d['D-Days'] = pd.to_datetime(df_d['D-Days'], format = '%YYYY-%mm-%dd')
+    if df_d.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
+        spf.update_qd_and_dd(data = 'DD')
+      
+    #df_d['D-Days'] = pd.to_datetime(df_d['D-Days'], format = '%YYYY-%mm-%dd')
 
-    df_d.set_index('D-Days', inplace = True)
+    #df_d.set_index('D-Days', inplace = True)
     
-    df_d = df_d.sort_values('D-Days')
+    #df_d = df_d.sort_values('D-Days')
     
     
-    first_day = str(df.index[0].year) + '-' + str(df.index[0].month) + '-' + str(df.index[0].day)
-    last_day = str(df.index[-1].year) + '-' + str(df.index[-1].month) + '-' + str(df.index[-1].day)
+    #first_day = str(df.index[0].year) + '-' + str(df.index[0].month) + '-' + str(df.index[0].day)
+    #last_day = str(df.index[-1].year) + '-' + str(df.index[-1].month) + '-' + str(df.index[-1].day)
     
-    df_d = df_d.loc[first_day:last_day]
+    df_d = df_d.loc[str(df.index[0].date()):str(df.index[-1].date())]
     
     for date in df_d.index.date:
         try:
@@ -129,7 +131,7 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
 
     #updating quiet days list
     
-    spf.update_qd_and_dd(data = 'QD')
+    #spf.update_qd_and_dd(data = 'QD')
 
     df_q = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
                        header = None,
@@ -137,14 +139,18 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
                        usecols = [0],
                        names = ['qd'],
                        parse_dates = {'Q-Days': ['qd']},
+                       index_col= ['Q-Days']
                        )
     
-    df_q['Q-Days'] = pd.to_datetime(df_q['Q-Days'], format = '%YYYY-%mm-%dd')
+    if df_q.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
+        spf.update_qd_and_dd(data = 'QD')
     
-    df_q = df_q.sort_values('Q-Days')
-    
-    df_q.set_index('Q-Days', inplace = True)
-    
+    #df_q['Q-Days'] = pd.to_datetime(df_q['Q-Days'], format = '%YYYY-%mm-%dd')
+    #
+    #df_q = df_q.sort_values('Q-Days')
+    #
+    #df_q.set_index('Q-Days', inplace = True)
+    #
     df_q = df_q.loc[str(df.index[0].date()):str(df.index[-1].date())]
 
     for date in df_q.index.date:
@@ -259,17 +265,26 @@ def kp_index_correction(dataframe: pd.DataFrame(),
 
     df_station = dataframe.copy()
     
+    
+    KP_ = pd.read_csv('Thesis_Marcos/Data/Kp index/kp_index_since_1932.txt',
+                      sep = '\t',
+                      index_col = ['Date'])
+    KP_.index = pd.to_datetime(KP_.index, format = '%Y-%m-%d %H:%M:%S')
+    
+    if datetime.today() > KP_.index[-1]:
+        print('Updating the index')
+    
     #updating the Kp_index for the most recent data
-    KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt',
-                      skiprows = 30,
-                      header = None,
-                      sep = '\s+', 
-                      usecols = [0,1,2,3,7,8],
-                      parse_dates = {'Date': ['Y', 'M','D','H']},
-                      names = ['Y','M','D','H','Kp','Ap']
-                      )
-
-    KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
+        KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt',
+                          skiprows = 30,
+                          header = None,
+                          sep = '\s+', 
+                          usecols = [0,1,2,3,7,8],
+                          parse_dates = {'Date': ['Y', 'M','D','H']},
+                          names = ['Y','M','D','H','Kp','Ap']
+                          )
+    
+        KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
     df_kp=pd.DataFrame()
     df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
@@ -281,7 +296,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     for i in df_kp.index:
         df_disturbed = pd.concat([df_disturbed, df_station.loc[str(i)]])
-
+        #df_station.drop(df_station.loc[str(i)].index, inplace = True)
     df_station.drop(df_disturbed.index, inplace = True)
     
     return df_station
@@ -531,8 +546,7 @@ def external_field_correction_chaos_model(station: str,
     
     
     if df_chaos is not None:
-        df_chaos = df_chaos
-        df_chaos.loc[starttime : endtime] = df_chaos
+        df_chaos = df_chaos.loc[starttime : endtime]
     
     else:
         
@@ -550,8 +564,8 @@ def external_field_correction_chaos_model(station: str,
     
     if df_station is not None:
         
-        df_station = df_station
-        df_station.loc[starttime:endtime] = df_station
+        df_station = df_station.loc[starttime:endtime]
+        
     else:
         df_station = mvs.load_INTERMAGNET_files(station = station,
                                                 starttime = starttime,
@@ -573,7 +587,7 @@ def external_field_correction_chaos_model(station: str,
     
     print('The external field predicted using CHAOS-model was removed from the data.')
     
-    return df_station.loc[starttime:endtime], df_chaos    
+    return df_station, df_chaos    
 
 def rms(predictions: pd.DataFrame(),
         observed_data: pd.DataFrame()
@@ -664,7 +678,8 @@ def night_time_selection(station: str,
 def hampel_filter_denoising(dataframe: pd.DataFrame(),
                             window_size: int,
                             n_sigmas=3,
-                            plot_figure:bool = False
+                            plot_figure:bool = False,
+                            apply_percentage = False
                             ):
     '''
 
@@ -692,9 +707,9 @@ def hampel_filter_denoising(dataframe: pd.DataFrame(),
     
     assert isinstance(window_size, int), 'window_size must be an integer.'
     
-    #dataframe = resample_obs_data(dataframe,'H',
-    #                              apply_percentage=True
-    #                              )
+    dataframe = resample_obs_data(dataframe,'H',
+                                  apply_percentage = apply_percentage
+                                  )
     
     df_denoised = dataframe.copy()
 

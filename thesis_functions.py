@@ -231,7 +231,8 @@ def SV_obs(station: str,
             df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                      window_size = 100,
                                                      n_sigmas=3,
-                                                     plot_figure = True)
+                                                     plot_figure = True,
+                                                     apply_percentage=True)
             break
 
         if inp5 == 'n':
@@ -276,7 +277,7 @@ def SV_obs(station: str,
                                               df_station)
     if inp == 'KP':
         
-        df_station = dpt.Kp_index_correction(dataframe = df_station,
+        df_station = dpt.kp_index_correction(dataframe = df_station,
                                              kp = 3)
         
     if inp == 'E':
