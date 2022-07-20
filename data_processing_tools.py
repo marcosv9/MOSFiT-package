@@ -546,7 +546,8 @@ def external_field_correction_chaos_model(station: str,
     
     
     if df_chaos is not None:
-        df_chaos = df_chaos.loc[starttime : endtime]
+
+        df_chaos = df_chaos.loc[starttime:endtime].copy()
     
     else:
         
@@ -564,7 +565,7 @@ def external_field_correction_chaos_model(station: str,
     
     if df_station is not None:
         
-        df_station = df_station.loc[starttime:endtime]
+        df_station = df_station.loc[starttime:endtime].copy()
         
     else:
         df_station = mvs.load_INTERMAGNET_files(station = station,
@@ -1169,15 +1170,18 @@ def jerk_detection_window(station: str,
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on() 
+                ax.grid(alpha = 0.5)
                 ax.legend()
             if save_plots == True:
                 plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
                 plt.show()
  
-            #plotting multiple figure
+            #plotting multiple figure// small xaxis
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.93)
@@ -1203,11 +1207,12 @@ def jerk_detection_window(station: str,
                         label = 'jerk detection'
                         )
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
-                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
-                ax.minorticks_on() 
+                ax.minorticks_on()
+                ax.grid(alpha = 0.5) 
             if save_plots == True:
                 plt.savefig(f'{directory}/{station}_jerk_detection_2.jpeg', bbox_inches='tight')
                 plt.show()
@@ -1244,9 +1249,12 @@ def jerk_detection_window(station: str,
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
-                ax.minorticks_on() 
+                ax.minorticks_on()
+                ax.grid(alpha = 0.5) 
                 ax.legend()
             if save_plots == True:
                 plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
@@ -1279,12 +1287,13 @@ def jerk_detection_window(station: str,
                         linewidth = 3,
                         label = 'jerk detection'
                         )
-                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y')) 
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
-                ax.minorticks_on() 
+                ax.minorticks_on()
+                ax.grid(alpha = 0.5) 
                 ax.legend()
 
             if save_plots == True:

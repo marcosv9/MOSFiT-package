@@ -526,7 +526,8 @@ def SV_obs(station: str,
                     ax[2].legend()
 
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.YearLocator(1)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.get_ticklocs(minor=True)
                     ax.yaxis.set_tick_params(which='minor', bottom=False)
                     ax.minorticks_on() 
@@ -566,7 +567,8 @@ def SV_obs(station: str,
                     ax[2].legend()
                 
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.YearLocator(1))
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.get_ticklocs(minor=True)
                     ax.yaxis.set_tick_params(which='minor', bottom=False)
                     ax.minorticks_on() 
@@ -680,6 +682,13 @@ def SV_obs(station: str,
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
             
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
+            
             if First_QD_data != []:
                 #computing date for SV
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
@@ -733,7 +742,13 @@ def SV_obs(station: str,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
-
+                
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
                 
                 plt.savefig(f'{directory}/{station}_SV_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
@@ -768,7 +783,13 @@ def SV_obs(station: str,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
-
+                
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
                 
                 plt.savefig(f'{directory}/{station}_SV_predicted_and_correction_comparison.jpeg', bbox_inches='tight')
                 plt.show()
@@ -805,6 +826,13 @@ def SV_obs(station: str,
                 ax[2].set_ylim(df_station2['Z'].min() - 3, df_station2['Z'].max() + 3)
                 ax[2].set_ylabel('Z(nT)', fontsize = 12)
                 ax[2].grid()
+                
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on()                 
                 
                 if First_QD_data != []:
                     ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], '-', color = 'red', label = 'Quasi-definitive data')
@@ -844,7 +872,13 @@ def SV_obs(station: str,
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
-
+                    
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
                 plt.show()
                 
             if First_QD_data != []:
@@ -945,6 +979,7 @@ def SV_obs(station: str,
             ax[2].set_ylim(df_SV['Z'].min() - 3, df_SV['Z'].max() + 3)
             ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
             ax[2].grid()
+                       
             if First_QD_data != []:
                 #computing date for SV
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
@@ -960,6 +995,13 @@ def SV_obs(station: str,
                 ax[0].legend()
                 ax[1].legend()
                 ax[2].legend()
+                
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on()  
 
 
             plt.show()
@@ -998,6 +1040,13 @@ def SV_obs(station: str,
                 ax[2].legend()
                 ax[2].grid()
                 
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on()   
+                                  
                 plt.show()
                 
                 #plotting chaos predicted and corrected SV
@@ -1030,7 +1079,14 @@ def SV_obs(station: str,
                 ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
                 ax[2].legend()
                 ax[2].grid()
-
+                
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
+                    
                 plt.show()
          
             break
@@ -1752,6 +1808,11 @@ def plot_samples(station: str,
                 #ax.xaxis.get_ticklocs(minor=True)
                 #ax.yaxis.set_tick_params(which='minor', bottom=False)
                 #ax.minorticks_on() 
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
                 ax.grid()
 
             plt.show()
@@ -1789,6 +1850,11 @@ def plot_samples(station: str,
                 ax.set_xlim(df_station[col].index[0], df_station[col].index[-1])
                 ax.grid()
                 ax.plot(df_station.loc[df_station.index > First_QD_data][col], '-', color = 'red', label = 'Quasi-definitive data')
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
                 #ax.xaxis.set_major_locator(md.YearLocator(1))
                 #ax.xaxis.get_ticklocs(minor=True)
                 #ax.yaxis.set_tick_params(which='minor', bottom=False)
@@ -1824,6 +1890,11 @@ def plot_samples(station: str,
                 ax.plot(df_station[col], '-', color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0], df_station[col].index[-1])
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
                 #ax.xaxis.set_major_locator(md.YearLocator(1)) 
                 #ax.xaxis.get_ticklocs(minor=True)
                 #ax.yaxis.set_tick_params(which='minor', bottom=False)
@@ -1873,6 +1944,11 @@ def plot_samples(station: str,
                         label = 'Quasi-definitive data'
                         )
                 ax.legend()
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
                 #ax.xaxis.set_major_locator(md.YearLocator(1)) 
                 #ax.xaxis.get_ticklocs(minor=True)
                 #ax.yaxis.set_tick_params(which='minor', bottom=False)
