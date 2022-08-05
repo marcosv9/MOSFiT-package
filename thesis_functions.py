@@ -9,16 +9,18 @@ import os
 import ftplib
 import pathlib
 import matplotlib.gridspec as gridspec
-from datetime import datetime
+from datetime import datetime, timedelta
 import matplotlib.dates as md
 import pwlf
+from dateutil.relativedelta import relativedelta
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 import utilities_tools as utt
 import data_processing_tools as dpt
 import support_functions as spf
-from sklearn.preprocessing import PolynomialFeatures
-
+import matplotlib.gridspec as gridspec
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import cartopy.crs as ccrs
  
 
 def load_INTERMAGNET_files(station: str,
@@ -826,14 +828,7 @@ def SV_obs(station: str,
                 ax[2].set_ylim(df_station2['Z'].min() - 3, df_station2['Z'].max() + 3)
                 ax[2].set_ylabel('Z(nT)', fontsize = 12)
                 ax[2].grid()
-                
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.minorticks_on()                 
-                
+                                
                 if First_QD_data != []:
                     ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], '-', color = 'red', label = 'Quasi-definitive data')
                     ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], '-', color = 'red', label = 'Quasi-definitive data')
@@ -842,7 +837,13 @@ def SV_obs(station: str,
                     ax[1].legend()
                     ax[2].legend()
   
-                
+  
+                for ax in ax.flatten():
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                    ax.xaxis.get_ticklocs(minor=True)
+                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.minorticks_on() 
                 plt.show()
                 
             else:
@@ -1958,4 +1959,116 @@ def plot_samples(station: str,
             plt.savefig(f'{directory}/{station}_{title}_mean.jpeg', bbox_inches='tight')
             plt.show()
             
+def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
+    '''
+    '''
     
+    fig = plt.figure(figsize=(20, 20))
+    
+    fig.subplots_adjust(
+    top=0.98,
+    bottom=0.02,
+    left=0.013,
+    right=0.988,
+    hspace=0.0,
+    wspace=0.1
+    )
+       
+    if deriv == 1:
+        cons = 10
+        tdep = 'SV'
+    else:
+        cons = 3
+        tdep = 'SA'
+        
+    previous_year = str((datetime.strptime(time, "%Y-%m-%d") - relativedelta(months = 6)).date())
+    
+    next_year = str((datetime.strptime(time, "%Y-%m-%d") + relativedelta(months = 6)).date())
+        
+    time =cp.data_utils.mjd2000(datetime.strptime(time, '%Y-%m-%d'))
+    
+    previous_year =cp.data_utils.mjd2000(datetime.strptime(previous_year, '%Y-%m-%d'))
+    
+    next_year =cp.data_utils.mjd2000(datetime.strptime(next_year, '%Y-%m-%d'))
+    
+    chaos_path = glob.glob('Thesis_Marcos/chaosmagpy_package_*.*/data/CHAOS*')    
+
+    model = cp.load_CHAOS_matfile(chaos_path[0]) 
+    
+    radius = 6371.5  # radius of the core surface in km
+    theta = np.linspace(1., 179., 181)  # colatitude in degrees
+    phi = np.linspace(-180., 180, 361)  # longitude in degrees
+    
+    
+    # compute radial SV up to degree 16 using CHAOS
+
+    B_radius, B_theta, B_phi = model.synth_values_tdep(time, radius, theta, phi,
+                                      nmax=16, deriv=deriv, grid=True)
+    
+    B_x = B_theta*-1
+    B_y = B_phi
+    B_z = B_radius*-1
+    
+    if plot_changes == True:
+        B_radiusp, B_thetap, B_phip = model.synth_values_tdep(previous_year, radius, theta, phi,
+                                      nmax=16, deriv=deriv, grid=True)
+    
+        B_xp = B_thetap*-1
+        B_yp = B_phip
+        B_zp = B_radiusp*-1 
+        
+        B_radiusn, B_thetan, B_phin = model.synth_values_tdep(next_year, radius, theta, phi,
+                                      nmax=16, deriv=deriv, grid=True)
+    
+        B_xn = B_thetan*-1
+        B_yn = B_phin
+        B_zn = B_radiusn*-1 
+        
+        B_x = (B_x - B_xn) - (B_x - B_xp)
+        B_y = (B_y - B_yn) - (B_y - B_yp)
+        B_z = (B_z - B_zn) - (B_z - B_zp)
+        cons = 1
+    gs = gridspec.GridSpec(1, 3)
+    
+
+    axes = [
+        plt.subplot(gs[0, 0], projection=ccrs.Robinson()),
+        plt.subplot(gs[0, 1], projection=ccrs.Robinson()),
+        plt.subplot(gs[0, 2], projection=ccrs.Robinson())]
+    
+    for ax, comp, name in zip(axes, [B_x, B_y, B_z], ['X','Y','Z']):
+        
+        pc = ax.pcolormesh(phi, 90. - theta, comp, cmap='PuOr', vmin=- (comp.max() +cons) ,
+                           vmax=comp.max() + cons, transform=ccrs.PlateCarree())
+        ax.set_title(f'{name} {tdep} (n <= 16)')
+        ax.gridlines(linewidth=0.5, linestyle='dashed',
+                     ylocs=np.linspace(-90, 90, num=7),  # parallels
+                     xlocs=np.linspace(-180, 180, num=13))  # meridians
+        ax.coastlines(linewidth=0.5)
+        
+        # inset axes into global map and move upwards
+        cax = inset_axes(ax, width="55%", height="10%", loc='lower center',
+                         borderpad=-3.5)
+    
+    # use last artist for the colorbar
+        clb = plt.colorbar(pc, cax=cax, extend='both', orientation='horizontal')
+        clb.set_label('nT/yr', fontsize=14)
+    if station != None:
+        df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+                              sep = '\t',
+                              index_col = [0]
+                             )
+        for imo in station:
+            for ax in axes:
+                ax.scatter(df_imos.loc[imo]['Longitude'],
+                           df_imos.loc[imo]['Latitude'],
+                           color = 'black',
+                           transform=ccrs.PlateCarree())
+                ax.text(df_imos.loc[imo]['Longitude'] + 3,
+                        df_imos.loc[imo]['Latitude'] + 4,
+                        df_imos.loc[imo].name,
+                        horizontalalignment='left',
+                        transform=ccrs.Geodetic())
+                
+        
+    plt.show()

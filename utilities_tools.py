@@ -11,7 +11,6 @@ import pathlib
 import matplotlib.gridspec as gridspec
 from datetime import datetime
 import pwlf
-import sqlite3
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures

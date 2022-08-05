@@ -1,380 +1,396 @@
-import pandas as pd
+import sys
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from jupyter_dash import JupyterDash
 from dash import Dash, Input, Output, ctx, html, dcc
-import dash_html_components as html
-from dash.dependencies import Input, Output
+import pandas as pd
 import dash_bootstrap_components as dbc
+import chaosmagpy as cp
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from glob import glob
+import glob
+import matplotlib.gridspec as gridspec
 #import thesis_functions as mvs
-import data_processing_tools as dpt
+#import data_processing_tools as dpt
 #import utilities_tools as utt
 #import support_functions as spf
-
-
-#creating dict for pillars
-samples = dict({'hourly':'H',
-                'daily': 'D',
-                'monthly': 'M',
-                'annual': 'Y',
-                'Secular Variation':'SV'})
-
-data_selection = dict({'Empty':'Not',
-                       'nighttime':'NT',
-                      'quiet-days':'QD',
-                      'disturbed-days':'DD',
-                      'Kp-index':'KP'})
+from datetime import datetime,date
+import timeit
+from datetime import datetime 
+import pwlf
+import plots_obs as obs
+import os
 
 
 
-# Build App
-app = JupyterDash(__name__)
-
-fig = go.Figure(data=[go.Scatter(x=[], y=[])])
-
-fig.update_layout(paper_bgcolor="#2A3F54")
-
-fig2 = go.Figure(data = [go.Table()])
-
-fig2.update_layout(paper_bgcolor="#2A3F54",
-                      plot_bgcolor = "#2A3F54",
-                      width = 250,
-                      height = 100)
-
-
-
-app.layout = html.Div(
-    className="content",
-    children =[
-        html.H1('Secular Variation Dashboard', id = 'title1'),
-        html.Div(
-            className = 'left-content',
-            children=[
-                html.H1('Data processing options', id = 'left-content-title'),
-                html.Div(
-                    className = 'Input',
-                    children = [
-                        html.Label('IAGA CODE'),
-                        html.Br(),
-                        dcc.Input(
-                            id='imos-input',
-                            type = 'text',
-                            minLength = 3,
-                            maxLength = 3,
-                            debounce=True,
-                            size = '5',
-                            value = 'VSS')
-                    ]),
-                html.Div(
-                    className = 'dropdowns',
-                    children = [
-                        html.Label('Sample rate'),
-                        dcc.Dropdown(
-                            id='samples-dropdown',                                        
-                            clearable=False,
-                            value = 'H',
-                            options=[{"label": i, "value": j} for i, j in samples.items()]),
-                        html.Br(),
-                        html.Label('Data Selection'),
-                        dcc.Dropdown(
-                            id='selection-dropdown',                                        
-                            clearable=False,
-                            value = 'Not',
-                            options=[{"label": i, "value": j} for i, j in data_selection.items()])
-                    ]),
-                html.Div(
-                    className = 'radio-itens',
-                    children=[
-                        html.Label('CHAOS-7 correction'),
-                        html.Br(),
-                        dcc.RadioItems(
-                            id = 'chaos',
-                            options = ['Yes', 'No'],
-                            value = 'No'),
-                        html.Label('Plot CHAOS'),
-                        dcc.RadioItems(id = 'chaos-plot',
-                                       options = ['Yes', 'No'],
-                                       value = 'No')
-                    ]),
-                html.Div(
-                    className = 'jerk_input',
-                    children = [
-                        html.H1('Geomagnetic jerk detection', id = 'title-detection'),
-                        html.Label('Start-date'),
-                        html.Br(),
-                        dcc.Input(
-                            id='start-date-input',
-                            placeholder="yyyy-mm",
-                            minLength = 7,
-                            maxLength = 7,
-                            debounce = True),
-                        html.Br(),
-                        html.Label('End-date'),
-                        html.Br(),
-                        dcc.Input(
-                            id='end-date-input',
-                            placeholder = 'yyyy-mm',
-                            minLength = 7,
-                            maxLength = 7,
-                            debounce = True),
-                        html.Br(),
-                        html.Button(
-                            'Detect',
-                            id = 'button2',
-                            n_clicks = 0)    
-                    ]),
-                
-
-                html.Div(className = 'jerk_stats', children=[
-                    html.H3('Jerk detection statistics', id = 'jerk-stats-title'),
-                    html.Div(
-                    className = 'Graph_stats',
-                    children = [
-                        dcc.Graph(
-                            id='graph2',
-                            figure=fig2)
-                    
-                ]),
-                html.Div(
-                    className = 'Button',
-                    children=[
-                        html.Button(
-                            'Save data',
-                            id='button1',
-                            n_clicks = 0)
-                    ]),
-                
-                ])
-            ]),
-        html.Div(
-            className = 'right-content', 
-            children=[
-                html.Div(
-                    className = 'Graph',
-                    children = [
-                        dcc.Graph(
-                            id='graph',
-                            figure=fig)])
-            ])
-    ])
-
-
-#html.Div([
-#    html.Div([
-#        dcc.Graph(id='graph',
-#                figure = fig)])])])
-#
-
-
-
-@app.callback([Output('graph', 'figure'),
-               Output('graph2', 'figure')],
-              [Input("imos-input", "value"),
-              Input('samples-dropdown','value'),
-              Input('selection-dropdown','value'),
-              Input('chaos', 'value'),
-              Input('chaos-plot','value'),
-              Input('button1', 'n_clicks'),
-              Input('start-date-input','value'),
-              Input('end-date-input','value'),
-              Input('button2', 'n_clicks')]
-)
-
-def update_figure(imo, sample, selection, chaos, plot, n_click, starttime, endtime, n_click2):
-
-    triggered_id = ctx.triggered_id
+def mosfit_dash():
+    #creating dict for pillars
+    samples = dict({'hourly':'H',
+                    'daily': 'D',
+                    'monthly': 'M',
+                    'annual': 'Y',
+                    'Secular Variation':'SV'})
     
-    mode = 'lines'
+    data_selection = dict({'Empty':'Not',
+                           'nighttime':'NT',
+                          'quiet-days':'QD',
+                          'disturbed-days':'DD',
+                          'Kp-index':'KP'})
     
-    annotations = []
     
-    apply_percentage = True
     
-    if selection in ['DD','QD', 'NT', 'KP']:
-        apply_percentage = False
+    # Build App
+    app = JupyterDash(__name__)
+    
+    fig = go.Figure(data=[go.Scatter(x=[], y=[])])
+    
+    fig.update_layout(paper_bgcolor="#2A3F54")
     
     fig2 = go.Figure(data = [go.Table()])
-
+    
     fig2.update_layout(paper_bgcolor="#2A3F54",
-                       plot_bgcolor = "#2A3F54",
-                       width = 250,
-                       height = 100)
-    
-    fig2.update_xaxes(showline=False, showgrid = False)
-    fig2.update_yaxes(showline=False, showgrid = False)
-    
-    df_jerk_window = pd.DataFrame()
-    
-    df = pd.read_csv(f'hourly_data/{imo}_hourly_data.txt', sep = '\t')
-    df.index = pd.to_datetime(df['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
-    df.pop('Date')
-    
-    df_chaos = pd.read_csv(f'hourly_data/{imo}_chaos_hourly_data.txt', sep = '\t')
-    df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
-    df_chaos.pop('Unnamed: 0')
-    
-    if chaos == 'Yes':    
-        
-        df, df_chaos = dpt.external_field_correction_chaos_model(imo,
-                                                                 '2000-01-01',
-                                                                 '2022-02-28',
-                                                                 df,
-                                                                 df_chaos,
-                                                                 apply_percentage = apply_percentage)
-    else:
-        pass
-        
-        
-    if selection == 'DD':
-        df = dpt.remove_Disturbed_Days(df)
-    if selection == 'QD':
-        df = dpt.keep_Q_Days(df)
-    if selection == 'KP':
-        df = dpt.Kp_index_correction(df,
-                                     kp = 3)
-    if selection == 'NT':
-        df = dpt.night_time_selection(station = imo,
-                                      dataframe = df)
-    
-    df_detection = df
-    
-    if sample != 'SV':    
-        df = dpt.resample_obs_data(df, sample, apply_percentage=apply_percentage)
-    else:
-        df = dpt.calculate_SV(df, apply_percentage = apply_percentage)
-        mode = 'markers'
-    
-    if sample == 'Y':
-        mode = 'lines+markers'
-    
-
+                          plot_bgcolor = "#2A3F54",
+                          width = 250,
+                          height = 100)
     
     
-    if starttime != None and endtime != None and sample == 'SV' and triggered_id == 'button2':
-        
-        
-        
-        df_jerk_window, df_slopes, breakpoints, r2 = dpt.jerk_detection_window(station = imo,
-                                                                            window_start = str(starttime),
-                                                                            window_end = str(endtime),
-                                                                            starttime = str(df.index.date[0]),
-                                                                            endtime = str(df.index.date[-1]),
-                                                                            df_station = df_detection,
-                                                                            df_CHAOS = df_chaos,
-                                                                            CHAOS_correction = False, 
-                                                                            plot_CHAOS_prediction=False,
-                                                                            plot_detection=False)
-        
-        df_jerk_stats = pd.DataFrame()
-        
-        df_jerk_stats['Comp'] = ['SV_X','SV_Y','SV_Z']
-            
-        df_jerk_stats['Occur'] =  breakpoints.iloc[1].values.round(2)
-
-        df_jerk_stats['Amplitude'] = df_slopes.diff().iloc[1].values.round(2)
-        
-        df_jerk_stats['R2'] = r2
-        
-        fig2 = go.Figure(data=[go.Table(
-            header=dict(values=list(df_jerk_stats.columns),
-                        fill_color='#2A3F54',
-                        align='left'),
-            cells=dict(values=[df_jerk_stats.Comp, df_jerk_stats.Occur,
-                               df_jerk_stats.Amplitude, df_jerk_stats.R2
-                               ], # 2nd column
-                       line_color='#2A3F54',
-                       fill_color='#2A3F54',
-                       align='left'))
+    
+    app.layout = html.Div(
+        className="content",
+        children =[
+            html.H1('Secular Variation Dashboard', id = 'title1'),
+            html.Div(
+                className = 'left-content',
+                children=[
+                    html.H1('Data processing options', id = 'left-content-title'),
+                    html.Div(
+                        className = 'Input',
+                        children = [
+                            html.Label('IAGA CODE'),
+                            html.Br(),
+                            dcc.Input(
+                                id='imos-input',
+                                type = 'text',
+                                minLength = 3,
+                                maxLength = 3,
+                                debounce=True,
+                                size = '5',
+                                value = 'VSS')
+                        ]),
+                    html.Div(
+                        className = 'dropdowns',
+                        children = [
+                            html.Label('Sample rate'),
+                            dcc.Dropdown(
+                                id='samples-dropdown',                                        
+                                clearable=False,
+                                value = 'H',
+                                options=[{"label": i, "value": j} for i, j in samples.items()]),
+                            html.Br(),
+                            html.Label('Data Selection'),
+                            dcc.Dropdown(
+                                id='selection-dropdown',                                        
+                                clearable=False,
+                                value = 'Not',
+                                options=[{"label": i, "value": j} for i, j in data_selection.items()])
+                        ]),
+                    html.Div(
+                        className = 'radio-itens',
+                        children=[
+                            html.Label('CHAOS-7 correction'),
+                            html.Br(),
+                            dcc.RadioItems(
+                                id = 'chaos',
+                                options = ['Yes', 'No'],
+                                value = 'No'),
+                            html.Label('Plot CHAOS'),
+                            dcc.RadioItems(id = 'chaos-plot',
+                                           options = ['Yes', 'No'],
+                                           value = 'No')
+                        ]),
+                    html.Div(
+                        className = 'jerk_input',
+                        children = [
+                            html.H1('Geomagnetic jerk detection', id = 'title-detection'),
+                            html.Label('Start-date'),
+                            html.Br(),
+                            dcc.Input(
+                                id='start-date-input',
+                                placeholder="yyyy-mm",
+                                minLength = 7,
+                                maxLength = 7,
+                                debounce = True),
+                            html.Br(),
+                            html.Label('End-date'),
+                            html.Br(),
+                            dcc.Input(
+                                id='end-date-input',
+                                placeholder = 'yyyy-mm',
+                                minLength = 7,
+                                maxLength = 7,
+                                debounce = True),
+                            html.Br(),
+                            html.Button(
+                                'Detect',
+                                id = 'button2',
+                                n_clicks = 0)    
+                        ]),
+                    
+    
+                    html.Div(className = 'jerk_stats', children=[
+                        html.H3('Jerk detection statistics', id = 'jerk-stats-title'),
+                        html.Div(
+                        className = 'Graph_stats',
+                        children = [
+                            dcc.Graph(
+                                id='graph2',
+                                figure=fig2)
+                        
+                    ]),
+                    html.Div(
+                        className = 'Button',
+                        children=[
+                            html.Button(
+                                'Save data',
+                                id='button1',
+                                n_clicks = 0)
+                        ]),
+                    
+                    ])
+                ]),
+            html.Div(
+                className = 'right-content', 
+                children=[
+                    html.Div(
+                        className = 'Graph',
+                        children = [
+                            dcc.Graph(
+                                id='graph',
+                                figure=fig)])
+                ])
         ])
+    
+    
+    #html.Div([
+    #    html.Div([
+    #        dcc.Graph(id='graph',
+    #                figure = fig)])])])
+    #
+    
+    
+    
+    @app.callback([Output('graph', 'figure'),
+                   Output('graph2', 'figure')],
+                  [Input("imos-input", "value"),
+                  Input('samples-dropdown','value'),
+                  Input('selection-dropdown','value'),
+                  Input('chaos', 'value'),
+                  Input('chaos-plot','value'),
+                  Input('button1', 'n_clicks'),
+                  Input('start-date-input','value'),
+                  Input('end-date-input','value'),
+                  Input('button2', 'n_clicks')]
+    )
+    
+    def update_figure(imo, sample, selection, chaos, plot, n_click, starttime, endtime, n_click2):
+    
+        triggered_id = ctx.triggered_id
         
-        fig2.update_layout(width = 250,
-                           height = 100,
-                           margin=dict(l=0, r=0, t=10, b=0),
-                           paper_bgcolor="#2A3F54",
-                           plot_bgcolor = '#2A3F54',
-                           font_color = 'white')
+        mode = 'lines'
         
+        annotations = []
+        
+        apply_percentage = True
+        
+        if selection in ['DD','QD', 'NT', 'KP']:
+            apply_percentage = False
+        
+        fig2 = go.Figure(data = [go.Table()])
     
-    fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.01,
-            row_heights=[0.55, 0.55, 0.55])
-    
-    #fig.update_layout(xaxis_rangeslider_visible=True)
-    
-    
-    #coltroling subplots
-    if sample != 'SV':
-        for col, row, color in zip(df.columns, [1,2,3], ['#1616A7','#1CA71C','#222A2A']):
-            fig.add_trace(
-                go.Scatter(x=df.index, y=df[col], mode = mode, line_color=color, name= col),
-                row=row, col=1)
-    
-    #setting axis label
-    
-    for col, row in zip(df.columns, [1,2,3]):
-        fig.update_yaxes(title_text= f'{col} (nT)', row=row, col=1, color = 'white')
-
-    if sample == 'SV':
-        for col, row, color  in zip(df.columns, [1,2,3], ['#1616A7','#1CA71C','#222A2A']):
+        fig2.update_layout(paper_bgcolor="#2A3F54",
+                           plot_bgcolor = "#2A3F54",
+                           width = 250,
+                           height = 100)
+        
+        fig2.update_xaxes(showline=False, showgrid = False)
+        fig2.update_yaxes(showline=False, showgrid = False)
+        
+        df_jerk_window = pd.DataFrame()
+        
+        df = pd.read_csv(f'hourly_data/{imo}_hourly_data.txt', sep = '\t')
+        df.index = pd.to_datetime(df['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
+        df.pop('Date')
+        
+        df_chaos = pd.read_csv(f'hourly_data/{imo}_chaos_hourly_data.txt', sep = '\t')
+        df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
+        df_chaos.pop('Unnamed: 0')
+        
+        if chaos == 'Yes':    
             
-            fig.update_yaxes(
-                title_text= f'SV {col} (nT/Yr)', row=row, col=1, color = 'white')
+            df, df_chaos = dpt.external_field_correction_chaos_model(imo,
+                                                                     '2000-01-01',
+                                                                     '2022-02-28',
+                                                                     df,
+                                                                     df_chaos,
+                                                                     apply_percentage = apply_percentage)
+        else:
+            pass
             
-            fig.add_trace(
-                go.Scatter(x= df.index, y=df[col], mode = mode, line_color=color, name= f' SV {col}'),
-                row=row, col=1)
-
-    fig.update_xaxes(title_text= 'Date', row=3, col=1, color = 'white')
+            
+        if selection == 'DD':
+            df = dpt.remove_Disturbed_Days(df)
+        if selection == 'QD':
+            df = dpt.keep_Q_Days(df)
+        if selection == 'KP':
+            df = dpt.Kp_index_correction(df,
+                                         kp = 3)
+        if selection == 'NT':
+            df = dpt.night_time_selection(station = imo,
+                                          dataframe = df)
+        
+        df_detection = df
+        
+        if sample != 'SV':    
+            df = dpt.resample_obs_data(df, sample, apply_percentage=apply_percentage)
+        else:
+            df = dpt.calculate_SV(df, apply_percentage = apply_percentage)
+            mode = 'markers'
+        
+        if sample == 'Y':
+            mode = 'lines+markers'
+        
     
-    #adding chaos SV prediction
-    if plot == 'Yes' and sample == 'SV':
         
-        df_chaos = dpt.calculate_SV(df_chaos, columns = ['X_int','Y_int','Z_int'])
         
-        fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['X_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV X'),row=1, col=1)
-        fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Y_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Y'),row=2, col=1)
-        fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Z_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Z'),row=3, col=1)
-        
-     
-    if df_jerk_window.empty == False:
-        
-        fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['X'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV X detection'),row=1, col=1)
-        fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Y'], mode = 'lines', line_color='rgb(102,102,102)',name = 'SV Y detection'),row=2, col=1)
-        fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Z'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV Z detection'),row=3, col=1)
-        
-    #updating entire figure layout
-
+        if starttime != None and endtime != None and sample == 'SV' and triggered_id == 'button2':
+            
+            
+            
+            df_jerk_window, df_slopes, breakpoints, r2 = dpt.jerk_detection_window(station = imo,
+                                                                                window_start = str(starttime),
+                                                                                window_end = str(endtime),
+                                                                                starttime = str(df.index.date[0]),
+                                                                                endtime = str(df.index.date[-1]),
+                                                                                df_station = df_detection,
+                                                                                df_CHAOS = df_chaos,
+                                                                                CHAOS_correction = False, 
+                                                                                plot_CHAOS_prediction=False,
+                                                                                plot_detection=False)
+            
+            df_jerk_stats = pd.DataFrame()
+            
+            df_jerk_stats['Comp'] = ['SV_X','SV_Y','SV_Z']
+                
+            df_jerk_stats['Occur'] =  breakpoints.iloc[1].values.round(2)
     
-    fig.update_layout(title = 'Secular variation plot',
-                      title_font_color=' white',
-                      title_font_size = 20,
-                      font_color= 'white',
-                      height=600,
-                      annotations= annotations,
-                      width=1100,
-                      autosize=False,
-                      margin=dict(l=0, r=0, t=35, b=0),
-                      paper_bgcolor="#2A3F54",
-                      hovermode='x unified',
-                      hoverlabel = dict(
-                      bgcolor = 'white',
-                      font_color = 'black'))  #plot_bgcolor='rgba(153,153,153,153)'  < - plot color
-    #fig.update_traces(hovertemplate=hovertemp)
-    
-    if triggered_id == 'button1':
+            df_jerk_stats['Amplitude'] = df_slopes.diff().iloc[1].values.round(2)
+            
+            df_jerk_stats['R2'] = r2
+            
+            fig2 = go.Figure(data=[go.Table(
+                header=dict(values=list(df_jerk_stats.columns),
+                            fill_color='#2A3F54',
+                            align='left'),
+                cells=dict(values=[df_jerk_stats.Comp, df_jerk_stats.Occur,
+                                   df_jerk_stats.Amplitude, df_jerk_stats.R2
+                                   ], # 2nd column
+                           line_color='#2A3F54',
+                           fill_color='#2A3F54',
+                           align='left'))
+            ])
+            
+            fig2.update_layout(width = 250,
+                               height = 100,
+                               margin=dict(l=0, r=0, t=10, b=0),
+                               paper_bgcolor="#2A3F54",
+                               plot_bgcolor = '#2A3F54',
+                               font_color = 'white')
+            
         
-        df.to_csv('teste_save.txt', sep = ' ')
+        fig = make_subplots(rows=3, cols=1, shared_xaxes=True, vertical_spacing=0.01,
+                row_heights=[0.55, 0.55, 0.55])
         
-    #raise dash.exceptions.PreventUpdate
-
+        #fig.update_layout(xaxis_rangeslider_visible=True)
+        
+        
+        #coltroling subplots
+        if sample != 'SV':
+            for col, row, color in zip(df.columns, [1,2,3], ['#1616A7','#1CA71C','#222A2A']):
+                fig.add_trace(
+                    go.Scatter(x=df.index, y=df[col], mode = mode, line_color=color, name= col),
+                    row=row, col=1)
+        
+        #setting axis label
+        
+        for col, row in zip(df.columns, [1,2,3]):
+            fig.update_yaxes(title_text= f'{col} (nT)', row=row, col=1, color = 'white')
     
-    return fig, fig2
+        if sample == 'SV':
+            for col, row, color  in zip(df.columns, [1,2,3], ['#1616A7','#1CA71C','#222A2A']):
+                
+                fig.update_yaxes(
+                    title_text= f'SV {col} (nT/Yr)', row=row, col=1, color = 'white')
+                
+                fig.add_trace(
+                    go.Scatter(x= df.index, y=df[col], mode = mode, line_color=color, name= f' SV {col}'),
+                    row=row, col=1)
+    
+        fig.update_xaxes(title_text= 'Date', row=3, col=1, color = 'white')
+        
+        #adding chaos SV prediction
+        if plot == 'Yes' and sample == 'SV':
+            
+            df_chaos = dpt.calculate_SV(df_chaos, columns = ['X_int','Y_int','Z_int'])
+            
+            fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['X_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV X'),row=1, col=1)
+            fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Y_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Y'),row=2, col=1)
+            fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Z_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Z'),row=3, col=1)
+            
+         
+        if df_jerk_window.empty == False:
+            
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['X'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV X detection'),row=1, col=1)
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Y'], mode = 'lines', line_color='rgb(102,102,102)',name = 'SV Y detection'),row=2, col=1)
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Z'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV Z detection'),row=3, col=1)
+            
+        #updating entire figure layout
+    
+        
+        fig.update_layout(title = 'Secular variation plot',
+                          title_font_color=' white',
+                          title_font_size = 20,
+                          font_color= 'white',
+                          height=600,
+                          annotations= annotations,
+                          width=1100,
+                          autosize=False,
+                          margin=dict(l=0, r=0, t=35, b=0),
+                          paper_bgcolor="#2A3F54",
+                          hovermode='x unified',
+                          hoverlabel = dict(
+                          bgcolor = 'white',
+                          font_color = 'black'))  #plot_bgcolor='rgba(153,153,153,153)'  < - plot color
+        #fig.update_traces(hovertemplate=hovertemp)
+        
+        if triggered_id == 'button1':
+            
+            df.to_csv('teste_save.txt', sep = ' ')
+            
+        #raise dash.exceptions.PreventUpdate
+    
+        
+        return fig, fig2
 
 
 
 # Run app and display result inline in the notebook
-app.run_server(mode='external',port=2222)
+#app.run_server(mode='external',port=2222)
 
 # Run app and display result inline in the notebook
 if __name__ == '__main__':
-    app.run_server(debug = True)
+    mosfit_dash()
+    #app.run_server(debug = True)

@@ -9,7 +9,7 @@ import os
 import ftplib
 import pathlib
 import matplotlib.gridspec as gridspec
-from datetime import datetime
+from datetime import datetime, timedelta
 import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
@@ -26,9 +26,7 @@ def update_qd_and_dd(data: str):
 
     #validating input parameter
     
-    if data not in ['DD', 'QD']:
-            
-        print('Data must be QD or DD!')
+    assert data in ['DD', 'QD'], 'data must be QD or DD!'
         
     #connecting to the ftp server 
     ftp = ftplib.FTP('ftp.gfz-potsdam.de')
@@ -480,4 +478,14 @@ def skiprows_detection(files_station):
                 skiprows += 1
                 skiprows_list[0].append(skiprows)     
                 skiprows_list[1].append(file)
-    return skiprows_list            
+    return skiprows_list      
+
+def decimal_year_to_date(date):
+    
+    decimal_date = float(date)
+    year = int(decimal_date)
+    rest = decimal_date - year
+
+    base = datetime(year, 1, 1)
+    result = base + timedelta(seconds=(base.replace(year=base.year + 1) - base).total_seconds() * rest)
+    return result.date()      
