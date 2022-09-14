@@ -203,7 +203,7 @@ def HDZ_to_XYZ_conversion(station: str,
             
     values_list = []
     for file in files_station:
-        x = pd.read_csv(file,
+        df_data = pd.read_csv(file,
                         sep = '\s+',
                         skiprows = 12,
                         nrows = 40,
@@ -212,15 +212,15 @@ def HDZ_to_XYZ_conversion(station: str,
                         )
         file = file
         idx = 0
-        while x['col'][idx] != station.upper() + 'H':
+        while df_data['col'][idx] != station.upper() + 'H':
             idx+=1
     
-            if x['col'][idx] == station.upper() + 'H':
+            if df_data['col'][idx] == station.upper() + 'H':
                 
-                values_list.append(x['date'][idx + 1])     
+                values_list.append(df_data['date'][idx + 1])     
                 #values_list[1].append(x['col'][idx])
     
-            if x['col'][idx] == station.upper() + 'X':
+            if df_data['col'][idx] == station.upper() + 'X':
                 break
     
     
@@ -237,7 +237,16 @@ def HDZ_to_XYZ_conversion(station: str,
         df_station['Y'].loc[str(date)] = Y
     return df_station
 
-class IMO(object): 
+class IMO(object):
+    '''
+    Class to represent the INTERMAGNET magnet observatory (IMO)
+    
+    It is possible to check the coordinates stored in the database (Latitude, Longitude and altitude)
+    
+    It is also possible to add, remove an check the existence of an IMO.
+    
+    '''
+     
      
     def __init__(self,
                  station,
@@ -396,7 +405,67 @@ def check_duplicate_files(station,
                         except:
                             os.remove(glob.glob(f'{directory}/{filename}dmin*')[0])
                         print(f'file {os.path.basename(file)} removed')
-
-
-    
     #return files
+
+def update_hourly_database(starttime,
+                           endtime,
+                           type = 'IMO',
+                           stations = None):
+    '''
+    '''
+    
+    try:
+        type.upper() in ['IMO','CHAOS']
+    except ValueError:
+        raise ValueError('Type must be IMO or CHAOS')     
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
+    
+        
+    df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\s+', index_col = [0])
+    
+    if stations == None:
+        stations = df_imos.index
+    else:
+        stations = stations
+    #for station in df_imos.index:
+    
+    if type.upper() == 'IMO':
+        for station in stations:
+            try:
+                df = mvs.load_INTERMAGNET_files(station = station,
+                                                starttime = starttime,
+                                                endtime = endtime)
+                
+                df = HDZ_to_XYZ_conversion(station, df)
+                
+                df = dpt.resample_obs_data(df, 'H', apply_percentage= False)
+                
+                df_base = pd.read_csv(f'hourly_data/{station}_hourly_data.txt', sep = '\t')
+                df_base.index = pd.to_datetime(df_base['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
+                df_base.pop('Date')
+                       
+                df_new_imo = pd.concat([df_base,df])
+                df_new_imo.round(2)[~df_new_imo.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station}_hourly_data.txt", sep = '\t')
+
+            except:
+                pass
+            
+    if type.upper() == 'CHAOS':        
+        for station in stations:
+            try:
+                
+                df_chaos = pd.read_csv(f'hourly_data/{station}_chaos_hourly_data.txt', sep = '\t')
+                df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
+                df_chaos.pop('Unnamed: 0')
+        
+                df_chaos_new = dpt.chaos_model_prediction(station = station,
+                                                          starttime = starttime,
+                                                          endtime = endtime)
+                
+                df_new_c = pd.concat([df_chaos, df_chaos_new])
+                print(df_new_c)
+                df_new_c.round(2)[~df_new_c.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')
+            except:
+                pass    

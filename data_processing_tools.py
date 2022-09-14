@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
 from pandas.tseries.frequencies import to_offset
+import h5py
 import glob
 import os
 import ftplib
@@ -20,6 +21,7 @@ from sklearn.preprocessing import PolynomialFeatures
 import thesis_functions as mvs
 import utilities_tools as utt
 import support_functions as spf
+from chaosmagpy.data_utils import save_RC_h5file
 
 def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ''' 
@@ -353,6 +355,14 @@ def chaos_model_prediction(station: str,
     
     station = station.upper()
     
+    rc_data = h5py.File('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
+    
+    if (int(cp.data_utils.mjd2000(datetime.today())) - 1) != int(rc_data['time'][-1]):
+    
+        save_RC_h5file('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
+        cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'
+    else:
+        cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'    
     #setting the Earth radius reference
     R_REF = 6371.2
 
@@ -1151,8 +1161,9 @@ def jerk_detection_window(station: str,
 
         if plot_detection == True and plot_CHAOS_prediction == False or CHAOS_correction == False:
             colors = ['blue', 'green', 'black']
-            fig, axes = plt.subplots(3,1,figsize = (12,10))
-            plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.92)
+            fig, axes = plt.subplots(3,1,figsize = (12,8), sharex = True)
+            plt.subplots_adjust(hspace=0.05)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.94)
             plt.xlabel('Date (Years)', fontsize = 12)
             
             for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
@@ -1185,7 +1196,7 @@ def jerk_detection_window(station: str,
             #plotting multiple figure// small xaxis
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
-            plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.93)
+            plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.94)
             fig.text(0.5,
                      0.04,
                      'Years',
@@ -1227,8 +1238,9 @@ def jerk_detection_window(station: str,
             #plotting single figure
 
             colors = ['blue','green','black']
-            fig, axes = plt.subplots(3,1,figsize = (12,10))
+            fig, axes = plt.subplots(3,1,figsize = (12,8), sharex=True)
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.92)
+            plt.subplots_adjust(hspace=0.05)
             plt.xlabel('Date (Years)', fontsize = 12)
             
             for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV.columns, axes.flatten(), colors):

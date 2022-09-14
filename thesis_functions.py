@@ -2010,6 +2010,9 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
     B_z = B_radius*-1
     
     if plot_changes == True:
+        
+        #calculating values for previous years
+        
         B_radiusp, B_thetap, B_phip = model.synth_values_tdep(previous_year, radius, theta, phi,
                                       nmax=16, deriv=deriv, grid=True)
     
@@ -2017,6 +2020,8 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
         B_yp = B_phip
         B_zp = B_radiusp*-1 
         
+        
+        #calculating values for next year
         B_radiusn, B_thetan, B_phin = model.synth_values_tdep(next_year, radius, theta, phi,
                                       nmax=16, deriv=deriv, grid=True)
     
@@ -2024,6 +2029,8 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
         B_yn = B_phin
         B_zn = B_radiusn*-1 
         
+        
+        #calculating SV or SA changes
         B_x = (B_x - B_xn) - (B_x - B_xp)
         B_y = (B_y - B_yn) - (B_y - B_yp)
         B_z = (B_z - B_zn) - (B_z - B_zp)
@@ -2038,6 +2045,16 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
     
     for ax, comp, name in zip(axes, [B_x, B_y, B_z], ['X','Y','Z']):
         
+        if deriv == 1 and plot_changes == False:
+            plt.suptitle(f'Secular Variation', fontsize = 16, y = 0.62)
+        elif deriv == 1 and plot_changes == True:
+            plt.suptitle(f'Secular Variation changes', fontsize = 16, y = 0.62)
+        elif deriv == 2 and plot_changes == False:        
+            plt.suptitle(f'Secular Acceleration', fontsize = 16, y = 0.62)
+        else:
+            plt.suptitle(f'Secular Acceleration changes', fontsize = 16, y = 0.62)  
+            
+              
         pc = ax.pcolormesh(phi, 90. - theta, comp, cmap='PuOr', vmin=- (comp.max() +cons) ,
                            vmax=comp.max() + cons, transform=ccrs.PlateCarree())
         ax.set_title(f'{name} {tdep} (n <= 16)')
@@ -2052,7 +2069,7 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
     
     # use last artist for the colorbar
         clb = plt.colorbar(pc, cax=cax, extend='both', orientation='horizontal')
-        clb.set_label('nT/yr', fontsize=14)
+        clb.set_label('nT/yr\u00b2', fontsize=14)
     if station != None:
         df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
                               sep = '\t',
