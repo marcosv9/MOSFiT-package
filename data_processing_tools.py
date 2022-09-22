@@ -358,10 +358,12 @@ def chaos_model_prediction(station: str,
     rc_data = h5py.File('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
     
     if (int(cp.data_utils.mjd2000(datetime.today())) - 1) != int(rc_data['time'][-1]):
-    
+        
+        rc_data.close()
         save_RC_h5file('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
         cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'
     else:
+        rc_data.close()
         cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'    
     #setting the Earth radius reference
     R_REF = 6371.2

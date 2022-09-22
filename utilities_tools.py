@@ -17,6 +17,7 @@ from sklearn.preprocessing import PolynomialFeatures
 import thesis_functions as mvs
 import support_functions as spf
 import data_processing_tools as dpt
+from os.path import exists
 
 
 def check_data_availability(station: str):
@@ -437,35 +438,46 @@ def update_hourly_database(starttime,
                 df = mvs.load_INTERMAGNET_files(station = station,
                                                 starttime = starttime,
                                                 endtime = endtime)
-                
-                df = HDZ_to_XYZ_conversion(station, df)
-                
+                #temporary until solve the bug on HDZ_to_XYZ_conversion for such stations
+
+                if station in ['ESK','VAL','SOD','YKC','BSL','SHU','AIA','VOS','NUR','IRT','HRN','DOU','MAB','NCK','LVV']:
+                    pass
+                else:
+                    df = HDZ_to_XYZ_conversion(station, df)
+                    
                 df = dpt.resample_obs_data(df, 'H', apply_percentage= False)
                 
-                df_base = pd.read_csv(f'hourly_data/{station}_hourly_data.txt', sep = '\t')
-                df_base.index = pd.to_datetime(df_base['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
-                df_base.pop('Date')
+                if exists(f'hourly_data/{station}_hourly_data.txt') == True:
+                    df_base = pd.read_csv(f'hourly_data/{station}_hourly_data.txt', sep = '\t')
+                    df_base.index = pd.to_datetime(df_base['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
+                    df_base.pop('Date')
                        
-                df_new_imo = pd.concat([df_base,df])
-                df_new_imo.round(2)[~df_new_imo.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station}_hourly_data.txt", sep = '\t')
+                    df_new_imo = pd.concat([df_base,df])
+                    df_new_imo.round(2)[~df_new_imo.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station}_hourly_data.txt", sep = '\t')
 
+                else:
+                    
+                    df.round(2)[~df.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station}_hourly_data.txt", sep = '\t')
             except:
+                print('No data found for station: {}'.format(station))
                 pass
             
     if type.upper() == 'CHAOS':        
         for station in stations:
             try:
-                
-                df_chaos = pd.read_csv(f'hourly_data/{station}_chaos_hourly_data.txt', sep = '\t')
-                df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
-                df_chaos.pop('Unnamed: 0')
-        
                 df_chaos_new = dpt.chaos_model_prediction(station = station,
                                                           starttime = starttime,
                                                           endtime = endtime)
                 
-                df_new_c = pd.concat([df_chaos, df_chaos_new])
-                print(df_new_c)
-                df_new_c.round(2)[~df_new_c.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')
+                if exists(f"hourly_data/{station.upper()}_chaos_hourly_data.txt") == True:
+                    
+                    df_chaos = pd.read_csv(f'hourly_data/{station}_chaos_hourly_data.txt', sep = '\t')
+                    df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
+                    df_chaos.pop('Unnamed: 0')
+        
+                    df_new_c = pd.concat([df_chaos, df_chaos_new])
+                    df_new_c.round(2)[~df_new_c.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')
+                else:
+                    df_chaos_new.round(2)[~df_chaos_new.round(2).index.duplicated(keep='last')].to_csv(f"hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')    
             except:
                 pass    
