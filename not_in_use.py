@@ -13,10 +13,10 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-from Thesis_Marcos import thesis_functions as mvs
-from Thesis_Marcos import utilities_tools as utt
-from Thesis_Marcos import support_functions as spf
-from Thesis_Marcos import data_processing_tools as dpt
+from SV_project import thesis_functions as mvs
+from SV_project import utilities_tools as utt
+from SV_project import support_functions as spf
+from SV_project import data_processing_tools as dpt
 
 def polynomial_jerk_detection(station, window_start, 
                               window_end, 
@@ -159,7 +159,7 @@ def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     
     assert len(linear_segments) == 3, 'x must be a list with 3 integers'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('SV_project/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
@@ -276,7 +276,7 @@ def HDZ_to_XYZ_conversion(station,
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/Imos_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('SV_project/Data/Imos informations/Imos_INTERMAGNET.txt',
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0,1,2,3],
@@ -378,7 +378,7 @@ def update_qd_and_dd(data):
         
         print('Data must be QD or DD!')
         
-    path = f'Thesis_Marcos/Data/Disturbed and Quiet Days/' 
+    path = f'SV_project/Data/Disturbed and Quiet Days/' 
     files = glob.glob(f'{path}qd*')
     files.sort()
     
@@ -459,4 +459,582 @@ def update_qd_and_dd(data):
         
         df_QD = df_QD.sort_index()
         
-        df_QD.to_csv(path + 'Quiet_Days_list.txt',index = True)    
+        df_QD.to_csv(path + 'Quiet_Days_list.txt',index = True)  
+        
+def SV_(stations: str, 
+        starttime: str,
+        endtime: str,
+        files_path: str = None,
+        jerk_start_window: str = None,
+        jerk_end_window: str = None,
+        external_reduction: str = None,
+        CHAOS_correction:bool = False,
+        file: str = 'off',
+        hampel_filter: bool = False,
+        plot_chaos: bool = False,
+        convert_HDZ_to_XYZ:bool = False
+        ):
+    
+    """
+    
+    ---------------------------------------------------------------------
+    Inputs:
+    
+    stations - must be a list of observatories IAGA code or None
+    
+    starttime - must be a date, 'yyyy-mm-dd' format
+    
+    endtime - must be a date, 'yyyy-mm-dd' format
+    
+    jerk_start_window - first day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    jerk_end_window - last day of the geomagnetic jerk window (format = 'yyyy-mm-dd)
+    
+    external_reduction - must be 'QD', 'DD', 'NT' or None 
+               *QD for keep quiet days
+               *DD for remove disturbed days
+               *NT for Night time selection
+               
+    
+    CHAOS_correction - boolean, option to correct the geomagnetic data with the CHAOS-model.
+    
+    file - must be 'save', 'update' or 'off'.
+          *save - will save in a specific directory a text file of the SV for the selected period
+          *off - No file will be saved.
+          *update - If there are new data, Will update the current file.
+    
+    hampel_filter - boolean, True or False
+    
+    Plot_chaos - boolean (True or False). Option to plot the CHAOS-model SV prediction
+    
+    convert_HDZ_to_XYZ - boolean (True or False). If true, will identify the existence of H, D and Z
+    component in the dataset and convert to X, Y and Z.
+    
+    -------------------------------------------------------------------------------------
+    Use example:
+
+    SV_(stations = ['VSS','NGK','TTB'],
+        starttime = '2000-01-01',
+        endtime = '2021-06-30',
+        jerk_start_window= None,
+        jerk_end_window= None,
+        file = 'save',
+        external_reduction = None,
+        CHAOS_correction = True,
+        hampel_filter = False,
+        plot_chaos = True,
+        convert_HDZ_to_XYZ=True)
+        
+    ---------------------------------------------------------------------------------------    
+    
+
+    """
+    
+    
+    df_imos = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt',
+                          skiprows = 1,
+                          sep = '\s+',
+                          usecols=[0,1,2,3],
+                          names = ['Imos','Latitude','Longitude','Elevation'],
+                          index_col= ['Imos'])
+    
+    #external_reduction_options = [None,'QD','DD','NT']
+    
+    Files = ['save',
+            'update',
+            'off'
+            ]
+    
+    
+    if external_reduction not in [None, 'QD', 'DD', 'NT']:
+        print('External field Reduction must be QD, DD or NT. No changes applied.')
+    
+    if stations == None:
+        for station in df_imos.index:
+            
+            #computing dataframe for the selected period
+            try:
+                df_station =  mvs.load_INTERMAGNET_files(station,
+                                                     starttime,
+                                                     endtime,
+                                                     files_path
+                                                    )
+
+                                                     
+            except:
+                print(f'No files for {station.upper()} in the selected period')
+                continue
+            if len(df_station.resample('M').mean()) <= 24:
+    
+                print('not enought data for secular variation')
+                continue
+
+
+            #converting hdz data to xyz
+            if convert_HDZ_to_XYZ == True:
+                
+                df_station =  utt.HDZ_to_XYZ_conversion(station = station,
+                                                        dataframe = df_station,
+                                                        files_path = files_path,
+                                                        starttime = str(df_station.index[0].date()),
+                                                        endtime = str(df_station.index[-1].date())
+                                                        )
+            else:
+                pass            
+            
+            if hampel_filter == True:
+                df_station = dpt.hampel_filter_denoising(dataframe = df_station,
+                                                         window_size = 100,
+                                                         n_sigmas=3,
+                                                         plot_figure = True
+                                                         )
+            else:
+                pass
+            if external_reduction == None:
+                pass
+            
+            if external_reduction == 'QD':
+    
+                df_station = dpt.keep_Q_Days(df_station,
+                                             starttime,
+                                             endtime
+                                            )
+
+                
+            if external_reduction == 'DD':
+            
+                df_station = dpt.remove_Disturbed_Days(df_station,
+                                                       starttime,
+                                                       endtime
+                                                       )
+
+            
+            if external_reduction =='NT':
+            
+                df_station = dpt.night_time_selection(station,
+                                                      df_station,
+                                                      starttime,
+                                                      endtime
+                                                      )
+
+            
+            
+            df_station_2 = df_station.copy()
+
+            if CHAOS_correction == True:
+                
+                df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
+                                                                                 starttime = starttime,
+                                                                                 endtime = endtime,
+                                                                                 files_path = files_path,
+                                                                                 df_station = df_station,
+                                                                                 df_chaos = None
+                                                                                 )
+                
+                df_SV = dpt.calculate_SV(df_station,
+                                         starttime = starttime,
+                                         endtime = endtime
+                                        )
+                
+                df_SV_chaos = dpt.calculate_SV(df_chaos,
+                                               starttime = starttime,
+                                               endtime = endtime,
+                                               columns = ['X_int','Y_int','Z_int']
+                                               )
+                
+                #RMS = dpt.rms(df_SV_chaos, df_SV)
+            else:
+                    
+            
+                df_SV = dpt.calculate_SV(df_station,
+                                         starttime = starttime,
+                                         endtime = endtime
+                                        )
+            
+            
+
+            if file == 'save':
+                
+                directory = f'SV_update/{station}_data/'
+                
+                pathlib.Path(directory).mkdir(parents=True, exist_ok=True)    
+                
+                df_SV.replace(np.NaN,99999.0).to_csv(f'{directory}SV_{station}_preliminary.txt',
+                                                     sep ='\t')
+                
+                spf.Header_SV_files(station = station,
+                                    data_denoise = hampel_filter,
+                                    external_correction = external_reduction,
+                                    chaos_model = CHAOS_correction
+                                   )
+                    
+                
+            if file == 'update':
+                
+                df1 = pd.read_csv(f'SV_update/{station}_data/SV_{station}.txt', sep = '\t', skiprows = 9)
+
+                df1['Date'] = pd.to_datetime(df1['Date'], infer_datetime_format=True)
+
+                df1.set_index('Date', inplace = True)
+
+                df2 = pd.concat([df1, df_SV])
+                #df2 = df2.sort_values(by=df2.index)
+                df2.replace(np.NaN, 99999.0).drop_duplicates().sort_index().to_csv(f'SV_update/{station}_data/SV_{station}_preliminary.txt', sep = '\t')
+                
+                spf.Header_SV_files(station = station,
+                                    data_denoise = hampel_filter,
+                                    external_correction = external_reduction,
+                                    chaos_model = CHAOS_correction
+                                   )
+                
+                
+            if file == 'off':
+                
+                pass
+            
+            if file not in ['save',
+                           'update',
+                           'off'
+                           ]:
+
+                print('File must be None, update or off!')
+            
+            
+            
+            fig, ax = plt.subplots(3,1, figsize = (16,10))
+            
+            if plot_chaos == True and CHAOS_correction == True:
+                ax[0].plot(df_SV_chaos['X_int'],'o-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'o-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'o-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+                ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
+                ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
+                ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
+                ax[0].set_xlim(df_SV_chaos['X_int'].index[0],df_SV_chaos['X_int'].index[-1])
+                ax[1].set_xlim(df_SV_chaos['Y_int'].index[0],df_SV_chaos['Y_int'].index[-1])
+                ax[2].set_xlim(df_SV_chaos['Z_int'].index[0],df_SV_chaos['Z_int'].index[-1])
+                ax[0].legend()  
+                ax[1].legend()  
+                ax[2].legend()  
+                
+            ax[0].plot(df_SV['X'],'o', color = 'blue')
+            ax[0].set_ylim(df_SV['X'].min() - 10, df_SV['X'].max() + 10)
+            ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
+            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)          
+                       
+            ax[1].plot(df_SV['Y'],'o',color = 'green')
+            ax[1].set_ylim(df_SV['Y'].min() - 10, df_SV['Y'].max() + 10)
+            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)        
+                       
+            ax[2].plot(df_SV['Z'],'o',color = 'black')
+            ax[2].set_ylim(df_SV['Z'].min() - 10,df_SV['Z'].max() + 10)
+            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+            
+            ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+            ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+            ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+            
+            plt.show()
+    
+            directory2 = 'Map_plots/'+ station +'_data'
+            pathlib.Path(directory2).mkdir(parents=True, exist_ok=True)  
+            
+            #plot to use in the interactive map 
+            
+            
+            fig, ax = plt.subplots(3,1, figsize = (8,6.5))
+            if plot_chaos == True and CHAOS_correction == True:
+                ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color  = 'red')
+                ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color  = 'red')
+                ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction (internal field)') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color  = 'red')
+                ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
+                ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
+                ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
+                ax[0].set_xlim(df_SV_chaos['X_int'].index[0],df_SV_chaos['X_int'].index[-1])
+                ax[1].set_xlim(df_SV_chaos['Y_int'].index[0],df_SV_chaos['Y_int'].index[-1])
+                ax[2].set_xlim(df_SV_chaos['Z_int'].index[0],df_SV_chaos['Z_int'].index[-1])
+                ax[0].legend()  
+                ax[1].legend()  
+                ax[2].legend() 
+            
+            ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
+    
+            ax[0].plot(df_SV['X'], 'o', color  = 'blue')
+            ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[0].set_ylim(df_SV['X'].min() - 10, df_SV['X'].max() + 10)
+            #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+            ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
+            ax[0].grid()
+            
+            ax[1].plot(df_SV['Y'], 'o', color  = 'green')
+            ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[1].set_ylim(df_SV['Y'].min() - 10, df_SV['Y'].max() + 10)
+            ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
+            ax[1].grid()
+            
+            ax[2].plot(df_SV['Z'], 'o', color  =  'black')
+            ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+            ax[2].set_ylim(df_SV['Z'].min() - 10, df_SV['Z'].max() + 10)
+            #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+            ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
+            ax[2].grid()
+            
+            ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+            ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+            ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+            
+            plt.tick_params(labelsize=8)
+            plt.savefig(directory2 + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
+            plt.close(fig)
+            
+        if jerk_start_window != None and jerk_end_window != None and CHAOS_correction == False:
+            
+            
+            dpt.jerk_detection_window(station = station,
+                                      window_start = jerk_start_window, 
+                                      window_end = jerk_end_window, 
+                                      starttime = starttime, 
+                                      endtime = endtime,
+                                      df_station = df_station_2,
+                                      files_path = files_path,
+                                      df_CHAOS = None,
+                                      plot_detection = True,
+                                      CHAOS_correction = False,
+                                      plot_CHAOS_prediction = False)
+            
+        if jerk_start_window != None and jerk_end_window != None and CHAOS_correction  == True:
+            
+            dpt.jerk_detection_window(station = station,
+                                      window_start = jerk_start_window, 
+                                      window_end = jerk_end_window, 
+                                      starttime = starttime, 
+                                      endtime = endtime,
+                                      df_station = df_station_2,
+                                      files_path = files_path,
+                                      df_CHAOS = df_chaos,
+                                      plot_detection = True,
+                                      CHAOS_correction = True,
+                                      plot_CHAOS_prediction = True)
+                    
+
+            
+    for station in stations:
+            
+        df_station =  mvs.load_INTERMAGNET_files(station,
+                                             starttime,
+                                             endtime,
+                                             files_path = files_path)
+        
+        if convert_HDZ_to_XYZ == True:
+                
+            df_station =  utt.HDZ_to_XYZ_conversion(station = station,
+                                                    dataframe = df_station,
+                                                    starttime = str(df_station.index[0].date()),
+                                                    files_path = files_path,
+                                                    endtime = str(df_station.index[-1].date()))
+        else:
+            pass  
+        
+        if hampel_filter == True:
+            
+            df_station = dpt.hampel_filter_denoising(dataframe = df_station,
+                                                     window_size = 100,
+                                                     n_sigmas=3,
+                                                     plot_figure = True)
+        else:
+            pass
+        
+        if external_reduction == 'QD':
+
+            df_station = dpt.keep_Q_Days(df_station,
+                                         starttime,
+                                         endtime)
+            
+        if external_reduction == 'DD':
+        
+            df_station = dpt.remove_Disturbed_Days(df_station,
+                                                   starttime,
+                                                   endtime)
+
+        
+        if external_reduction =='NT':
+        
+            df_station = dpt.night_time_selection(station,
+                                                  df_station,
+                                                  starttime,
+                                                  endtime)
+
+        
+        df_station_2 = df_station.copy()
+        if CHAOS_correction == True:
+            df_station, df_chaos = dpt.external_field_correction_chaos_model(station = station,
+                                                                             starttime = starttime,
+                                                                             endtime = endtime,
+                                                                             files_path = files_path,
+                                                                             df_station = df_station,
+                                                                             df_chaos = None)
+            
+            df_SV = dpt.calculate_SV(df_station,
+                                     starttime = starttime,
+                                     endtime = endtime)
+            
+            df_SV_chaos = dpt.calculate_SV(df_chaos,
+                                           starttime = starttime,
+                                           endtime = endtime,
+                                           columns = ['X_int','Y_int','Z_int'])
+            
+            #RMS = dpt.rms(df_SV_chaos,
+             #             df_SV)
+        else:
+            
+        
+            df_SV = dpt.calculate_SV(df_station,
+                                     starttime = starttime,
+                                     endtime = endtime)
+        
+
+        if file == 'save':
+    
+            directory = f'SV_update/{station}_data/'
+            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)     
+            df_SV.replace(np.NaN,99999.0).to_csv(f'{directory}SV_{station}_preliminary.txt', sep ='\t')
+            
+            spf.Header_SV_files(station = station,
+                                        data_denoise = hampel_filter,
+                                        external_correction = external_reduction,
+                                        chaos_model = CHAOS_correction)
+            
+        if file == 'update':
+    
+            df1 = pd.read_csv(f'SV_update/{station}_data/SV_{station}.txt',
+                              sep = '\t',
+                              skiprows = 9
+                              )
+            df1['Date'] = pd.to_datetime(df1['Date'], infer_datetime_format=True)
+            df1.set_index('Date', inplace = True)
+            df2 = pd.concat([df1,df_SV])
+            #df2 = df2.sort_values(by=df2.index)
+            df2.replace(np.NaN,99999.0).drop_duplicates().sort_index().to_csv('SV_update/' + station + '_data/SV_'+ station + '_preliminary.txt', sep = '\t')
+            
+            spf.Header_SV_files(station = station,
+                                        data_denoise = hampel_filter,
+                                        external_correction = external_reduction,
+                                        chaos_model = CHAOS_correction)
+        if file == 'off':
+            pass
+        
+        if file not in Files:
+            print('File must be None, update or off!')
+            pass    
+        
+        directory2 = 'Map_plots/'+ station +'_data'
+        pathlib.Path(directory2).mkdir(parents=True, exist_ok=True)  
+        
+        fig, ax = plt.subplots(3,1, figsize = (8,6.5),sharex = True)
+        
+        if plot_chaos == True and CHAOS_correction == True:
+            
+            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction') #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+            ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
+            ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
+            ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
+            
+            ax[0].set_xlim(df_SV_chaos['X_int'].index[0],df_SV_chaos['X_int'].index[-1])
+            ax[1].set_xlim(df_SV_chaos['Y_int'].index[0],df_SV_chaos['Y_int'].index[-1])
+            ax[2].set_xlim(df_SV_chaos['Z_int'].index[0],df_SV_chaos['Z_int'].index[-1])
+            
+            ax[0].legend()  
+            ax[1].legend()  
+            ax[2].legend() 
+        
+        ax[0].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 12)
+
+        ax[0].plot(df_SV['X'], 'o', color  = 'blue')
+        ax[0].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[0].set_ylim(df_SV['X'].min() - 10, df_SV['X'].max() + 10)
+        #ax[0,0].set_xlim(np.datetime64('2011-01'),np.datetime64('2021-12'))
+        ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 9)
+        ax[0].grid()
+        
+        ax[1].plot(df_SV['Y'], 'o', color  = 'green')
+        ax[1].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[1].set_ylim(df_SV['Y'].min() - 10, df_SV['Y'].max() + 10)
+        ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 9)
+        ax[1].grid()
+        
+        ax[2].plot(df_SV['Z'], 'o', color  =  'black')
+        ax[2].set_xlim(np.datetime64(starttime),np.datetime64(endtime))
+        ax[2].set_ylim(df_SV['Z'].min() - 10, df_SV['Z'].max() + 10)
+        #ax[0].set_xlim(np.datetime64('2010-01'),np.datetime64('2021-06'))
+        ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 9)
+        ax[2].grid()
+        
+        ax[0].set_xlim(df_SV['X'].index[0],df_SV['X'].index[-1])
+        ax[1].set_xlim(df_SV['Y'].index[0],df_SV['Y'].index[-1])
+        ax[2].set_xlim(df_SV['Z'].index[0],df_SV['Z'].index[-1])
+        
+        
+        plt.tick_params(labelsize=8)
+        plt.savefig(directory2 + '/' + station + '_map_SV.jpeg', bbox_inches='tight')
+        plt.close(fig)
+      
+        
+        fig, ax = plt.subplots(3,1, figsize = (16,10))
+        if plot_chaos == True and CHAOS_correction == True:
+            ax[0].plot(df_SV_chaos['X_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[0]),linewidth = 3, color = 'red')
+            ax[1].plot(df_SV_chaos['Y_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[1]),linewidth = 3, color = 'red')
+            ax[2].plot(df_SV_chaos['Z_int'],'-',color = 'red',label = 'CHAOS prediction')  #label = 'Chaos - rms: ' + str(RMS[2]),linewidth = 3, color = 'red')
+            ax[0].set_ylim(df_SV_chaos['X_int'].min() - 10, df_SV_chaos['X_int'].max() + 10)
+            ax[1].set_ylim(df_SV_chaos['Y_int'].min() - 10, df_SV_chaos['Y_int'].max() + 10)
+            ax[2].set_ylim(df_SV_chaos['Z_int'].min() - 10, df_SV_chaos['Z_int'].max() + 10)
+            ax[0].set_xlim(df_SV_chaos['X_int'].index[0],df_SV_chaos['X_int'].index[-1])
+            ax[1].set_xlim(df_SV_chaos['Y_int'].index[0],df_SV_chaos['Y_int'].index[-1])
+            ax[2].set_xlim(df_SV_chaos['Z_int'].index[0],df_SV_chaos['Z_int'].index[-1])
+            
+            ax[0].legend()  
+            ax[1].legend()  
+            ax[2].legend() 
+        
+        ax[0].plot(df_SV['X'],'o', color = 'blue')
+        ax[0].set_ylim(df_SV['X'].min() - 10, df_SV['X'].max() + 10)
+        ax[0].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+        ax[1].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+        ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+        ax[0].set_title(station.upper() + ' Secular Variation', fontsize = 16)
+        ax[1].plot(df_SV['Y'],'o',color = 'green')
+        ax[1].set_ylim(df_SV['Y'].min() - 10, df_SV['Y'].max() + 10)
+        ax[2].plot(df_SV['Z'],'o',color = 'black')
+        ax[2].set_ylim(df_SV['Z'].min() - 10,df_SV['Z'].max() + 10)
+        plt.show()
+        
+        
+        if jerk_start_window != None and jerk_end_window != None and CHAOS_correction == False:
+            
+            
+            dpt.jerk_detection_window(station = station,
+                                      window_start = jerk_start_window, 
+                                      window_end = jerk_end_window, 
+                                      starttime = starttime, 
+                                      endtime = endtime,
+                                      df_station = df_station_2,
+                                      files_path = files_path,
+                                      df_CHAOS = None,
+                                      plot_detection = True,
+                                      CHAOS_correction = False,
+                                      plot_CHAOS_prediction = False)
+            
+        elif jerk_start_window != None and jerk_end_window != None and CHAOS_correction  == True:
+            
+            dpt.jerk_detection_window(station = station,
+                                      window_start = jerk_start_window, 
+                                      window_end = jerk_end_window, 
+                                      starttime = starttime, 
+                                      endtime = endtime,
+                                      df_station = df_station_2,
+                                      files_path = files_path,
+                                      df_CHAOS = df_chaos,
+                                      plot_detection = True,
+                                      CHAOS_correction = True,
+                                      plot_CHAOS_prediction = True)  

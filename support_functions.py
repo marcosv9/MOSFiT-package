@@ -2,6 +2,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
+from time import time
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 from glob import glob
 from pandas.tseries.frequencies import to_offset
 import glob
@@ -14,10 +17,10 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-import thesis_functions as mvs
+import main_functions as mvs
 import data_processing_tools as dpt
 import utilities_tools as utt
-#from Thesis_Marcos import support_functions as spf
+#from SV_project import support_functions as spf
 
 def update_qd_and_dd(data: str):
     """
@@ -33,7 +36,7 @@ def update_qd_and_dd(data: str):
     ftp.login('anonymous', 'email@email.com')
     
     ##path to read the already stored QD and DD
-    path_local = f'Thesis_Marcos/Data/Disturbed and Quiet Days' 
+    path_local = f'SV_project/Data/Disturbed and Quiet Days' 
     
     ##path inside ftp server
     path_ftp = f'/pub/home/obs/kp-ap/quietdst'

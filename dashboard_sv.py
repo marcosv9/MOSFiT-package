@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -15,9 +15,9 @@ from glob import glob
 import glob
 import matplotlib.gridspec as gridspec
 #import thesis_functions as mvs
-#import data_processing_tools as dpt
-#import utilities_tools as utt
-#import support_functions as spf
+import data_processing_tools as dpt
+import utilities_tools as utt
+import support_functions as spf
 from datetime import datetime,date
 import timeit
 from datetime import datetime 

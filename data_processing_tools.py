@@ -1,6 +1,6 @@
 import sys
 from time import time
-sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/Thesis_Marcos')
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -18,7 +18,7 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-import thesis_functions as mvs
+import main_functions as mvs
 import utilities_tools as utt
 import support_functions as spf
 from chaosmagpy.data_utils import save_RC_h5file
@@ -61,7 +61,7 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
 
     #updating disturbed days list
 
-    df_d = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
+    df_d = pd.read_csv('SV_project/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
                        skiprows = 1, 
                        usecols = [0],
                        names = ['dd'],
@@ -134,7 +134,7 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
     
     #spf.update_qd_and_dd(data = 'QD')
 
-    df_q = pd.read_csv('Thesis_Marcos/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
+    df_q = pd.read_csv('SV_project/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
                        header = None,
                        skiprows = 1, 
                        usecols = [0],
@@ -267,7 +267,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     df_station = dataframe.copy()
     
     
-    KP_ = pd.read_csv('Thesis_Marcos/Data/Kp index/kp_index_since_1932.txt',
+    KP_ = pd.read_csv('SV_project/Data/Kp index/kp_index_since_1932.txt',
                       sep = '\t',
                       index_col = ['Date'])
     KP_.index = pd.to_datetime(KP_.index, format = '%Y-%m-%d %H:%M:%S')
@@ -349,22 +349,22 @@ def chaos_model_prediction(station: str,
         print(f'Station must be an observatory IAGA CODE!')    
     
     #loading CHAOS model    
-    chaos_path = glob.glob('Thesis_Marcos/chaosmagpy_package_*.*/data/CHAOS*')    
+    chaos_path = glob.glob('SV_project/chaosmagpy_package_*.*/data/CHAOS*')    
 
     model = cp.load_CHAOS_matfile(chaos_path[0])
     
     station = station.upper()
     
-    rc_data = h5py.File('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
+    rc_data = h5py.File('SV_project/Data/chaos rc/newest_RC_file.h5')
     
     if (int(cp.data_utils.mjd2000(datetime.today())) - 1) != int(rc_data['time'][-1]):
         
         rc_data.close()
-        save_RC_h5file('Thesis_Marcos/Data/chaos rc/newest_RC_file.h5')
-        cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'
+        save_RC_h5file('SV_project/Data/chaos rc/newest_RC_file.h5')
+        cp.basicConfig['file.RC_index'] = 'SV_project/Data/chaos rc/newest_RC_file.h5'
     else:
         rc_data.close()
-        cp.basicConfig['file.RC_index'] = 'Thesis_Marcos/Data/chaos rc/newest_RC_file.h5'    
+        cp.basicConfig['file.RC_index'] = 'SV_project/Data/chaos rc/newest_RC_file.h5'    
     #setting the Earth radius reference
     R_REF = 6371.2
 

@@ -1,4 +1,6 @@
-
+import sys
+from time import time
+sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -14,7 +16,7 @@ import pwlf
 import chaosmagpy as cp
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures
-import thesis_functions as mvs
+import main_functions as mvs
 import support_functions as spf
 import data_processing_tools as dpt
 from os.path import exists
@@ -62,7 +64,7 @@ def download_data_INTERMAGNET(datatype,
     
     assert datatype in ['QD','D'], 'datatype must be QD or D'
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt',
                            skiprows = 1,
                            sep = '\s+',
                            usecols=[0, 1, 2, 3],
@@ -256,7 +258,7 @@ class IMO(object):
                  elevation
                 ):
         
-        df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+        df_IMOS = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt',
                                skiprows = 1,
                                sep = '\s+',
                                usecols=[0, 1, 2, 3],
@@ -271,7 +273,7 @@ class IMO(object):
         self.elevation = elevation
         
 
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt',
                                skiprows = 1,
                                sep = '\s+',
                                usecols=[0, 1, 2, 3],
@@ -318,7 +320,7 @@ class IMO(object):
     
         IMO.df_IMOS.drop(station)
         
-        IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
+        IMO.df_IMOS.to_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
     
     def check_existence(station):
         station = station.upper()
@@ -344,7 +346,7 @@ class IMO(object):
         
         IMO.df_IMOS = pd.concat([IMO.df_IMOS, df_new_imo])
         
-        IMO.df_IMOS.to_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
+        IMO.df_IMOS.to_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\t')
         
                 
 def check_duplicate_files(station,
@@ -365,7 +367,7 @@ def check_duplicate_files(station,
     
     year_period = pd.date_range(start_year, end_year, freq = 'Y')
     
-    df_IMOS = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt',
+    df_IMOS = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt',
                           skiprows = 1,
                            sep = '\s+',
                            usecols=[0, 1, 2, 3],
@@ -424,7 +426,7 @@ def update_hourly_database(starttime,
         spf.validate(i)
     
         
-    df_imos = pd.read_csv('Thesis_Marcos/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\s+', index_col = [0])
+    df_imos = pd.read_csv('SV_project/Data/Imos informations/IMOS_INTERMAGNET.txt', sep = '\s+', index_col = [0])
     
     if stations == None:
         stations = df_imos.index
@@ -440,7 +442,7 @@ def update_hourly_database(starttime,
                                                 endtime = endtime)
                 #temporary until solve the bug on HDZ_to_XYZ_conversion for such stations
 
-                if station in ['ESK','VAL','SOD','YKC','BSL','SHU','AIA','VOS','NUR','IRT','HRN','DOU','MAB','NCK','LVV']:
+                if station in ['ESK','VAL','SOD','YKC','BSL','SHU','AIA','NUR','IRT','HRN','DOU','MAB','LVV','VOS','NCK']:
                     pass
                 else:
                     df = HDZ_to_XYZ_conversion(station, df)
