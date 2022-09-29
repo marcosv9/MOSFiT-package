@@ -1,6 +1,5 @@
 import sys
 from time import time
-sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,6 +21,10 @@ import main_functions as mvs
 import utilities_tools as utt
 import support_functions as spf
 from chaosmagpy.data_utils import save_RC_h5file
+
+
+def project_directory():
+    return os.getcwd()
 
 def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ''' 
@@ -58,10 +61,17 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     
     disturbed_index = pd.DataFrame()
     
-
+    working_directory = project_directory()
+    
+    dd_list_directory = pathlib.Path(os.path.join(working_directory,
+                                                  'Data',
+                                                  'Disturbed and Quiet Days',
+                                                  'Disturbed_Days_list.txt'
+                                                  )
+                                     )
     #updating disturbed days list
 
-    df_d = pd.read_csv('SV_project/Data/Disturbed and Quiet Days/Disturbed_Days_list.txt',
+    df_d = pd.read_csv(dd_list_directory,
                        skiprows = 1, 
                        usecols = [0],
                        names = ['dd'],
@@ -133,8 +143,17 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
     #updating quiet days list
     
     #spf.update_qd_and_dd(data = 'QD')
+    
+    working_directory = project_directory()
+    
+    qd_list_directory = pathlib.Path(os.path.join(working_directory,
+                                                  'Data',
+                                                  'Disturbed and Quiet Days',
+                                                  'Disturbed_Days_list.txt'
+                                                  )
+                                     )
 
-    df_q = pd.read_csv('SV_project/Data/Disturbed and Quiet Days/Quiet_Days_list.txt',
+    df_q = pd.read_csv(qd_list_directory,
                        header = None,
                        skiprows = 1, 
                        usecols = [0],
@@ -266,10 +285,18 @@ def kp_index_correction(dataframe: pd.DataFrame(),
 
     df_station = dataframe.copy()
     
+    working_directory = project_directory()
+    kp_directory = pathlib.Path(os.path.join(working_directory,
+                                             'Data',
+                                             'Kp index',
+                                             'kp_index_since_1932.txt'
+                                             )
+                                )
     
-    KP_ = pd.read_csv('SV_project/Data/Kp index/kp_index_since_1932.txt',
+    KP_ = pd.read_csv(kp_directory,
                       sep = '\t',
                       index_col = ['Date'])
+    
     KP_.index = pd.to_datetime(KP_.index, format = '%Y-%m-%d %H:%M:%S')
     
     if datetime.today() > KP_.index[-1]:
@@ -346,25 +373,39 @@ def chaos_model_prediction(station: str,
         spf.validate(i)
         
     if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')    
+        print(f'Station must be an observatory IAGA CODE!')
+    
+            
+    working_directory = project_directory()
     
     #loading CHAOS model    
-    chaos_path = glob.glob('SV_project/chaosmagpy_package_*.*/data/CHAOS*')    
+    chaos_path = glob.glob(os.path.join(working_directory,
+                                        'chaosmagpy_package_*.*',
+                                        'data',
+                                        'CHAOS*'
+                                        )
+                           ) 
 
     model = cp.load_CHAOS_matfile(chaos_path[0])
     
     station = station.upper()
     
-    rc_data = h5py.File('SV_project/Data/chaos rc/newest_RC_file.h5')
+    rc_directory = pathlib.Path(os.path.join(working_directory,
+                                             'Data',
+                                             'chaos rc',
+                                             'newest_RC_file.h5'
+                                             )
+                                )                        
+    rc_data = h5py.File(rc_directory)
     
     if (int(cp.data_utils.mjd2000(datetime.today())) - 1) != int(rc_data['time'][-1]):
         
         rc_data.close()
-        save_RC_h5file('SV_project/Data/chaos rc/newest_RC_file.h5')
-        cp.basicConfig['file.RC_index'] = 'SV_project/Data/chaos rc/newest_RC_file.h5'
+        save_RC_h5file(rc_directory)
+        cp.basicConfig['file.RC_index'] = rc_directory
     else:
         rc_data.close()
-        cp.basicConfig['file.RC_index'] = 'SV_project/Data/chaos rc/newest_RC_file.h5'    
+        cp.basicConfig['file.RC_index'] = rc_directory    
     #setting the Earth radius reference
     R_REF = 6371.2
 
@@ -1026,16 +1067,21 @@ def jerk_detection_window(station: str,
     assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
     assert isinstance(df_CHAOS, pd.DataFrame) or df_CHAOS == None, 'df_station must be a pandas dataframe or None'
-    
-    
      
     station = station
     window_start = window_start + '-15'
     window_end = window_end + '-15'
     starttime = starttime
     endtime = endtime
+    
+    working_directory = project_directory()
+    directory = pathlib.Path(os.path.join(working_directory,
+                                          'Filtered_data',
+                                          f'{station}_data'
+                                          )
+                             )
            
-    directory = f'Filtered_data/{station}_data'
+    #directory = f'Filtered_data/{station}_data'
     df_CHAOS = df_CHAOS
     
     # creating directory if it doesn't exist
@@ -1102,7 +1148,7 @@ def jerk_detection_window(station: str,
         
         df_CHAOS_SV = calculate_SV(dataframe = df_CHAOS,
                                    method = 'ADMM',
-                                   columns = ['X_int','Y_int','Z_int']
+                                   columns = ['X_int', 'Y_int', 'Z_int']
                                    )
     else:
         
@@ -1192,13 +1238,21 @@ def jerk_detection_window(station: str,
                 ax.grid(alpha = 0.5)
                 ax.legend()
             if save_plots == True:
-                plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
+                
+                plt.savefig(os.path.join(directory,
+                                         f'{station}_jerk_detection.jpeg',
+                                         bbox_inches='tight'
+                                         )
+                            )
                 plt.show()
  
             #plotting multiple figure// small xaxis
 
             fig, axes = plt.subplots(1,3,figsize = (15,6))
-            plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.94)
+            plt.suptitle(f'{station.upper()} secular variation',
+                         fontsize = 12,
+                         y = 0.94
+                         )
             fig.text(0.5,
                      0.04,
                      'Years',
@@ -1227,7 +1281,12 @@ def jerk_detection_window(station: str,
                 ax.grid(alpha = 0.5)
             fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
             if save_plots == True:
-                plt.savefig(f'{directory}/{station}_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.savefig(os.path.join(directory,
+                                         '{station}_jerk_detection_2.jpeg'
+                                         ), 
+                            dpi = 300,
+                            bbox_inches='tight'
+                            )
                 plt.show()
                 
             mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),
@@ -1276,7 +1335,11 @@ def jerk_detection_window(station: str,
                 ax.grid(alpha = 0.5) 
                 ax.legend()
             if save_plots == True:
-                plt.savefig(f'{directory}/{station}_jerk_detection.jpeg', bbox_inches='tight')
+                plt.savefig(os.path.join(directory,
+                                         '{station}_jerk_detection.jpeg'
+                                         ),
+                            dpi= 300,
+                            bbox_inches='tight')
                 plt.show()
             
             #plotting multiple figure
@@ -1312,9 +1375,21 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5) 
                 ax.legend()
-            fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10)
+            fig.text(0.08,
+                     0.5,
+                     f'dY/dt (nT/yr)',
+                     ha='center',
+                     va='center',
+                     rotation='vertical',
+                     fontsize = 10
+                     )
+            
             if save_plots == True:
-                plt.savefig(f'{directory}/{station}_jerk_detection_2.jpeg', bbox_inches='tight')
+                plt.savefig(os.path.join(directory,
+                                         f'{station}_jerk_detection_2.jpeg'),
+                            dpi= 300,
+                            bbox_inches='tight'
+                            )
                 plt.show()
             
             mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),

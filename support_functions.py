@@ -1,10 +1,7 @@
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
-from time import time
-sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 from glob import glob
 from pandas.tseries.frequencies import to_offset
 import glob
@@ -22,6 +19,10 @@ import data_processing_tools as dpt
 import utilities_tools as utt
 #from SV_project import support_functions as spf
 
+
+def project_directory():
+    return os.getcwd()
+
 def update_qd_and_dd(data: str):
     """
     
@@ -36,7 +37,11 @@ def update_qd_and_dd(data: str):
     ftp.login('anonymous', 'email@email.com')
     
     ##path to read the already stored QD and DD
-    path_local = f'SV_project/Data/Disturbed and Quiet Days' 
+    
+    working_directory = project_directory()
+    
+    
+    path_local = pathlib.Path(os.path.join(working_directory, 'Data/Disturbed and Quiet Days'))
     
     ##path inside ftp server
     path_ftp = f'/pub/home/obs/kp-ap/quietdst'
@@ -113,7 +118,7 @@ def update_qd_and_dd(data: str):
         
         df_new.set_index('DD',inplace=True)
         
-        df_new.dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt',index = True)
+        df_new.dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt', index = True)
         
     if data == 'QD':
         
@@ -197,9 +202,11 @@ def Header_SV_obs_files(station: str,
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')
     
-    path = f'Filtered_data/{station}_data/{station.upper()}_{filename}_preliminary.txt'
-    path_header = f'Filtered_data/{station}_data'
-    destiny_path = f'Filtered_data/{station}_data/{station.upper()}_{filename}.txt'
+    working_directory = project_directory()
+        
+    path = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data/{station.upper()}_{filename}_preliminary.txt'))
+    path_header = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data'))
+    destiny_path = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data/{station.upper()}_{filename}.txt'))
     
     external_options = {'D': 'Disturbed Days removed',
                         'Q': 'Quiet Days selection', 
@@ -296,7 +303,7 @@ def data_type(station: str,
         if files_path == None:
             for year in years_interval:
     
-                files_station.extend(glob.glob(f'Dados OBS\\{str(year)}/*/{station}*'))
+                files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
                 files_station.sort()
         else:
             files_station.extend(glob.glob(f'{files_path}{station}*'))
@@ -347,9 +354,11 @@ def Header_SV_files(station: str,
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')
     
-    path = f'SV_update/{station}_data/SV_{station.upper()}_preliminary.txt'
-    path_header = f'SV_update/{station}_data'
-    destiny_path = f'SV_update/{station}_data/SV_{station.upper()}.txt'
+    working_directory = project_directory()
+        
+    path = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data/SV_{station.upper()}_preliminary.txt'))
+    path_header = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data'))
+    destiny_path = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data/SV_{station.upper()}.txt'))
     
     external_options = {'D': 'Disturbed Days removed',
                         'Q': 'Quiet Days selection', 
@@ -367,8 +376,12 @@ def Header_SV_files(station: str,
     
     #pathlib.Path(destiny_path).mkdir(parents=True, exist_ok=True)
 
-    df_station = pd.read_csv(path, sep = '\s+', index_col = [0])
-    df_station.index = pd.to_datetime(df_station.index, infer_datetime_format=True)
+    df_station = pd.read_csv(path,
+                             sep = '\s+',
+                             index_col = [0])
+    
+    df_station.index = pd.to_datetime(df_station.index,
+                                      infer_datetime_format=True)
     
     
     Header = (f'Thesis project provisory header'
