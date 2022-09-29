@@ -1,5 +1,3 @@
-import sys
-sys.path.insert(0, 'C:/Users/marco/Downloads/Thesis_notebooks/SV_project')
 import plotly.express as px
 from plotly.subplots import make_subplots
 import plotly.graph_objects as go
@@ -14,20 +12,26 @@ import numpy as np
 from glob import glob
 import glob
 import matplotlib.gridspec as gridspec
-#import thesis_functions as mvs
+import main_functions as mvs
 import data_processing_tools as dpt
 import utilities_tools as utt
 import support_functions as spf
+#import pwlf
 from datetime import datetime,date
 import timeit
 from datetime import datetime 
 import pwlf
 import plots_obs as obs
+import seaborn as sns
 import os
 
 
 
-def mosfit_dash():
+def mosfit_dash():    
+    csv = dict({'VSS': 'VSS',
+                'NGK': 'NGK',
+               'KAK':'KAK'})
+    
     #creating dict for pillars
     samples = dict({'hourly':'H',
                     'daily': 'D',
@@ -91,6 +95,11 @@ def mosfit_dash():
                                 value = 'H',
                                 options=[{"label": i, "value": j} for i, j in samples.items()]),
                             html.Br(),
+                            html.Label('use resample condition?'),
+                            dcc.RadioItems(
+                                id = 'resample-cond',
+                                options = ['Yes', 'No'],
+                                value = 'No'),
                             html.Label('Data Selection'),
                             dcc.Dropdown(
                                 id='selection-dropdown',                                        
@@ -187,6 +196,7 @@ def mosfit_dash():
                    Output('graph2', 'figure')],
                   [Input("imos-input", "value"),
                   Input('samples-dropdown','value'),
+                  Input('resample-cond','value'),
                   Input('selection-dropdown','value'),
                   Input('chaos', 'value'),
                   Input('chaos-plot','value'),
@@ -196,7 +206,7 @@ def mosfit_dash():
                   Input('button2', 'n_clicks')]
     )
     
-    def update_figure(imo, sample, selection, chaos, plot, n_click, starttime, endtime, n_click2):
+    def update_figure(imo, sample, condition, selection, chaos, plot, n_click, starttime, endtime, n_click2):
     
         triggered_id = ctx.triggered_id
         
@@ -204,7 +214,10 @@ def mosfit_dash():
         
         annotations = []
         
-        apply_percentage = True
+        if condition == 'Yes':
+            apply_percentage = True
+        else:
+            apply_percentage = False
         
         if selection in ['DD','QD', 'NT', 'KP']:
             apply_percentage = False
@@ -221,11 +234,11 @@ def mosfit_dash():
         
         df_jerk_window = pd.DataFrame()
         
-        df = pd.read_csv(f'hourly_data/{imo}_hourly_data.txt', sep = '\t')
+        df = pd.read_csv(f'C:\\Users\marco\\Downloads\\Thesis_notebooks\\hourly_data\\{imo}_hourly_data.txt', sep = '\t')
         df.index = pd.to_datetime(df['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
         df.pop('Date')
         
-        df_chaos = pd.read_csv(f'hourly_data/{imo}_chaos_hourly_data.txt', sep = '\t')
+        df_chaos = pd.read_csv(f'C:\\Users\marco\\Downloads\\Thesis_notebooks\\hourly_data\\{imo}_chaos_hourly_data.txt', sep = '\t')
         df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
         df_chaos.pop('Unnamed: 0')
         
@@ -233,7 +246,7 @@ def mosfit_dash():
             
             df, df_chaos = dpt.external_field_correction_chaos_model(imo,
                                                                      '2000-01-01',
-                                                                     '2022-02-28',
+                                                                     '2022-08-30',
                                                                      df,
                                                                      df_chaos,
                                                                      apply_percentage = apply_percentage)
@@ -246,8 +259,8 @@ def mosfit_dash():
         if selection == 'QD':
             df = dpt.keep_Q_Days(df)
         if selection == 'KP':
-            df = dpt.Kp_index_correction(df,
-                                         kp = 3)
+            df = dpt.kp_index_correction(df,
+                                         kp = 2)
         if selection == 'NT':
             df = dpt.night_time_selection(station = imo,
                                           dataframe = df)
@@ -295,9 +308,7 @@ def mosfit_dash():
                 header=dict(values=list(df_jerk_stats.columns),
                             fill_color='#2A3F54',
                             align='left'),
-                cells=dict(values=[df_jerk_stats.Comp, df_jerk_stats.Occur,
-                                   df_jerk_stats.Amplitude, df_jerk_stats.R2
-                                   ], # 2nd column
+                cells=dict(values=[df_jerk_stats.Comp, df_jerk_stats.Occur, df_jerk_stats.Amplitude, df_jerk_stats.R2], # 2nd column
                            line_color='#2A3F54',
                            fill_color='#2A3F54',
                            align='left'))
@@ -353,9 +364,9 @@ def mosfit_dash():
          
         if df_jerk_window.empty == False:
             
-            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['X'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV X detection'),row=1, col=1)
-            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Y'], mode = 'lines', line_color='rgb(102,102,102)',name = 'SV Y detection'),row=2, col=1)
-            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Z'], mode = 'lines', line_color='rgb(102,102,102)', name = 'SV Z detection'),row=3, col=1)
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['X'], mode = 'lines', line_color='rgb(255,215,0)', name = 'SV X detection'),row=1, col=1)
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Y'], mode = 'lines', line_color='rgb(255,215,0)',name = 'SV Y detection'),row=2, col=1)
+            fig.add_trace(go.Scatter(x=df_jerk_window.index, y=df_jerk_window['Z'], mode = 'lines', line_color='rgb(255,215,0)', name = 'SV Z detection'),row=3, col=1)
             
         #updating entire figure layout
     
@@ -381,16 +392,10 @@ def mosfit_dash():
             df.to_csv('teste_save.txt', sep = ' ')
             
         #raise dash.exceptions.PreventUpdate
-    
         
+       
         return fig, fig2
+    return app.run_server(mode='external', port = 2) 
 
-
-
-# Run app and display result inline in the notebook
-#app.run_server(mode='external',port=2222)
-
-# Run app and display result inline in the notebook
-if __name__ == '__main__':
-    mosfit_dash()
-    #app.run_server(debug = True)
+#if __name__ == '__main__':
+    #mosfit_dash()
