@@ -255,9 +255,9 @@ def mosfit_dash():
             
             
         if selection == 'DD':
-            df = dpt.remove_Disturbed_Days(df)
+            df = dpt.remove_disturbed_days(df)
         if selection == 'QD':
-            df = dpt.keep_Q_Days(df)
+            df = dpt.keep_quiet_days(df)
         if selection == 'KP':
             df = dpt.kp_index_correction(df,
                                          kp = 2)
@@ -270,7 +270,7 @@ def mosfit_dash():
         if sample != 'SV':    
             df = dpt.resample_obs_data(df, sample, apply_percentage=apply_percentage)
         else:
-            df = dpt.calculate_SV(df, apply_percentage = apply_percentage)
+            df = dpt.calculate_sv(df, apply_percentage = apply_percentage)
             mode = 'markers'
         
         if sample == 'Y':
@@ -355,7 +355,7 @@ def mosfit_dash():
         #adding chaos SV prediction
         if plot == 'Yes' and sample == 'SV':
             
-            df_chaos = dpt.calculate_SV(df_chaos, columns = ['X_int','Y_int','Z_int'])
+            df_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int','Y_int','Z_int'])
             
             fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['X_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV X'),row=1, col=1)
             fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Y_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Y'),row=2, col=1)
@@ -395,7 +395,7 @@ def mosfit_dash():
         
        
         return fig, fig2
-    return app.run_server(mode='external', port = 2) 
+    return app.run_server(mode='external', port = 3) 
 
 #if __name__ == '__main__':
     #mosfit_dash()

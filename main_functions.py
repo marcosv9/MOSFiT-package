@@ -24,7 +24,7 @@ import cartopy.crs as ccrs
 def project_directory():
     return os.getcwd()
 
-def load_INTERMAGNET_files(station: str,
+def load_intermagnet_files(station: str,
                            starttime: str,
                            endtime: str,
                            files_path: str = None
@@ -53,7 +53,7 @@ def load_INTERMAGNET_files(station: str,
     ----------------------------------------------------------
     Example of use:
     
-    load_INTERMAGNET_files(station = 'VSS',
+    load_intermagnet_files(station = 'VSS',
                            starttime = '2000-01-25',
                            endtime = '2021-12-31',
                            files_path = files_path)
@@ -112,11 +112,11 @@ def load_INTERMAGNET_files(station: str,
     df_station = pd.DataFrame()
     df_station = pd.concat((pd.read_csv(file,
                                         sep='\s+',
-                                        usecols = [0,1,3,4,5], 
+                                        usecols = [0, 1, 3, 4, 5], 
                                         header = None,
                                         skiprows = skiprows, 
                                         parse_dates = {'Date': ['date', 'Time']},
-                                        names = ['date','Time','X','Y','Z']
+                                        names = ['date', 'Time', 'X', 'Y', 'Z']
                                         ) for skiprows,
                                               file in zip(skip_values[0], skip_values[1])), 
                                               ignore_index = True
@@ -149,7 +149,7 @@ def load_INTERMAGNET_files(station: str,
     
     return df_station
 
-def SV_obs(station: str,
+def sv_obs(station: str,
            starttime: str,
            endtime: str,
            plot_chaos: bool = False,
@@ -199,7 +199,7 @@ def SV_obs(station: str,
     
     working_directory = project_directory()
     
-    df_station = load_INTERMAGNET_files(station,
+    df_station = load_intermagnet_files(station,
                                         starttime,
                                         endtime,
                                         files_path
@@ -220,7 +220,7 @@ def SV_obs(station: str,
     # HDZ to XYZ conversion
     
     
-    df_station =  utt.HDZ_to_XYZ_conversion(station = station,
+    df_station =  utt.hdz_to_xyz_conversion(station = station,
                                             dataframe = df_station,
                                             files_path = files_path
                                             )
@@ -235,9 +235,10 @@ def SV_obs(station: str,
             
             df_station = dpt.hampel_filter_denoising(dataframe = df_station,
                                                      window_size = 100,
-                                                     n_sigmas=3,
+                                                     n_sigmas = 3,
                                                      plot_figure = True,
-                                                     apply_percentage=True)
+                                                     apply_percentage = True
+                                                     )
             break
 
         if inp5 == 'n':
@@ -274,7 +275,7 @@ def SV_obs(station: str,
         
     if inp == 'D':
         
-        df_station = dpt.remove_Disturbed_Days(df_station)
+        df_station = dpt.remove_disturbed_days(df_station)
         
     if inp == 'NT':
         
@@ -331,24 +332,24 @@ def SV_obs(station: str,
 
     
     
-    directory = pathlib.Path(os.path.join(working_directory,'Filtered_data',f'{station}_data'))
+    directory = pathlib.Path(os.path.join(working_directory, 'Filtered_data', f'{station}_data'))
     
     
 
-    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)  
+    pathlib.Path(directory).mkdir(parents = True, exist_ok = True)  
     
 
-    df_SV = dpt.calculate_SV(df_station,
+    df_SV = dpt.calculate_sv(df_station,
                              apply_percentage = resample_condition
                             )
     
-    df_SV_not_corrected = dpt.calculate_SV(df_station2,
+    df_SV_not_corrected = dpt.calculate_sv(df_station2,
                                            apply_percentage = resample_condition
                                            )
     
     if input_chaos == 'y':
         
-        df_chaos_SV = dpt.calculate_SV(df_chaos,
+        df_chaos_SV = dpt.calculate_sv(df_chaos,
                                        columns = ['X_int', 'Y_int', 'Z_int'],
                                        apply_percentage = False
                                       )   
@@ -373,7 +374,7 @@ def SV_obs(station: str,
                           
                 if sample == 'Min':
                 
-                    file = df_station[starttime:endtime].resample(sample).mean().round(3).replace(np.NaN,99999.0)
+                    file = df_station[starttime:endtime].resample(sample).mean().round(3).replace(np.NaN, 99999.0)
                     
                     file.to_csv(f'{directory}/{station.upper()}_minute_mean_preliminary.zip',
                                 header = [f'{station.upper()}X',
@@ -388,7 +389,7 @@ def SV_obs(station: str,
                     
                     file = dpt.resample_obs_data(df_station,
                                                  'H',
-                                                 apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                                                 apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
 
                     file.to_csv(f'{directory}/{station.upper()}_hourly_mean_preliminary.txt',
                                 header = [f'{station.upper()}X',
@@ -398,7 +399,7 @@ def SV_obs(station: str,
                                 sep = '\t',
                                 index = True)
                 
-                    spf.Header_SV_obs_files(station = station,
+                    spf.header_sv_obs_files(station = station,
                                             filename = 'hourly_mean',
                                             data_denoise = inp5,
                                             external_correction = inp,
@@ -408,7 +409,7 @@ def SV_obs(station: str,
                     
                     file = dpt.resample_obs_data(df_station,
                                                  'D',
-                                                 apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                                                 apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
 
                     file.to_csv(f'{directory}/{station.upper()}_daily_mean_preliminary.txt',
                                 header = [f'{station.upper()}X',
@@ -418,7 +419,7 @@ def SV_obs(station: str,
                                 sep = '\t',
                                 index = True)
                     
-                    spf.Header_SV_obs_files(station = station,
+                    spf.header_sv_obs_files(station = station,
                                             filename = 'daily_mean',
                                             data_denoise = inp5,
                                             external_correction = inp,
@@ -428,9 +429,9 @@ def SV_obs(station: str,
                     
                     file = dpt.resample_obs_data(df_station,
                                                  'M',
-                                                 apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                                                 apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
                     
-                    file_SV = df_SV.replace(np.NaN,99999.0)
+                    file_SV = df_SV.replace(np.NaN, 99999.0)
                     
                     file.to_csv(f'{directory}/{station.upper()}_monthly_mean_preliminary.txt',
                                 header = [f'{station.upper()}X',
@@ -441,7 +442,7 @@ def SV_obs(station: str,
                                 index = True
                                 )
                     
-                    spf.Header_SV_obs_files(station = station,
+                    spf.header_sv_obs_files(station = station,
                                             filename = 'monthly_mean',
                                             data_denoise = inp5,
                                             external_correction = inp,
@@ -456,7 +457,7 @@ def SV_obs(station: str,
                                    sep = '\t',
                                    index = True)
                     
-                    spf.Header_SV_obs_files(station = station,
+                    spf.header_sv_obs_files(station = station,
                                             filename = 'secular_variation',
                                             data_denoise = inp5,
                                             external_correction = inp,
@@ -465,7 +466,7 @@ def SV_obs(station: str,
                     
                     file = dpt.resample_obs_data(df_station,
                                                  'Y',
-                                                 apply_percentage = resample_condition).round(3).replace(np.NaN,99999.0)
+                                                 apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
                     
                     file.to_csv(f'{directory}/{station.upper()}_annual_mean_preliminary.txt',
                                 header = [f'{station.upper()}X',
@@ -475,7 +476,7 @@ def SV_obs(station: str,
                                 sep = '\t',
                                 index = True)
                     
-                    spf.Header_SV_obs_files(station = station,
+                    spf.header_sv_obs_files(station = station,
                                             filename = 'annual_mean',
                                             data_denoise = inp5,
                                             external_correction = inp,
@@ -519,27 +520,27 @@ def SV_obs(station: str,
                 ax[0].grid()
                 
                 ax[1].plot(df_station2['Y'], color  = 'green')
-                ax[1].set_xlim(df_station2['Y'].index[0],df_station2['Y'].index[-1])
+                ax[1].set_xlim(df_station2['Y'].index[0], df_station2['Y'].index[-1])
                 ax[1].set_ylabel('Y(nT)', fontsize = 12)
                 ax[1].grid()
                 
                 ax[2].plot(df_station2['Z'], color  =  'black')
-                ax[2].set_xlim(df_station2['Z'].index[0],df_station2['Z'].index[-1])
+                ax[2].set_xlim(df_station2['Z'].index[0], df_station2['Z'].index[-1])
                 ax[2].set_ylabel('Z(nT)', fontsize = 12)
                 ax[2].grid()
 
                 
                 if First_QD_data != []:
 
-                    ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], color = 'red',label = 'Quasi-definitive data')
-                    ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], color = 'red',label = 'Quasi-definitive data')
-                    ax[2].plot(df_station2.loc[df_station2.index > First_QD_data]['Z'], color = 'red',label = 'Quasi-definitive data')
+                    ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], color = 'red', label = 'Quasi-definitive data')
+                    ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], color = 'red', label = 'Quasi-definitive data')
+                    ax[2].plot(df_station2.loc[df_station2.index > First_QD_data]['Z'], color = 'red', label = 'Quasi-definitive data')
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
 
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
                     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.set_tick_params(labelrotation = 30)
                     ax.xaxis.get_ticklocs(minor=True)
@@ -679,13 +680,20 @@ def SV_obs(station: str,
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
                 
                 ax[0,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
                 
                 ax[1,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
                 
                 ax[2,1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
+                
                 ax[0,1].legend()
                 ax[1,1].legend()
                 ax[2,1].legend()
@@ -693,12 +701,12 @@ def SV_obs(station: str,
 
             plt.savefig(os.path.join(directory, f'{station}_Var_SV.jpeg'),
                                      dpi = 300,
-                                     bbox_inches='tight')
+                                     bbox_inches = 'tight')
             plt.show()      
             
              #plot of SV alone     
                   
-            fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
+            fig, ax = plt.subplots(3, 1, figsize = (13,8), sharex = True)
             plt.subplots_adjust(hspace = 0.05)
             
             ax[0].set_title(f'{station.upper()} Secular Variation (ADMM)', fontsize = 14)
@@ -726,18 +734,25 @@ def SV_obs(station: str,
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
                 
                 ax[0].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['X'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
                 
                 ax[1].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Y'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
                 
                 ax[2].plot(df_SV.loc[df_SV.index > SV_QD_first_data]['Z'],
-                             'o', color  = 'red', label = 'Quasi-definitive')
+                             'o',
+                             color  = 'red',
+                             label = 'Quasi-definitive')
+                
                 ax[0].legend()
                 ax[1].legend()
                 ax[2].legend()
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
                     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.set_tick_params(labelrotation = 30)
                     ax.xaxis.get_ticklocs(minor=True)
@@ -785,7 +800,7 @@ def SV_obs(station: str,
                 ax[2].grid()
                 
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
                     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.set_tick_params(labelrotation = 30)
                     ax.xaxis.get_ticklocs(minor=True)
@@ -796,7 +811,7 @@ def SV_obs(station: str,
                                          f'{station}_SV_correction_comparison.jpeg'
                                          ),
                             dpi = 300,
-                            bbox_inches='tight'
+                            bbox_inches = 'tight'
                             )
                 plt.show()
                 
@@ -833,7 +848,7 @@ def SV_obs(station: str,
                 ax[2].grid()
                 
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
                     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                     ax.xaxis.set_tick_params(labelrotation = 30)
                     ax.xaxis.get_ticklocs(minor=True)
@@ -892,17 +907,17 @@ def SV_obs(station: str,
   
   
                 for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
                     ax.xaxis.set_tick_params(labelrotation = 30)
                     ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
+                    ax.xaxis.get_ticklocs(minor = True)
+                    ax.yaxis.set_tick_params(which = 'minor', bottom=False)
                     ax.minorticks_on() 
                 plt.show()
                 
             else:
                 
-                fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
+                fig, ax = plt.subplots(3, 1, figsize = (13, 8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
                 ax[0].set_title(station.upper() + ' minute mean', fontsize = 14)
@@ -1169,7 +1184,7 @@ def SV_obs(station: str,
                 window_end = input(f'type the end date for the jerk window [yyyy-mm]: ')
                 
                 for i in [str(window_start), str(window_end)]:
-                    spf.validate_YM(i)
+                    spf.validate_ym(i)
 
                 if inp3 == 'y':
                     save_plots = True
@@ -1219,7 +1234,7 @@ def SV_obs(station: str,
             
     return df_station[starttime:endtime]        
                 
-def read_txt_SV(station: str,
+def read_txt_sv(station: str,
                 starttime: str,
                 endtime: str
                ) -> pd.DataFrame():

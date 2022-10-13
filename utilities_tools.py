@@ -41,7 +41,7 @@ def check_data_availability(station: str):
     print(f'The first available date for {station.upper()} is {f[0][21:29]}')
     print(f'The last available date for {station.upper()} is {f[-1][21:29]}')
             
-def download_data_INTERMAGNET(datatype,
+def download_data_intermagnet(datatype,
                               year,
                               months,
                               files = None
@@ -60,7 +60,7 @@ def download_data_INTERMAGNET(datatype,
     files must be an obs IAGA code or None, if None, files for all the observatories will
     be downloaded.
     
-    example of use - mvs.download_data_INTERMAGNET('QD', '2021', ['07','08','09'], files = None)
+    example of use - mvs.download_data_intermagnet('QD', '2021', ['07','08','09'], files = None)
     '''
     
     assert datatype in ['QD','D'], 'datatype must be QD or D'
@@ -144,7 +144,7 @@ def download_data_INTERMAGNET(datatype,
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
                    
-def HDZ_to_XYZ_conversion(station: str,
+def hdz_to_xyz_conversion(station: str,
                           dataframe: pd.DataFrame(),
                           files_path: str = None) -> pd.DataFrame():
     '''
@@ -166,7 +166,7 @@ def HDZ_to_XYZ_conversion(station: str,
     
     Usage example:
     
-    HDZ_to_XYZ_conversion(station = 'VSS',
+    hdz_to_xyz_conversion(station = 'VSS',
                           dataframe = name_of_datafrme,
                           files_path = files_path)
     
@@ -463,15 +463,15 @@ def update_hourly_database(starttime,
     if type.upper() == 'IMO':
         for station in stations:
             try:
-                df = mvs.load_INTERMAGNET_files(station = station,
+                df = mvs.load_intermagnet_files(station = station,
                                                 starttime = starttime,
                                                 endtime = endtime)
-                #temporary until solve the bug on HDZ_to_XYZ_conversion for such stations
+                #temporary until solve the bug on hdz_to_xyz_conversion for such stations
 
                 if station in ['ESK','VAL','SOD','YKC','BSL','SHU','AIA','NUR','IRT','HRN','DOU','MAB','LVV','VOS','NCK']:
                     pass
                 else:
-                    df = HDZ_to_XYZ_conversion(station, df)
+                    df = hdz_to_xyz_conversion(station, df)
                     
                 df = dpt.resample_obs_data(df, 'H', apply_percentage= False)
                 

@@ -26,7 +26,7 @@ from chaosmagpy.data_utils import save_RC_h5file
 def project_directory():
     return os.getcwd()
 
-def remove_Disturbed_Days(dataframe: pd.DataFrame()):
+def remove_disturbed_days(dataframe: pd.DataFrame()):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -47,7 +47,7 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     ---------------------------------------------------------------------
     Example of use:
     
-    remove_Disturbed_Days(df_NGK, starttime = '2010-01-01' , endtime = '2019-12-31')
+    remove_disturbed_days(df_NGK, starttime = '2010-01-01' , endtime = '2019-12-31')
     
     ----------------------------------------------------------------------
     
@@ -69,6 +69,8 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
                                                   'Disturbed_Days_list.txt'
                                                   )
                                      )
+    
+    
     #updating disturbed days list
 
     df_d = pd.read_csv(dd_list_directory,
@@ -105,7 +107,7 @@ def remove_Disturbed_Days(dataframe: pd.DataFrame()):
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
 
-def keep_Q_Days(dataframe: pd.DataFrame()):
+def keep_quiet_days(dataframe: pd.DataFrame()):
     
     ''' 
     Function created to keep only geomagnetic quiet 
@@ -127,7 +129,7 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
     ---------------------------------------------------------------------------
     Example of use:
     
-    keep_Q_Days(dataframe = my_dataframe, starttime = '2010-01-01' , endtime = '2019-12-31')
+    keep_quiet_days(dataframe = my_dataframe, starttime = '2010-01-01' , endtime = '2019-12-31')
     
     ---------------------------------------------------------------------------
     Return a dataframe containing only geomagnetic quiet days.
@@ -183,7 +185,7 @@ def keep_Q_Days(dataframe: pd.DataFrame()):
     print('Only top 10 quiet days for each month were kept in the data.')
     return df
 
-def calculate_SV(dataframe: pd.DataFrame(),
+def calculate_sv(dataframe: pd.DataFrame(),
                  method: str = 'ADMM',
                  columns = None,
                  apply_percentage:bool = False
@@ -207,7 +209,7 @@ def calculate_SV(dataframe: pd.DataFrame(),
     --------------------------------------------------------------------------------------------
     Example of use:
     
-    calculate_SV(dataframe = name_of_your_dataframe,
+    calculate_sv(dataframe = name_of_your_dataframe,
                  method = 'ADMM',
                  columns = ['X','Y','Z']) 
                 
@@ -620,7 +622,7 @@ def external_field_correction_chaos_model(station: str,
         df_station = df_station.loc[starttime:endtime].copy()
         
     else:
-        df_station = mvs.load_INTERMAGNET_files(station = station,
+        df_station = mvs.load_intermagnet_files(station = station,
                                                 starttime = starttime,
                                                 endtime = endtime,
                                                 files_path = files_path
@@ -858,7 +860,8 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         if sample == 'H' and apply_percentage == False:
             
             df_station = df_station.resample('H').mean()
-            df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
+            df_station.index = df_station.index + to_offset('30min')
+            #df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
         if sample == 'H' and apply_percentage == True:
                           
@@ -874,7 +877,8 @@ def resample_obs_data(dataframe: pd.DataFrame(),
             
             df_station = df_station.resample('H').mean()
 
-            df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
+            df_station.index = df_station.index + to_offset('30min')
+            #df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
         if sample == 'D' and apply_percentage == False:
             
@@ -1022,7 +1026,7 @@ def jerk_detection_window(station: str,
     endtime - last day of the data (format = 'yyyy-mm-dd)
     
     df_station - Must be a pandas dataframe with the geomagnetic data or None.
-                 If None, the data will be computed using load_INTERMAGNET_files.
+                 If None, the data will be computed using load_intermagnet_files.
     
     df_CHAOS - Must be a pandas dataframe with the predicted CHAOS geomagnetic data or None.
                If None, the data will be computed using chaos_model_prediction.
@@ -1060,7 +1064,7 @@ def jerk_detection_window(station: str,
         spf.validate(i)
 
     for i in [window_start, window_end]:
-        spf.validate_YM(i)
+        spf.validate_ym(i)
         
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
@@ -1094,7 +1098,7 @@ def jerk_detection_window(station: str,
     
     #computing dataframe from observatory files
     else:
-        df_station = mvs.load_INTERMAGNET_files(station = station,
+        df_station = mvs.load_intermagnet_files(station = station,
                                                 starttime = starttime,
                                                 endtime = endtime,
                                                 files_path = files_path
@@ -1103,7 +1107,7 @@ def jerk_detection_window(station: str,
     
     #cheking existence of HDZ components
     if convert_hdz_to_xyz == True:    
-        df_station = utt.HDZ_to_XYZ_conversion(station = station,
+        df_station = utt.hdz_to_xyz_conversion(station = station,
                                                dataframe = df_station,
                                                files_path = files_path
                                                )
@@ -1135,7 +1139,7 @@ def jerk_detection_window(station: str,
                                                                      )
     
     #calculating SV from intermagnet files
-    df_SV = calculate_SV(dataframe = df_station,
+    df_SV = calculate_sv(dataframe = df_station,
                          method = 'ADMM',
                          columns = None
                          )
@@ -1146,7 +1150,7 @@ def jerk_detection_window(station: str,
     
     if CHAOS_correction and plot_CHAOS_prediction == True:
         
-        df_CHAOS_SV = calculate_SV(dataframe = df_CHAOS,
+        df_CHAOS_SV = calculate_sv(dataframe = df_CHAOS,
                                    method = 'ADMM',
                                    columns = ['X_int', 'Y_int', 'Z_int']
                                    )

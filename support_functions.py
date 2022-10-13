@@ -41,7 +41,10 @@ def update_qd_and_dd(data: str):
     working_directory = project_directory()
     
     
-    path_local = pathlib.Path(os.path.join(working_directory, 'Data/Disturbed and Quiet Days'))
+    path_local = pathlib.Path(os.path.join(working_directory,
+                                           'Data/Disturbed and Quiet Days'
+                                           )
+                              )
     
     ##path inside ftp server
     path_ftp = f'/pub/home/obs/kp-ap/quietdst'
@@ -56,7 +59,7 @@ def update_qd_and_dd(data: str):
     for filename in filenames:
         local_filename = os.path.join(path_local, filename)
         file = open(local_filename, 'wb')
-        ftp.retrbinary('RETR '+ filename, file.write)
+        ftp.retrbinary('RETR ' + filename, file.write)
         file.close()
     ftp.quit()
         
@@ -116,27 +119,27 @@ def update_qd_and_dd(data: str):
         
         df_new = df_new.drop_duplicates()
         
-        df_new.set_index('DD',inplace=True)
+        df_new.set_index('DD', inplace=True)
         
         df_new.dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt', index = True)
         
     if data == 'QD':
         
         df = pd.read_csv(f'{path_local}/qdrecent.txt',
-                        skiprows = 4,
-                        sep = '\s+',
-                        header = None,
-                        usecols = [0, 1, 2,
-                                   3, 4, 5,
-                                   6, 7, 8,
-                                   9, 10, 11
-                                   ],
-                        names = ['Month', 'Year', 'Q1',
-                                 'Q2', 'Q3', 'Q4', 'Q5',
-                                 'Q6', 'Q7', 'Q8', 'Q9',
-                                 'Q10'
-                                ]
-                         )
+                          skiprows = 4,
+                          sep = '\s+',
+                          header = None,
+                          usecols = [0, 1, 2,
+                                     3, 4, 5,
+                                     6, 7, 8,
+                                     9, 10, 11
+                                     ],
+                          names = ['Month', 'Year', 'Q1',
+                                   'Q2', 'Q3', 'Q4', 'Q5',
+                                   'Q6', 'Q7', 'Q8', 'Q9',
+                                   'Q10'
+                                  ]
+                           )
         
         columns = [f'Q{i}' for i in range(1, 11)]
         
@@ -145,9 +148,9 @@ def update_qd_and_dd(data: str):
         for col in columns:
             df['Test' +  col] = df['Year'].astype(str) + '-' + df['Month'].astype(str) + '-' + df[col].astype(str)
         for col in columns:
-            df['Test' + col] = df['Test' + col].str.replace('A','')
+            df['Test' + col] = df['Test' + col].str.replace('A', '')
         for col in columns:
-            df['Test' + col] = df['Test' + col].str.replace('K','')
+            df['Test' + col] = df['Test' + col].str.replace('K', '')
         
         df_QD = pd.DataFrame()
         df_QD['QD'] = pd.concat([df['TestQ1'], df['TestQ2'], df['TestQ3'],
@@ -178,13 +181,13 @@ def update_qd_and_dd(data: str):
         
         df_new.dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
         
-def Header_SV_obs_files(station: str,
+def header_sv_obs_files(station: str,
                         filename: str,
                         data_denoise: str,
                         external_correction: str,
                         chaos_model: str):
     """"
-    Function to add a header in the txt outputs of the Function SV_obs.
+    Function to add a header in the txt outputs of the Function sv_obs.
     
     Output with informations about the used observatory
     and used data processing options.
@@ -241,7 +244,7 @@ def Header_SV_obs_files(station: str,
         f2.write(Header)
         header = f2.read()
     
-    filenames = [f'{path_header}/header_file.txt',path]
+    filenames = [f'{path_header}/header_file.txt', path]
     with open(destiny_path, 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
@@ -311,13 +314,14 @@ def data_type(station: str,
     
         #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
         df_data_type = pd.DataFrame()
-        df_data_type = pd.concat((pd.read_csv(file,sep = '\s+',
-                                             header = None,                                         
-                                             skiprows = 11,
-                                             nrows = 20,
-                                             usecols = [0,2],
-                                             names = ['Date','Data_Type'])
-                                             for file in files_station))
+        df_data_type = pd.concat((pd.read_csv(file,
+                                              sep = '\s+',
+                                              header = None,                                         
+                                              skiprows = 11,
+                                              nrows = 20,
+                                              usecols = [0,2],
+                                              names = ['Date', 'Data_Type'])
+                                              for file in files_station))
         
         data_type = df_data_type.loc[[0], ['Data_Type']]
     
@@ -340,7 +344,7 @@ def data_type(station: str,
         
     return Date
 
-def Header_SV_files(station: str,
+def header_sv_files(station: str,
                     data_denoise: str,
                     external_correction: str,
                     chaos_model:str
@@ -438,7 +442,7 @@ def validate(str_date):
     except ValueError:
         raise ValueError('Incorrect date format, should be YYYY-MM-DD')
 
-def validate_YM(str_date):
+def validate_ym(str_date):
     """
     Function to validate input format "YYYY-MM"
     
@@ -458,15 +462,15 @@ class year(object):
         self.year = year
     def check_leap_year(year):
         if((year % 400 == 0) or  
-        (year % 100 != 0) and  
-        (year % 4 == 0)):
+           (year % 100 != 0) and  
+           (year % 4 == 0)):
             return True
         else:
             return False
 
 def skiprows_detection(files_station):
     """Function to detect the correct number of skiprows
-    for each file
+    for each IAGA-2002 file
 
     Args:
         files_station (list of files): _description_
@@ -475,17 +479,18 @@ def skiprows_detection(files_station):
         list: contains the number of skiprows for each file and the path
     """
     
-    skiprows_list = [[],[]]
+    skiprows_list = [[], []]
     
     for file in files_station:
         idx = 0
         skiprows = 10
         df_station = pd.read_csv(file,
-                        sep = '\s+',
-                        skiprows = skiprows,
-                        nrows=40,
-                        usecols = [0],
-                        names = ['col'])
+                                 sep = '\s+',
+                                 skiprows = skiprows,
+                                 nrows=40,
+                                 usecols = [0],
+                                 names = ['col']
+                                 )
         file = file
         while df_station['col'][idx] != 'DATE':
             skiprows += 1
