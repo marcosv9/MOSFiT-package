@@ -21,6 +21,11 @@ import utilities_tools as utt
 
 
 def project_directory():
+    '''
+    
+    Get the project directory 
+    
+    '''
     return os.getcwd()
 
 def update_qd_and_dd(data: str):
@@ -39,7 +44,6 @@ def update_qd_and_dd(data: str):
     ##path to read the already stored QD and DD
     
     working_directory = project_directory()
-    
     
     path_local = pathlib.Path(os.path.join(working_directory,
                                            'Data/Disturbed and Quiet Days'
@@ -91,29 +95,37 @@ def update_qd_and_dd(data: str):
             df[f'Test{col}'] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
         for col in columns:
             df[f'Test{col}'] = df[f'Test{col}'].str.replace('*','')
-        df_DD = pd.DataFrame()
+        df_dd = pd.DataFrame()
         
-        df_DD['DD'] = pd.concat([df['TestD1'] ,df['TestD2'],
+        df_dd['DD'] = pd.concat([df['TestD1'] ,df['TestD2'],
                                  df['TestD3'], df['TestD4'],
                                  df['TestD5']
                                 ]
                                )
         
-        df_DD['DD'] = pd.to_datetime(df_DD['DD'], format= '%Y-%m-%d')
+        df_dd['DD'] = pd.to_datetime(df_dd['DD'], format= '%Y-%m-%d')
         
         
-        #df_DD.set_index('DD', inplace = True)
+        #df_dd.set_index('DD', inplace = True)
         
-        #df_DD = df_DD.sort_index()
+        #df_dd = df_dd.sort_index()
         
         
         #reading the current QD and DD list
         
-        df_list = pd.read_csv(f'{path_local}/Disturbed_Days_list.txt')
+        pathlib.Path(os.path.join(working_directory,
+                                                  'Data',
+                                                  'Disturbed and Quiet Days',
+                                                  'Disturbed_Days_list.txt'
+                                                  )
+                                     )
+        
+        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local, 'Disturbed_Days_list.txt')))
+        
         df_list['DD'] = pd.to_datetime(df_list['DD'], format= '%Y-%m-%d')
         #df_list.set_index('DD',inplace=True)
     
-        df_new = pd.concat([df_list,df_DD], ignore_index=False)
+        df_new = pd.concat([df_list,df_dd], ignore_index=False)
         
         df_new['DD'] = pd.to_datetime(df_new['DD'], infer_datetime_format=True)
         
@@ -121,11 +133,11 @@ def update_qd_and_dd(data: str):
         
         df_new.set_index('DD', inplace=True)
         
-        df_new.dropna().sort_index().to_csv(f'{path_local}/Disturbed_Days_list.txt', index = True)
+        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, 'Disturbed_Days_list.txt')), index = True)
         
     if data == 'QD':
         
-        df = pd.read_csv(f'{path_local}/qdrecent.txt',
+        df = pd.read_csv(pathlib.Path(os.path.join(path_local, 'qdrecent.txt')),
                           skiprows = 4,
                           sep = '\s+',
                           header = None,
@@ -152,26 +164,27 @@ def update_qd_and_dd(data: str):
         for col in columns:
             df['Test' + col] = df['Test' + col].str.replace('K', '')
         
-        df_QD = pd.DataFrame()
-        df_QD['QD'] = pd.concat([df['TestQ1'], df['TestQ2'], df['TestQ3'],
+        df_qd = pd.DataFrame()
+        df_qd['QD'] = pd.concat([df['TestQ1'], df['TestQ2'], df['TestQ3'],
                                  df['TestQ4'], df['TestQ5'], df['TestQ6'],
                                  df['TestQ7'], df['TestQ8'], df['TestQ9'],
                                  df['TestQ10']
                                 ]
                                )
         
-        df_QD['QD'] = pd.to_datetime(df_QD['QD'], infer_datetime_format=True)
+        df_qd['QD'] = pd.to_datetime(df_qd['QD'], infer_datetime_format=True)
         
         
-        #df_QD.set_index('QD', inplace = True)
+        #df_qd.set_index('QD', inplace = True)
         
-        #df_QD = df_QD.sort_index()
+        #df_qd = df_qd.sort_index()
         
-        df_list = pd.read_csv(f'{path_local}/Quiet_Days_list.txt')
+        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local, 'Quiet_Days_list.txt')))
+        
         df_list['QD'] = pd.to_datetime(df_list['QD'], format= '%Y-%m-%d')
         #df_list.set_index('DD',inplace=True)
     
-        df_new = pd.concat([df_list,df_QD], ignore_index=False)
+        df_new = pd.concat([df_list,df_qd], ignore_index=False)
         
         df_new['QD'] = pd.to_datetime(df_new['QD'], infer_datetime_format=True)
         
@@ -179,7 +192,7 @@ def update_qd_and_dd(data: str):
         
         df_new.set_index('QD', inplace=True)
         
-        df_new.dropna().sort_index().to_csv(f'{path_local}/Quiet_Days_list.txt', index = True)
+        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, 'Quiet_Days_list.txt')), index = True)
         
 def header_sv_obs_files(station: str,
                         filename: str,
@@ -207,9 +220,23 @@ def header_sv_obs_files(station: str,
     
     working_directory = project_directory()
         
-    path = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data/{station.upper()}_{filename}_preliminary.txt'))
-    path_header = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data'))
-    destiny_path = pathlib.Path(os.path.join(working_directory, f'Filtered_data/{station}_data/{station.upper()}_{filename}.txt'))
+    path = pathlib.Path(os.path.join(working_directory, 'Filtered_data',
+                                     f'{station}_data',
+                                     f'{station.upper()}_{filename}_preliminary.txt'
+                                     )
+                        )
+    
+    path_header = pathlib.Path(os.path.join(working_directory,
+                                            'Filtered_data',
+                                            f'{station}_data'
+                                            )
+                               )
+    output_path = pathlib.Path(os.path.join(working_directory,
+                                             'Filtered_data',
+                                             f'{station}_data',
+                                             f'{station.upper()}_{filename}.txt'
+                                             )
+                                )
     
     external_options = {'D': 'Disturbed Days removed',
                         'Q': 'Quiet Days selection', 
@@ -224,7 +251,7 @@ def header_sv_obs_files(station: str,
                      'n': 'No'
                     }
     
-    #pathlib.Path(destiny_path).mkdir(parents=True, exist_ok=True)
+    #pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
     df_station = pd.read_csv(path, sep = '\s+', index_col = [0])
     df_station.index = pd.to_datetime(df_station.index, infer_datetime_format=True)
@@ -245,7 +272,7 @@ def header_sv_obs_files(station: str,
         header = f2.read()
     
     filenames = [f'{path_header}/header_file.txt', path]
-    with open(destiny_path, 'w') as outfile:
+    with open(output_path, 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
                 for line in infile:
@@ -360,9 +387,25 @@ def header_sv_files(station: str,
     
     working_directory = project_directory()
         
-    path = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data/SV_{station.upper()}_preliminary.txt'))
-    path_header = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data'))
-    destiny_path = pathlib.Path(os.path.join(working_directory, f'SV_update/{station}_data/SV_{station.upper()}.txt'))
+    path = pathlib.Path(os.path.join(working_directory,
+                                     f'SV_update',
+                                     f'{station}_data',
+                                     f'SV_{station.upper()}_preliminary.txt'
+                                     )
+                        )
+    
+    path_header = pathlib.Path(os.path.join(working_directory,
+                                            'SV_update',
+                                            f'{station}_data'
+                                            )
+                               )
+    
+    output_path = pathlib.Path(os.path.join(working_directory,
+                                            'SV_update',
+                                            f'{station}_data',
+                                            f'SV_{station.upper()}.txt'
+                                            )
+                               )
     
     external_options = {'D': 'Disturbed Days removed',
                         'Q': 'Quiet Days selection', 
@@ -378,7 +421,7 @@ def header_sv_files(station: str,
                     False: 'No'
                     }
     
-    #pathlib.Path(destiny_path).mkdir(parents=True, exist_ok=True)
+    #pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
     df_station = pd.read_csv(path,
                              sep = '\s+',
@@ -388,7 +431,7 @@ def header_sv_files(station: str,
                                       infer_datetime_format=True)
     
     
-    Header = (f'Thesis project provisory header'
+    header = (f'Thesis project provisory header'
               f'\nIAGA CODE {str(station.upper())}'
               f'\nLatitude {str(utt.IMO.latitude(station.upper()).round(2))}'
               f'\nLongitude {str(utt.IMO.longitude(station.upper()).round(2))}'
@@ -398,19 +441,21 @@ def header_sv_files(station: str,
               f'\nCHAOS model correction: {chaos_options[chaos_model]}'
               f'\n\n')
     
-    with open(f'{path_header}/header_file.txt', 'w+') as f2:
-        f2.write(Header)
+    with open(pathlib.Path(os.path.join(f'{path_header}',
+                                        'header_file.txt')), 'w+') as f2:
+        
+        f2.write(header)
         header = f2.read()
     
-    filenames = [f'{path_header}/header_file.txt', path]
-    with open(destiny_path, 'w') as outfile:
+    filenames = [pathlib.Path(os.path.join(f'{path_header}', 'header_file.txt', path))]
+    with open(output_path, 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
                 for line in infile:
                     outfile.write(line)
                     
     
-    os.remove(f'{path_header}/header_file.txt')
+    os.remove(pathlib.Path(os.path.join(f'{path_header}', 'header_file.txt')))
     os.remove(path)
        
 def date_to_decinal_year_converter(date):
