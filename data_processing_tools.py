@@ -24,6 +24,9 @@ from chaosmagpy.data_utils import save_RC_h5file
 
 
 def project_directory():
+    '''
+    Get the project directory 
+    '''
     return os.getcwd()
 
 def remove_disturbed_days(dataframe: pd.DataFrame()):
@@ -223,6 +226,8 @@ def calculate_sv(dataframe: pd.DataFrame(),
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
  
     assert method.upper() in ['ADMM', 'YD'], 'method must be ADMM or YD'
+    
+    assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
         
     df = dataframe
     
@@ -288,6 +293,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     df_station = dataframe.copy()
     
     working_directory = project_directory()
+    
     kp_directory = pathlib.Path(os.path.join(working_directory,
                                              'Data',
                                              'Kp index',
@@ -590,6 +596,8 @@ def external_field_correction_chaos_model(station: str,
     
     assert isinstance(files_path, str) or files_path == None, 'files_path must be a string or None'
     
+    assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
+    
     for i in [starttime, endtime]:
         spf.validate(i)
     
@@ -768,6 +776,10 @@ def hampel_filter_denoising(dataframe: pd.DataFrame(),
                                   apply_percentage = apply_percentage
                                   )
     
+    assert isinstance(plot_figure, bool), 'plot_figure must be True or False'
+    
+    assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
+    
     df_denoised = dataframe.copy()
 
     print('Denoising the data')
@@ -838,160 +850,159 @@ def resample_obs_data(dataframe: pd.DataFrame(),
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe.'
     
-    df_station = dataframe
+    assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
     
     samples = ['min', 'H', 'D',
                'M', 'Y'
               ]
     
-    if sample not in samples:
-        print('sample must be min, H, D, M or Y!')
-
-    else:
+    assert sample in samples, 'sample must be one of %s' % samples
+    
+    df_station = dataframe
         
-        if sample == 'min' and apply_percentage == False:
-            
-            df_station = df_station
+    if sample == 'min' and apply_percentage == False:
+        
+        df_station = df_station
 
-        if sample == 'min' and apply_percentage == True:
-
-            df_station = df_station
+    if sample == 'min' and apply_percentage == True:
+        
+        df_station = df_station
+        
+    if sample == 'H' and apply_percentage == False:
             
-        if sample == 'H' and apply_percentage == False:
+        df_station = df_station.resample('H').mean()
+        df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
-            df_station = df_station.resample('H').mean()
-            df_station.index = df_station.index + to_offset('30min')
-            #df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
-            
-        if sample == 'H' and apply_percentage == True:
+    if sample == 'H' and apply_percentage == True:
                           
-            tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
+        tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-            if any(tmp['count'].median()) <= 1 == True:
+        if any(tmp['count'].median()) <= 1 == True:
 
-                df_station = df_station.resample('H').mean()
+            df_station = df_station.resample('H').mean()
                 
-                df_station = tmp['mean'].where(tmp['count']>=1*0.9)
-            else:
-                df_station = tmp['mean'].where(tmp['count']>=60*0.9)
+            df_station = tmp['mean'].where(tmp['count']>=1*0.9)
+        else:
+            df_station = tmp['mean'].where(tmp['count']>=60*0.9)
             
             df_station = df_station.resample('H').mean()
 
-            df_station.index = df_station.index + to_offset('30min')
-            #df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
+        df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
             
-        if sample == 'D' and apply_percentage == False:
+    if sample == 'D' and apply_percentage == False:
             
-            df_station = df_station.resample('D').mean()
-            df_station.index = df_station.index + to_offset('11H') + to_offset('59min') + to_offset('30s')       
+        df_station = df_station.resample('D').mean()
+        df_station.index = df_station.index + to_offset('11H') + to_offset('59min') + to_offset('30s')       
         
-        elif sample == 'D' and apply_percentage == True:
+    elif sample == 'D' and apply_percentage == True:
+        
+        tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
+        
+        if any(tmp['count'].median() <= 30) == True:
             
-            tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
+            df_station = df_station.resample('H').mean()
             
-            if any(tmp['count'].median() <= 30) == True:
+            df_station = tmp['mean'].where(tmp['count']>=24*0.9)
+            
+        else:
+        
+            df_station = tmp['mean'].where(tmp['count']>=1440*0.9)
+        
+        df_station = df_station.resample('D').mean()
+        df_station.index = df_station.index  + to_offset('11H') + to_offset('59min') + to_offset('30s')
+            
+    if sample == 'M' and apply_percentage == False:
+        
+        
+        df_station = df_station.resample('M').mean()
+        idx1 = df_station.loc[df_station.index.month == 2].index + to_offset('-1M') + to_offset('14D')
+        idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
+        df_station.index = idx1.union(idx2)
+        
+    if sample == 'M' and apply_percentage == True:
+        
+        tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
+        
+        if any(tmp['count'].median() <= 800) == True:
+            
+            df_station = df_station.resample('H').mean()
+
+            tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
+            
+        else:
+        
+            tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24*60
+        #print(tmp['count'].median())    
+        #print(tmp['full day'])    
+        X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['full day']*0.9]
+        Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['full day']*0.9]
+        Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.9]
+        
+            
+            
+        df_station = df_station.resample('M').mean()
+        #print(df_station_resampled)
+        df_station['X'] = X
+        df_station['Y'] = Y
+        df_station['Z'] = Z
+        
+        #df_station = df_station_resampled
+        df_station = df_station.resample('M').mean()
+        idx1 = df_station.loc[df_station.index.month == 2].index + to_offset('-1M') + to_offset('14D')
+        idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
+        df_station.index = idx1.union(idx2)
+            
+            
+    if sample == 'Y' and apply_percentage == False:
+        
+        df_station = df_station.resample('Y').mean()
+        leap_year = []
+        
+        for years in df_station.index.year:
+            
+            if spf.year.check_leap_year(years) == True:
                 
-                df_station = df_station.resample('H').mean()
+                leap_year.append(years)
                 
-                df_station = tmp['mean'].where(tmp['count']>=24*0.9)
+        idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
+        idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
+        df_station.index = idx_normal.union(idx_leap)
+        
+    if sample == 'Y' and apply_percentage == True:
+        
+        Days = df_station.groupby(pd.Grouper(freq='M')).agg(['count']).swaplevel(0,1,axis=1)
+        Days['Days'] = df_station.resample('M').mean().index.days_in_month
+        tmp = df_station.groupby(pd.Grouper(freq='Y')).agg(['mean','count']).swaplevel(0,1,axis=1)
+        tmp['Days'] = Days['Days'].resample('Y').sum()
+        
+        if tmp['count'].median().any() <= 8784:
+            
+            df_station = df_station.resample('H').mean()
+            
+            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24]
+            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24]
+            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24]
+        else:
+            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24*60]
+            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24*60]
+            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24*60]
+        
+        
+        df_station['X'] = X
+        df_station['Y'] = Y
+        df_station['Z'] = Z
+        df_station = df_station.resample('Y').mean()
+        leap_year = []
+        
+        for years in df_station.index.year:
+            
+            if spf.year.check_leap_year(years) == True:
+                leap_year.append(years)
                 
-            else:
-            
-                df_station = tmp['mean'].where(tmp['count']>=1440*0.9)
-            
-            df_station = df_station.resample('D').mean()
-            df_station.index = df_station.index  + to_offset('11H') + to_offset('59min') + to_offset('30s')
-            
-        if sample == 'M' and apply_percentage == False:
-            
-            
-            df_station = df_station.resample('M').mean()
-            idx1 = df_station.loc[df_station.index.month == 2].index + to_offset('-1M') + to_offset('14D')
-            idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
-            df_station.index = idx1.union(idx2)
-
-        if sample == 'M' and apply_percentage == True:
-            
-            tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
-            
-            if any(tmp['count'].median() <= 800) == True:
-                
-                df_station = df_station.resample('H').mean()
-
-                tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
-                
-            else:
-            
-                tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24*60
-            #print(tmp['count'].median())    
-            #print(tmp['full day'])    
-            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['full day']*0.9]
-            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['full day']*0.9]
-            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.9]
-            
-            
-            
-            df_station = df_station.resample('M').mean()
-            #print(df_station_resampled)
-            df_station['X'] = X
-            df_station['Y'] = Y
-            df_station['Z'] = Z
-            
-            #df_station = df_station_resampled
-            df_station = df_station.resample('M').mean()
-            idx1 = df_station.loc[df_station.index.month == 2].index + to_offset('-1M') + to_offset('14D')
-            idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
-            df_station.index = idx1.union(idx2)
-            
-            
-        if sample == 'Y' and apply_percentage == False:
-            
-            df_station = df_station.resample('Y').mean()
-
-            leap_year = []
-            for years in df_station.index.year:
-                if spf.year.check_leap_year(years) == True:
-                    leap_year.append(years)
-
-            idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
-            idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
-            df_station.index = idx_normal.union(idx_leap)
-            
-        if sample == 'Y' and apply_percentage == True:
-            
-            Days = df_station.groupby(pd.Grouper(freq='M')).agg(['count']).swaplevel(0,1,axis=1)
-            Days['Days'] = df_station.resample('M').mean().index.days_in_month
-
-            tmp = df_station.groupby(pd.Grouper(freq='Y')).agg(['mean','count']).swaplevel(0,1,axis=1)
-            tmp['Days'] = Days['Days'].resample('Y').sum()
-            
-            if tmp['count'].median().any() <= 8784:
-                df_station = df_station.resample('H').mean()
-
-                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24]
-                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24]
-                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24]
-            else:
-
-                X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24*60]
-                Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24*60]
-                Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24*60]
-            
-            
-            df_station['X'] = X
-            df_station['Y'] = Y
-            df_station['Z'] = Z
-            df_station = df_station.resample('Y').mean()
-
-            leap_year = []
-            for years in df_station.index.year:
-                if spf.year.check_leap_year(years) == True:
-                    leap_year.append(years)
-
-            idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
-            idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
-            df_station.index = idx_normal.union(idx_leap)
-            
+        idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
+        idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
+        df_station.index = idx_normal.union(idx_leap)
+        
     return df_station
 
 def jerk_detection_window(station: str,
@@ -1000,11 +1011,11 @@ def jerk_detection_window(station: str,
                           starttime: str, 
                           endtime: str,
                           df_station = None,
-                          df_CHAOS = None,
+                          df_chaos = None,
                           files_path = None,
                           plot_detection: bool = True,
-                          CHAOS_correction: bool = True,
-                          plot_CHAOS_prediction:bool = False,
+                          chaos_correction: bool = True,
+                          plot_chaos_prediction:bool = False,
                           convert_hdz_to_xyz:bool = False,
                           save_plots:bool = False
                           ):
@@ -1026,17 +1037,17 @@ def jerk_detection_window(station: str,
     endtime - last day of the data (format = 'yyyy-mm-dd)
     
     df_station - Must be a pandas dataframe with the geomagnetic data or None.
-                 If None, the data will be computed using load_intermagnet_files.
+                 If None, the data will be computed using load_INTERMAGNET_files.
     
-    df_CHAOS - Must be a pandas dataframe with the predicted CHAOS geomagnetic data or None.
+    df_chaos - Must be a pandas dataframe with the predicted CHAOS geomagnetic data or None.
                If None, the data will be computed using chaos_model_prediction.
     
     plot_detection - boolean (True or False). If True, the jerk detection will be shown.
     
-    CHAOS_correction - boolean (True or False). If True, the geomagnetic data from 'df_station'
+    chaos_correction - boolean (True or False). If True, the geomagnetic data from 'df_station'
                        will be corrected using the CHAOS-model prediciton
                        
-    plot_CHAOS_prediction - boolean (True or False). If True, the SV from CHAOS will be shown.
+    plot_chaos_prediction - boolean (True or False). If True, the SV from CHAOS will be shown.
     
     -----------------------------------------------------------------------
     Use example:
@@ -1046,10 +1057,10 @@ def jerk_detection_window(station: str,
                               starttime = '2005-01-01', 
                               endtime = '2021-06-30',
                               df_station = None,
-                              df_CHAOS = None,
+                              df_chaos = None,
                               plot_detection = True,
-                              CHAOS_correction = True,
-                              plot_CHAOS_prediction=True)
+                              chaos_correction = True,
+                              plot_chaos_prediction=True)
                               
     -----------------------------------------------------------------------
     Return - plots of the SV and the jerk detection for X, Y and Z.
@@ -1070,8 +1081,13 @@ def jerk_detection_window(station: str,
     
     assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(df_CHAOS, pd.DataFrame) or df_CHAOS == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_chaos, pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
      
+    for check_bool in [plot_detection, plot_chaos_prediction,
+                       convert_hdz_to_xyz, save_plots]:
+        
+        assert isinstance(check_bool, bool) , f'{check_bool} must be True or False'
+         
     station = station
     window_start = window_start + '-15'
     window_end = window_end + '-15'
@@ -1086,7 +1102,7 @@ def jerk_detection_window(station: str,
                              )
            
     #directory = f'Filtered_data/{station}_data'
-    df_CHAOS = df_CHAOS
+    df_chaos = df_chaos
     
     # creating directory if it doesn't exist
     
@@ -1115,22 +1131,22 @@ def jerk_detection_window(station: str,
         pass
     
     # conditions to load CHAOS dataframe
-    if df_CHAOS is not None:
+    if df_chaos is not None:
         
-        df_CHAOS = df_CHAOS
+        df_chaos = df_chaos
     
-    if CHAOS_correction == True and df_CHAOS is not None:
+    if chaos_correction == True and df_chaos is not None:
         
-        df_station, df_CHAOS = external_field_correction_chaos_model(station = station,
+        df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
-                                                                     df_chaos= df_CHAOS,
+                                                                     df_chaos= df_chaos,
                                                                      files_path = None
                                                                      )
         
-    elif CHAOS_correction == True and df_CHAOS == None:
-        df_station, df_CHAOS = external_field_correction_chaos_model(station = station,
+    elif chaos_correction == True and df_chaos == None:
+        df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
@@ -1139,18 +1155,18 @@ def jerk_detection_window(station: str,
                                                                      )
     
     #calculating SV from intermagnet files
-    df_SV = calculate_sv(dataframe = df_station,
+    df_sv = calculate_sv(dataframe = df_station,
                          method = 'ADMM',
                          columns = None
                          )
     
-    if plot_CHAOS_prediction == False:
+    if plot_chaos_prediction == False:
         
         pass
     
-    if CHAOS_correction and plot_CHAOS_prediction == True:
+    if chaos_correction and plot_chaos_prediction == True:
         
-        df_CHAOS_SV = calculate_sv(dataframe = df_CHAOS,
+        df_chaos_sv = calculate_sv(dataframe = df_chaos,
                                    method = 'ADMM',
                                    columns = ['X_int', 'Y_int', 'Z_int']
                                    )
@@ -1161,7 +1177,7 @@ def jerk_detection_window(station: str,
     
     df_jerk_window = pd.DataFrame()
     
-    df_jerk_window.index = df_SV.loc[window_start:window_end].index
+    df_jerk_window.index = df_sv.loc[window_start:window_end].index
     
     date_jerk= [spf.date_to_decinal_year_converter(date) for date in df_jerk_window.index]
     
@@ -1174,9 +1190,9 @@ def jerk_detection_window(station: str,
 
     #eqn_list = []
     r2 = []
-    for column in df_SV.columns:
+    for column in df_sv.columns:
 
-        myPWLF = pwlf.PiecewiseLinFit(date_jerk, df_SV.loc[window_start:window_end][column])
+        myPWLF = pwlf.PiecewiseLinFit(date_jerk, df_sv.loc[window_start:window_end][column])
         
         breakpoints[column] = myPWLF.fit(2)
         
@@ -1211,15 +1227,15 @@ def jerk_detection_window(station: str,
 
         #plotting single figure
 
-        if plot_detection == True and plot_CHAOS_prediction == False or CHAOS_correction == False:
+        if plot_detection == True and plot_chaos_prediction == False or chaos_correction == False:
             colors = ['blue', 'green', 'black']
             fig, axes = plt.subplots(3,1,figsize = (12,8), sharex = True)
             plt.subplots_adjust(hspace=0.05)
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.94)
             plt.xlabel('Date (Years)', fontsize = 12)
             
-            for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
-                ax.plot(df_SV[col],
+            for col, ax, color in zip(df_sv.columns, axes.flatten(), colors):
+                ax.plot(df_sv[col],
                         'o',
                         color = color
                         )
@@ -1233,7 +1249,7 @@ def jerk_detection_window(station: str,
                         #str(round((df_jerk_window.index[int(z[col][1].round())].year+
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
-                ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
+                ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
@@ -1267,9 +1283,9 @@ def jerk_detection_window(station: str,
             upper_limit = int(str(datetime.strptime(window_end ,'%Y-%m-%d'))[0:4]) +1
             lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
     
-            for col, ax, color in zip(df_SV.columns, axes.flatten(), colors):
+            for col, ax, color in zip(df_sv.columns, axes.flatten(), colors):
                 
-                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
+                ax.plot(df_sv[col].loc[str(lower_limit):str(upper_limit)],
                         'o'
                         )
                 ax.plot(df_jerk_window[col],
@@ -1298,7 +1314,7 @@ def jerk_detection_window(station: str,
                               plot_changes = True,
                               station = [station.upper()]) 
         
-        elif plot_detection and plot_CHAOS_prediction and CHAOS_correction == True:
+        elif plot_detection and plot_chaos_prediction and chaos_correction == True:
             
             #plotting single figure
 
@@ -1308,14 +1324,14 @@ def jerk_detection_window(station: str,
             plt.subplots_adjust(hspace=0.05)
             plt.xlabel('Date (Years)', fontsize = 12)
             
-            for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV.columns, axes.flatten(), colors):
+            for col, chaos_col, ax, color in zip(df_sv.columns, df_chaos_sv.columns, axes.flatten(), colors):
                 
-                ax.plot(df_SV[col],
+                ax.plot(df_sv[col],
                         'o-',
                         color = color
                         )
                                 
-                ax.plot(df_CHAOS_SV[chaos_col],
+                ax.plot(df_chaos_sv[chaos_col],
                         linewidth = 2,
                         label = 'CHAOS prediction'
                         )
@@ -1330,7 +1346,7 @@ def jerk_detection_window(station: str,
                         #str(round((df_jerk_window.index[int(z[col][1].round())].year+
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
-                ax.set_xlim(df_SV[col].index[0], df_SV[col].index[-1])
+                ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
@@ -1355,13 +1371,13 @@ def jerk_detection_window(station: str,
             upper_limit = int(str(datetime.strptime(window_end,'%Y-%m-%d'))[0:4]) +1
             lower_limit = int(str(datetime.strptime(window_start ,'%Y-%m-%d'))[0:4]) -1
 
-            for col, chaos_col, ax, color in zip(df_SV.columns, df_CHAOS_SV, axes.flatten(), colors):
+            for col, chaos_col, ax, color in zip(df_sv.columns, df_chaos_sv, axes.flatten(), colors):
                 
-                ax.plot(df_SV[col].loc[str(lower_limit):str(upper_limit)],
+                ax.plot(df_sv[col].loc[str(lower_limit):str(upper_limit)],
                         'o'
                         )
                 
-                ax.plot(df_CHAOS_SV[chaos_col].loc[str(lower_limit):str(upper_limit)],
+                ax.plot(df_chaos_sv[chaos_col].loc[str(lower_limit):str(upper_limit)],
                         '-',
                         linewidth = 2,
                         label = 'CHAOS prediction'
