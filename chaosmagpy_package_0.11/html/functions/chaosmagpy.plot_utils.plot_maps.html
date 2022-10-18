@@ -1,0 +1,184 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.plot_utils.plot_maps &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.plot_utils.plot_power_spectrum" href="chaosmagpy.plot_utils.plot_power_spectrum.html" />
+    <link rel="prev" title="chaosmagpy.plot_utils.plot_timeseries" href="chaosmagpy.plot_utils.plot_timeseries.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.plot_power_spectrum.html" title="chaosmagpy.plot_utils.plot_power_spectrum"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.plot_timeseries.html" title="chaosmagpy.plot_utils.plot_timeseries"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.plot_utils.plot_maps</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-plot-utils-plot-maps">
+<h1>chaosmagpy.plot_utils.plot_maps<a class="headerlink" href="#chaosmagpy-plot-utils-plot-maps" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chaosmagpy.plot_utils.plot_maps">
+<span class="sig-prename descclassname"><span class="pre">chaosmagpy.plot_utils.</span></span><span class="sig-name descname"><span class="pre">plot_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">theta_grid</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi_grid</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/plot_utils.html#plot_maps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.plot_utils.plot_maps" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a global map showing the input arguments.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>theta_grid</strong><span class="classifier">ndarray</span></dt><dd><p>Array containing the colatitude in degrees.</p>
+</dd>
+<dt><strong>phi_grid</strong><span class="classifier">ndarray</span></dt><dd><p>Array containing the longitude in degrees.</p>
+</dd>
+<dt><strong>*args</strong><span class="classifier">ndarray</span></dt><dd><p>Array of values to plot on the global map. Several
+arrays can be provided as separated arguments.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>fig</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.figure.Figure</span></code></span></dt><dd><p>Matplotlib figure.</p>
+</dd>
+<dt><strong>axes</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes.Axes</span></code>, ndarray</span></dt><dd><p>Array of which singleton dimenions have been squeezed out. Only the
+axes instance is returned in case of a single axis.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>figsize</strong><span class="classifier">2-tuple of floats</span></dt><dd><p>Figure dimension (width, height) in inches.</p>
+</dd>
+<dt><strong>titles</strong><span class="classifier">list of strings</span></dt><dd><p>Subplot titles (defaults to empty strings).</p>
+</dd>
+<dt><strong>label</strong><span class="classifier">string</span></dt><dd><p>Colorbar label (defaults to an empty string).</p>
+</dd>
+<dt><strong>layout</strong><span class="classifier">2-tuple of int</span></dt><dd><p>Layout of the subplots (defaults to vertically stacked subplots).</p>
+</dd>
+<dt><strong>cmap</strong><span class="classifier">str</span></dt><dd><p>Colormap code (defaults to <code class="docutils literal notranslate"><span class="pre">'PuOr'</span></code> colormap).</p>
+</dd>
+<dt><strong>limiter</strong><span class="classifier">function, lambda expression</span></dt><dd><p>Function to compute symmetric colorbar limits (defaults to maximum of
+the absolute values in the input, or use <code class="docutils literal notranslate"><span class="pre">'vmin'</span></code>, <code class="docutils literal notranslate"><span class="pre">'vmax'</span></code>
+keywords instead).</p>
+</dd>
+<dt><strong>projection</strong><span class="classifier"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cartopy.crs</span></code></span></dt><dd><p>Projection of the target frame (defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cartopy.crs.Mollweide()</span></code>).</p>
+</dd>
+<dt><strong>transform</strong><span class="classifier"><code class="xref py py-mod docutils literal notranslate"><span class="pre">cartopy.crs</span></code></span></dt><dd><p>Projection of input frame (defaults to
+<code class="xref py py-func docutils literal notranslate"><span class="pre">cartopy.crs.PlateCarree()</span></code>)</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options to pass to matplotlib <code class="xref py py-func docutils literal notranslate"><span class="pre">pcolormesh()</span></code> method.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.plot_utils.plot_timeseries.html"
+                        title="previous chapter">chaosmagpy.plot_utils.plot_timeseries</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chaosmagpy.plot_utils.plot_power_spectrum.html"
+                        title="next chapter">chaosmagpy.plot_utils.plot_power_spectrum</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/chaosmagpy.plot_utils.plot_maps.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.plot_power_spectrum.html" title="chaosmagpy.plot_utils.plot_power_spectrum"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.plot_timeseries.html" title="chaosmagpy.plot_utils.plot_timeseries"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.plot_utils.plot_maps</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

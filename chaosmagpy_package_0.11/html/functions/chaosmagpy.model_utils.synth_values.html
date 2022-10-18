@@ -1,0 +1,262 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.model_utils.synth_values &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.model_utils.legendre_poly" href="chaosmagpy.model_utils.legendre_poly.html" />
+    <link rel="prev" title="chaosmagpy.model_utils.synth_from_pp" href="chaosmagpy.model_utils.synth_from_pp.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.legendre_poly.html" title="chaosmagpy.model_utils.legendre_poly"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.synth_from_pp.html" title="chaosmagpy.model_utils.synth_from_pp"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.synth_values</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-model-utils-synth-values">
+<h1>chaosmagpy.model_utils.synth_values<a class="headerlink" href="#chaosmagpy-model-utils-synth-values" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chaosmagpy.model_utils.synth_values">
+<span class="sig-prename descclassname"><span class="pre">chaosmagpy.model_utils.</span></span><span class="sig-name descname"><span class="pre">synth_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/model_utils.html#synth_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.model_utils.synth_values" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes radial, colatitude and azimuthal field components from the
+magnetic potential field in terms of spherical harmonic coefficients.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (…, M)</span></dt><dd><p>Coefficients of the spherical harmonic expansion. The last dimension is
+equal to the number of coefficients.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the radius in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the colatitude in degrees
+<span class="math notranslate nohighlight">\([0^\circ,180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree up to which expansion is to be used (default is given by
+the last dimension of <code class="docutils literal notranslate"><span class="pre">coeffs</span></code>, that is, <code class="docutils literal notranslate"><span class="pre">M</span> <span class="pre">=</span> <span class="pre">nmax(nmax+2)</span></code>). This
+value can also be smaller if only coefficients at low degree should
+contribute.</p>
+</dd>
+<dt><strong>nmin</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Minimum degree of the expansion (defaults to 1). This value must
+correspond to the minimum degree of the coefficients and cannot be
+larger.</p>
+</dd>
+<dt><strong>mmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum order of the spherical harmonic expansion (defaults to
+<code class="docutils literal notranslate"><span class="pre">nmax</span></code>). This value can also be smaller. For example, if only the
+zonal part of the expansion should be used, set <code class="docutils literal notranslate"><span class="pre">mmax</span> <span class="pre">=</span> <span class="pre">0</span></code>.</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘internal’, ‘external’}, optional</span></dt><dd><p>Magnetic field source (default is an internal source).</p>
+</dd>
+<dt><strong>grid</strong><span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, field components are computed on a regular grid. Arrays
+<code class="docutils literal notranslate"><span class="pre">theta</span></code> and <code class="docutils literal notranslate"><span class="pre">phi</span></code> must have one dimension less than the output grid
+since the grid will be created as their outer product (defaults to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The function can also evaluate the field components at the geographic
+poles, i.e. where <code class="docutils literal notranslate"><span class="pre">theta</span> <span class="pre">==</span> <span class="pre">0.</span></code> or <code class="docutils literal notranslate"><span class="pre">theta</span> <span class="pre">==</span> <span class="pre">180.</span></code>. However, users
+should be careful when doing this because the vector basis for spherical
+geocentric coordinates,
+<span class="math notranslate nohighlight">\({{\mathbf{e}_r, \mathbf{e}_\theta, \mathbf{e}_\phi}}\)</span>,
+depends on longitude, which is not well defined at the poles. That is,
+at the poles, any value for the longitude maps to the same location in
+euclidean coordinates but gives a different vector basis in spherical
+geocentric coordinates. Nonetheless, by choosing a specific value for the
+longitude at the poles, users can define the vector basis, which then
+establishes the meaning of the spherical geocentric components returned by
+this function. The vector basis for the horizontal components is defined as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathbf{e}_\theta &amp;= \cos\theta\cos\phi\mathbf{e}_x -
+    \cos\theta\sin\phi\mathbf{e}_y - \sin\theta\mathbf{e}_z\\
+\mathbf{e}_\phi &amp;= -\sin\phi\mathbf{e}_x +
+    \cos\phi\mathbf{e}_y\end{split}\]</div>
+<p>Hence, at the geographic north pole as given by <code class="docutils literal notranslate"><span class="pre">theta</span> <span class="pre">=</span> <span class="pre">0.</span></code> and
+<code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">0.</span></code> (chosen by the user), the returned component <code class="docutils literal notranslate"><span class="pre">B_theta</span></code>
+will be along the direction <span class="math notranslate nohighlight">\(\mathbf{e}_\theta = \mathbf{e}_x\)</span> and
+<code class="docutils literal notranslate"><span class="pre">B_phi</span></code> along <span class="math notranslate nohighlight">\(\mathbf{e}_\phi = \mathbf{e}_y\)</span>. However,
+if <code class="docutils literal notranslate"><span class="pre">phi</span> <span class="pre">=</span> <span class="pre">180.</span></code> is chosen, <code class="docutils literal notranslate"><span class="pre">B_theta</span></code>
+will be along <span class="math notranslate nohighlight">\(\mathbf{e}_\theta = -\mathbf{e}_x\)</span> and <code class="docutils literal notranslate"><span class="pre">B_phi</span></code>
+along <span class="math notranslate nohighlight">\(\mathbf{e}_\phi = -\mathbf{e}_y\)</span>.</p>
+</div>
+<p class="rubric">Notes</p>
+<p>The function can work with different grid shapes, but the inputs have to
+satisfy NumPy’s <a class="reference external" href="https://docs.scipy.org/doc/numpy-1.15.0/user/basics.broadcasting.html">broadcasting rules </a>
+(<code class="docutils literal notranslate"><span class="pre">grid=False</span></code>, default). This also applies to the dimension of the
+coefficients <code class="docutils literal notranslate"><span class="pre">coeffs</span></code> excluding the last dimension.</p>
+<p>The optional parameter <code class="docutils literal notranslate"><span class="pre">grid</span></code> is for convenience. If set to <code class="docutils literal notranslate"><span class="pre">True</span></code>,
+a singleton dimension is appended (prepended) to <code class="docutils literal notranslate"><span class="pre">theta</span></code> (<code class="docutils literal notranslate"><span class="pre">phi</span></code>)
+for broadcasting to a regular grid. The other inputs <code class="docutils literal notranslate"><span class="pre">radius</span></code> and
+<code class="docutils literal notranslate"><span class="pre">coeffs</span></code> must then be broadcastable as before but now with the resulting
+regular grid.</p>
+<p class="rubric">Examples</p>
+<p>The most straight forward computation uses a fully specified grid. For
+example, compute the magnetic field at <span class="math notranslate nohighlight">\(N=50\)</span> grid points on the
+surface.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">chaosmagpy.model_utils</span> <span class="k">as</span> <span class="nn">cpm</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">N</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,))</span>  <span class="c1"># degree 1 coefficients for all points</span>
+<span class="n">radius</span> <span class="o">=</span> <span class="mf">6371.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,))</span>  <span class="c1"># radius of 50 points in km</span>
+<span class="n">phi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">180.</span><span class="p">,</span> <span class="mf">180.</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># azimuth of 50 points in deg.</span>
+<span class="n">theta</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">180.</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">N</span><span class="p">)</span>  <span class="c1"># colatitude of 50 points in deg.</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="n">cpm</span><span class="o">.</span><span class="n">synth_values</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">B</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>  <span class="c1"># output shape (N,)</span>
+</pre></div>
+</div>
+<p>Instead of <cite>N</cite> points, compute the field on a regular
+<span class="math notranslate nohighlight">\(N\times N\)</span>-grid in azimuth and colatitude (slow).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">radius_grid</span> <span class="o">=</span> <span class="mf">6371.2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">N</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+<span class="n">phi_grid</span><span class="p">,</span> <span class="n">theta_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">phi</span><span class="p">,</span> <span class="n">theta</span><span class="p">)</span>  <span class="c1"># grid of shape (N, N)</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="n">cpm</span><span class="o">.</span><span class="n">synth_values</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">radius_grid</span><span class="p">,</span> <span class="n">theta_grid</span><span class="p">,</span> <span class="n">phi_grid</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">B</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>  <span class="c1"># output shape (N, N)</span>
+</pre></div>
+</div>
+<p>But this is slow since some computations on the grid are repeatedly done.
+The preferred method is to use NumPy’s broadcasting rules (fast).</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">radius_grid</span> <span class="o">=</span> <span class="mf">6371.2</span>  <span class="c1"># float, () or (1,)-shaped array broadcasted to NxN</span>
+<span class="n">theta_grid</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>  <span class="c1"># append singleton: (N, 1)</span>
+<span class="n">phi_grid</span> <span class="o">=</span> <span class="n">phi</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># prepend singleton: (1, N)</span>
+
+<span class="n">B</span> <span class="o">=</span> <span class="n">cpm</span><span class="o">.</span><span class="n">synth_values</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">radius_grid</span><span class="p">,</span> <span class="n">theta_grid</span><span class="p">,</span> <span class="n">phi_grid</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">B</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>  <span class="c1"># output shape (N, N)</span>
+</pre></div>
+</div>
+<p>For convenience, you can do the same by using <code class="docutils literal notranslate"><span class="pre">grid=True</span></code> option, which
+appends a singleton dimension to <code class="docutils literal notranslate"><span class="pre">theta</span></code> and inserts a singleton
+dimension at the second to last position in the shape of <code class="docutils literal notranslate"><span class="pre">phi</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">B</span> <span class="o">=</span> <span class="n">cpm</span><span class="o">.</span><span class="n">synth_values</span><span class="p">(</span><span class="n">coeffs</span><span class="p">,</span> <span class="n">radius_grid</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">B</span><span class="p">[</span><span class="n">num</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">num</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)])</span>  <span class="c1"># output shape (N, N)</span>
+</pre></div>
+</div>
+<p>Remember that <code class="docutils literal notranslate"><span class="pre">grid=False</span></code> (default) will result in
+(N,)-shaped outputs as in the first example.</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.model_utils.synth_from_pp.html"
+                        title="previous chapter">chaosmagpy.model_utils.synth_from_pp</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chaosmagpy.model_utils.legendre_poly.html"
+                        title="next chapter">chaosmagpy.model_utils.legendre_poly</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/chaosmagpy.model_utils.synth_values.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.legendre_poly.html" title="chaosmagpy.model_utils.legendre_poly"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.synth_from_pp.html" title="chaosmagpy.model_utils.synth_from_pp"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.synth_values</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

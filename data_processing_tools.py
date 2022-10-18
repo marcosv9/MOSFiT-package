@@ -423,13 +423,13 @@ def chaos_model_prediction(station: str,
     Latitude = 90 - utt.IMO.latitude(station)
 
     Elevation = (utt.IMO.elevation(station)/1000) +R_REF
-    #Longitude = df_IMOS.loc[station]['Longitude']
+    #Longitude = df_imos.loc[station]['Longitude']
     
 
-    #Latitude = 90 - df_IMOS.loc[station]['Latitude']
+    #Latitude = 90 - df_imos.loc[station]['Latitude']
  
 
-    #Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
+    #Elevation = (df_imos.loc[station]['Elevation']/1000) + R_REF
 
     Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
@@ -1102,6 +1102,7 @@ def jerk_detection_window(station: str,
                              )
            
     #directory = f'Filtered_data/{station}_data'
+    
     df_chaos = df_chaos
     
     # creating directory if it doesn't exist
@@ -1268,7 +1269,7 @@ def jerk_detection_window(station: str,
  
             #plotting multiple figure// small xaxis
 
-            fig, axes = plt.subplots(1,3,figsize = (15,6))
+            fig, axes = plt.subplots(1,3,figsize = (17,6))
             plt.suptitle(f'{station.upper()} secular variation',
                          fontsize = 12,
                          y = 0.94
@@ -1297,9 +1298,10 @@ def jerk_detection_window(station: str,
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5)
-            fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
+            #fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
             if save_plots == True:
                 plt.savefig(os.path.join(directory,
                                          '{station}_jerk_detection_2.jpeg'
@@ -1318,9 +1320,12 @@ def jerk_detection_window(station: str,
             
             #plotting single figure
 
-            colors = ['blue','green','black']
+            colors = ['blue', 'green', 'black']
+            
             fig, axes = plt.subplots(3,1,figsize = (12,8), sharex=True)
-            plt.suptitle(f'{station.upper()} secular variation', fontsize = 14, y = 0.92)
+            plt.suptitle(f'{station.upper()} secular variation',
+                         fontsize = 14,
+                         y = 0.92)
             plt.subplots_adjust(hspace=0.05)
             plt.xlabel('Date (Years)', fontsize = 12)
             
@@ -1354,7 +1359,9 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5) 
                 ax.legend()
+                
             if save_plots == True:
+                
                 plt.savefig(os.path.join(directory,
                                          '{station}_jerk_detection.jpeg'
                                          ),
@@ -1364,7 +1371,7 @@ def jerk_detection_window(station: str,
             
             #plotting multiple figure
 
-            fig, axes = plt.subplots(1,3,figsize = (15,6))
+            fig, axes = plt.subplots(1,3,figsize = (17,6))
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.93)
             fig.text(0.5, 0.04, 'Years', ha='center', fontsize = 12)
          
@@ -1389,20 +1396,20 @@ def jerk_detection_window(station: str,
                         )
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y')) 
-                #ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
+                ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5) 
                 ax.legend()
-            fig.text(0.08,
-                     0.5,
-                     f'dY/dt (nT/yr)',
-                     ha='center',
-                     va='center',
-                     rotation='vertical',
-                     fontsize = 10
-                     )
+            #fig.text(0.08,
+            #         0.5,
+            #         f'dY/dt (nT/yr)',
+            #         ha='center',
+            #         va='center',
+            #         rotation='vertical',
+            #         fontsize = 10
+            #         )
             
             if save_plots == True:
                 plt.savefig(os.path.join(directory,
@@ -1418,3 +1425,11 @@ def jerk_detection_window(station: str,
                               station = [station.upper()])
         
     return df_jerk_window, df_slopes, breakpoints, r2
+
+if __name__ == '__main__':
+    jerk_detection_window('VSS',
+                          '2012-04',
+                          '2018-04',
+                          '2010-01-01',
+                          '2021-12-31',
+                          plot_chaos_prediction=True)

@@ -184,11 +184,11 @@ def hdz_to_xyz_conversion(station: str,
     if IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')  
           
-    if files_path != None:
-        if files_path[-1] == '/':
-            pass
-        else:
-            files_path = files_path + '/'    
+    #if files_path != None:
+    #    if files_path[-1] == '/':
+    #        pass
+    #    else:
+    #        files_path = files_path + '/'    
     
     df_station = dataframe
     
@@ -204,7 +204,11 @@ def hdz_to_xyz_conversion(station: str,
             files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
             files_station.sort()
     else:
-        files_station.extend(glob.glob(f'{files_path}{station}*'))
+        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+                                                    f'{station}*'
+                                                    )
+                                       )
+                             )
         files_station.sort()
             
             
@@ -264,9 +268,14 @@ class IMO(object):
         
         working_directory = project_directory()
         
-        imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
+        imos_directory = pathlib.Path(os.path.join(working_directory,
+                                                   'Data',
+                                                   'Imos informations',
+                                                   'IMOS_INTERMAGNET.txt'
+                                                   )
+                                      )
         
-        df_IMOS = pd.read_csv(imos_directory,
+        df_imos = pd.read_csv(imos_directory,
                                skiprows = 1,
                                sep = '\s+',
                                usecols=[0, 1, 2, 3],
@@ -275,16 +284,21 @@ class IMO(object):
         
 
             #self.station = station
-        self.station = df_IMOS.loc[station].name
+        self.station = df_imos.loc[station].name
         self.latitude = latitude
         self.longitude = longitude
         self.elevation = elevation
         
     working_directory = project_directory()
         
-    imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
+    imos_directory = pathlib.Path(os.path.join(working_directory,
+                                               'Data',
+                                               'Imos informations',
+                                               'IMOS_INTERMAGNET.txt'
+                                               )
+                                  )
     
-    df_IMOS = pd.read_csv(imos_directory,
+    df_imos = pd.read_csv(imos_directory,
                           skiprows = 1,
                           sep = '\s+',
                           usecols=[0, 1, 2, 3],
@@ -298,7 +312,7 @@ class IMO(object):
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
 
-        station = IMO.df_IMOS.loc[station].name
+        station = IMO.df_imos.loc[station].name
         return station
     
     def latitude(station):
@@ -307,7 +321,7 @@ class IMO(object):
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
             
-        return IMO.df_IMOS.loc[station]['Latitude']
+        return IMO.df_imos.loc[station]['Latitude']
     
     def longitude(station):
         
@@ -316,7 +330,7 @@ class IMO(object):
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
             
-        return IMO.df_IMOS.loc[station]['Longitude']
+        return IMO.df_imos.loc[station]['Longitude']
     
     def elevation(station: str):
         
@@ -325,21 +339,26 @@ class IMO(object):
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
         
-        return IMO.df_IMOS.loc[station]['Elevation']
+        return IMO.df_imos.loc[station]['Elevation']
     
     def delete(station: str):
         
         working_directory = project_directory()
         
-        imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
+        imos_directory = pathlib.Path(os.path.join(working_directory,
+                                                   'Data',
+                                                   'Imos informations',
+                                                   'IMOS_INTERMAGNET.txt'
+                                                   )
+                                      )
     
-        IMO.df_IMOS.drop(station)
+        IMO.df_imos.drop(station)
         
-        IMO.df_IMOS.to_csv(imos_directory, sep = '\t')
+        IMO.df_imos.to_csv(imos_directory, sep = '\t')
     
     def check_existence(station):
         station = station.upper()
-        if station not in IMO.df_IMOS.index:
+        if station not in IMO.df_imos.index:
             return False
         else:
             return True
@@ -352,7 +371,12 @@ class IMO(object):
         
         working_directory = project_directory()
         
-        imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
+        imos_directory = pathlib.Path(os.path.join(working_directory,
+                                                   'Data',
+                                                   'Imos informations',
+                                                   'IMOS_INTERMAGNET.txt'
+                                                   )
+                                      )
         
         imo_info = {'Imos': [station],
                     'Latitude': [latitude],
@@ -363,9 +387,9 @@ class IMO(object):
         df_new_imo = pd.DataFrame(imo_info)
         df_new_imo.set_index('Imos', inplace=True)
         
-        IMO.df_IMOS = pd.concat([IMO.df_IMOS, df_new_imo])
+        IMO.df_imos = pd.concat([IMO.df_imos, df_new_imo])
         
-        IMO.df_IMOS.to_csv(imos_directory, sep = '\t')
+        IMO.df_imos.to_csv(imos_directory, sep = '\t')
         
                 
 def check_duplicate_files(station,
@@ -390,14 +414,14 @@ def check_duplicate_files(station,
         
     imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
     
-    df_IMOS = pd.read_csv(imos_directory,
+    df_imos = pd.read_csv(imos_directory,
                           skiprows = 1,
                            sep = '\s+',
                            usecols=[0, 1, 2, 3],
                            names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
                            index_col= ['Imos'])
     if station == None:
-        for station in df_IMOS.index[0:150]:
+        for station in df_imos.index[0:150]:
             for year in year_period.year:
                 directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
                 files = glob.glob(f'{directory}/{station}*')
@@ -417,7 +441,10 @@ def check_duplicate_files(station,
     if station != None:
         for year in year_period.year:
             directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
-            files = glob.glob(f'{directory}/{station}*')
+            files = glob.glob(os.path.join(f'{directory}',
+                                           f'{station}*'
+                                           )
+                              )
             if len(files) > 366:
                 print(f'{len(files)} in {year} for {station.upper()}')
                 for file in files: 
@@ -441,7 +468,7 @@ def update_hourly_database(starttime,
     '''
     
     try:
-        type.upper() in ['IMO','CHAOS']
+        type.upper() in ['IMO', 'CHAOS']
     except ValueError:
         raise ValueError('Type must be IMO or CHAOS')     
     
@@ -450,9 +477,17 @@ def update_hourly_database(starttime,
     
     working_directory = project_directory()
         
-    imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt')) 
+    imos_directory = pathlib.Path(os.path.join(working_directory,
+                                               'Data',
+                                               'Imos informations',
+                                               'IMOS_INTERMAGNET.txt'
+                                               )
+                                  ) 
         
-    df_imos = pd.read_csv(imos_directory, sep = '\s+', index_col = [0])
+    df_imos = pd.read_csv(imos_directory,
+                          sep = '\s+',
+                          index_col = [0]
+                          )
     
     if stations == None:
         stations = df_imos.index

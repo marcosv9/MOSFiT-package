@@ -1,0 +1,1005 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.chaos.CHAOS &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.chaos.load_CHAOS_matfile" href="../functions/chaosmagpy.chaos.load_CHAOS_matfile.html" />
+    <link rel="prev" title="chaosmagpy.chaos.BaseModel" href="chaosmagpy.chaos.BaseModel.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../functions/chaosmagpy.chaos.load_CHAOS_matfile.html" title="chaosmagpy.chaos.load_CHAOS_matfile"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.chaos.BaseModel.html" title="chaosmagpy.chaos.BaseModel"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.chaos.CHAOS</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-chaos-chaos">
+<h1>chaosmagpy.chaos.CHAOS<a class="headerlink" href="#chaosmagpy-chaos-chaos" title="Permalink to this headline">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">chaosmagpy.chaos.</span></span><span class="sig-name descname"><span class="pre">CHAOS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">breaks</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_tdep</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_static</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_sm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_gsm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaks_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaks_euler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_euler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">breaks_cal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coeffs_cal</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.10)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for the time-dependent geomagnetic field model CHAOS.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>breaks</strong><span class="classifier">ndarray, shape (m+1,)</span></dt><dd><p>Break points for piecewise polynomial representation of the
+time-dependent internal (i.e. large-scale core) field in modified
+Julian date format.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, positive</span></dt><dd><p>Order <cite>k</cite> of polynomial pieces (e.g. 4 = cubic) of the time-dependent
+internal field.</p>
+</dd>
+<dt><strong>coeffs_tdep</strong><span class="classifier">ndarray, shape (<cite>k</cite>, <cite>m</cite>, <code class="docutils literal notranslate"><span class="pre">n_tdep</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_tdep</span></code> + 2))</span></dt><dd><p>Coefficients of the time-dependent internal field as piecewise
+polynomial.</p>
+</dd>
+<dt><strong>coeffs_static</strong><span class="classifier">ndarray,  shape (<code class="docutils literal notranslate"><span class="pre">n_static</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_static</span></code> + 2),)</span></dt><dd><p>Coefficients of the static internal (i.e. small-scale crustal) field.</p>
+</dd>
+<dt><strong>coeffs_sm</strong><span class="classifier">ndarray, shape (<code class="docutils literal notranslate"><span class="pre">n_sm</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_sm</span></code> + 2),)</span></dt><dd><p>Coefficients of the static external field in SM coordinates.</p>
+</dd>
+<dt><strong>coeffs_gsm</strong><span class="classifier">ndarray, shape (<code class="docutils literal notranslate"><span class="pre">n_gsm</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_gsm</span></code> + 2),)</span></dt><dd><p>Coefficients of the static external field in GSM coordinates.</p>
+</dd>
+<dt><strong>breaks_delta</strong><span class="classifier">dict with ndarrays, shape (<span class="math notranslate nohighlight">\(m_q\)</span> + 1,)</span></dt><dd><p>Breaks of baseline corrections of static external field in SM
+coordinates. The dictionary keys are <code class="docutils literal notranslate"><span class="pre">'q10'</span></code>, <code class="docutils literal notranslate"><span class="pre">'q11'</span></code>, <code class="docutils literal notranslate"><span class="pre">'s11'</span></code>.</p>
+</dd>
+<dt><strong>coeffs_delta</strong><span class="classifier">dict with ndarrays, shape (1, <span class="math notranslate nohighlight">\(m_q\)</span>)</span></dt><dd><p>Coefficients of baseline corrections of static external field in SM
+coordinates. The dictionary keys are <code class="docutils literal notranslate"><span class="pre">'q10'</span></code>, <code class="docutils literal notranslate"><span class="pre">'q11'</span></code>, <code class="docutils literal notranslate"><span class="pre">'s11'</span></code>.</p>
+</dd>
+<dt><strong>breaks_euler</strong><span class="classifier">dict with ndarrays, shape (<span class="math notranslate nohighlight">\(m_e\)</span> + 1,)</span></dt><dd><p>Dictionary containing satellite name as key and corresponding break
+vectors of Euler angles (keys are <code class="docutils literal notranslate"><span class="pre">'oersted'</span></code>, <code class="docutils literal notranslate"><span class="pre">'champ'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'sac_c'</span></code>, <code class="docutils literal notranslate"><span class="pre">'swarm_a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'swarm_b'</span></code>, <code class="docutils literal notranslate"><span class="pre">'swarm_c'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'cryosat-2_1'</span></code>).</p>
+</dd>
+<dt><strong>coeffs_euler</strong><span class="classifier">dict with ndarrays, shape (1, <span class="math notranslate nohighlight">\(m_e\)</span>, 3)</span></dt><dd><p>Dictionary containing satellite name as key and arrays of the Euler
+angles alpha, beta and gamma as trailing dimension (keys are
+<code class="docutils literal notranslate"><span class="pre">'oersted'</span></code>, <code class="docutils literal notranslate"><span class="pre">'champ'</span></code>, <code class="docutils literal notranslate"><span class="pre">'sac_c'</span></code>, <code class="docutils literal notranslate"><span class="pre">'swarm_a'</span></code>, <code class="docutils literal notranslate"><span class="pre">'swarm_b'</span></code>,
+<code class="docutils literal notranslate"><span class="pre">'swarm_c'</span></code>, <code class="docutils literal notranslate"><span class="pre">'cryosat-2_1'</span></code>).</p>
+</dd>
+<dt><strong>breaks_cal</strong><span class="classifier">dict with ndarrays, shape (<span class="math notranslate nohighlight">\(m_c\)</span> + 1,)</span></dt><dd><p>Dictionary containing satellite name as key and corresponding break
+vectors for the calibration parameters (keys are <code class="docutils literal notranslate"><span class="pre">'cryosat-2_1'</span></code>).</p>
+</dd>
+<dt><strong>coeffs_cal</strong><span class="classifier">dict with ndarrays, shape (1, <span class="math notranslate nohighlight">\(m_c\)</span>, 3)</span></dt><dd><p>Dictionary containing satellite name as key and arrays of the 9 basic
+calibration parameters (3 offsets, 3 sensitivities, 3
+non-orthogonality angles) (keys are <code class="docutils literal notranslate"><span class="pre">'cryosat-2_1'</span></code>).</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">str, optional</span></dt><dd><p>User defined name of the model. Defaults to <code class="docutils literal notranslate"><span class="pre">'CHAOS-&lt;version&gt;'</span></code>,
+where &lt;version&gt; is the version in <code class="docutils literal notranslate"><span class="pre">basicConfig['params.version']</span></code>.</p>
+</dd>
+<dt><strong>meta</strong><span class="classifier">dict, optional</span></dt><dd><p>Dictionary containing additional information about the model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Load for example the mat-file <code class="docutils literal notranslate"><span class="pre">CHAOS-6-x7.mat</span></code> in the current working
+directory like this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more examples, see the documentation of the methods below.</p>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<dt><strong>timestamp</strong><span class="classifier">str</span></dt><dd><p>UTC timestamp at initialization.</p>
+</dd>
+<dt><strong>model_tdep</strong><span class="classifier"><a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel" title="chaosmagpy.chaos.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a> instance</span></dt><dd><p>Time-dependent internal field model.</p>
+</dd>
+<dt><strong>model_static</strong><span class="classifier"><a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel" title="chaosmagpy.chaos.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a> instance</span></dt><dd><p>Static internal field model.</p>
+</dd>
+<dt><strong>model_euler</strong><span class="classifier">dict of <a class="reference internal" href="chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a> instances</span></dt><dd><p>Dictionary containing the satellite’s name as key and the Euler angles
+as <a class="reference internal" href="chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a> class instance.</p>
+</dd>
+<dt><strong>model_cal</strong><span class="classifier">dict of <a class="reference internal" href="chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a> instances</span></dt><dd><p>Dictionary containing the satellite’s name as key and the calibration
+parameters as <a class="reference internal" href="chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">Base</span></code></a> class instance.</p>
+</dd>
+<dt><strong>n_sm</strong><span class="classifier">int, positive</span></dt><dd><p>Maximum spherical harmonic degree of external field in SM coordinates.</p>
+</dd>
+<dt><strong>coeffs_sm</strong><span class="classifier">ndarray, shape (<code class="docutils literal notranslate"><span class="pre">n_sm</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_sm</span></code> + 2),)</span></dt><dd><p>Coefficients of static external field in SM coordinates.</p>
+</dd>
+<dt><strong>n_gsm</strong><span class="classifier">int, positive</span></dt><dd><p>Maximum spherical harmonic degree of external field in GSM coordinates.</p>
+</dd>
+<dt><strong>coeffs_gsm</strong><span class="classifier">ndarray, shape (<code class="docutils literal notranslate"><span class="pre">n_gsm</span></code> * (<code class="docutils literal notranslate"><span class="pre">n_gsm</span></code> + 2),)</span></dt><dd><p>Coefficients of static external field in GSM coordinates.</p>
+</dd>
+<dt><strong>breaks_delta</strong><span class="classifier">dict with ndarrays, shape (<span class="math notranslate nohighlight">\(m_q\)</span> +1,)</span></dt><dd><p>Breaks of baseline corrections of static external field in SM
+coordinates. The dictionary keys are <code class="docutils literal notranslate"><span class="pre">'q10'</span></code>, <code class="docutils literal notranslate"><span class="pre">'q11'</span></code>, <code class="docutils literal notranslate"><span class="pre">'s11'</span></code>.</p>
+</dd>
+<dt><strong>coeffs_delta</strong><span class="classifier">dict with ndarrays, shape (1, <span class="math notranslate nohighlight">\(m_q\)</span>)</span></dt><dd><p>Coefficients of baseline corrections of static external field in SM
+coordinates. The dictionary keys are <code class="docutils literal notranslate"><span class="pre">'q10'</span></code>, <code class="docutils literal notranslate"><span class="pre">'q11'</span></code>, <code class="docutils literal notranslate"><span class="pre">'s11'</span></code>.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">str, optional</span></dt><dd><p>User defined name of the model.</p>
+</dd>
+<dt><strong>meta</strong><span class="classifier">dict, optional</span></dt><dd><p>Dictionary containing additional information about the model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Methods</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.__call__" title="chaosmagpy.chaos.CHAOS.__call__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__call__</span></code></a>(time, radius, theta, phi[, rc_e, …])</p></td>
+<td><p>Calculate the magnetic field of all sources from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.from_mat" title="chaosmagpy.chaos.CHAOS.from_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_mat</span></code></a>(filepath[, name, satellites])</p></td>
+<td><p>Alternative constructor for creating a <a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> class instance.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.from_shc" title="chaosmagpy.chaos.CHAOS.from_shc"><code class="xref py py-obj docutils literal notranslate"><span class="pre">from_shc</span></code></a>(filepath, *[, name, leap_year])</p></td>
+<td><p>Alternative constructor for creating a <a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> class instance.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.plot_maps_external" title="chaosmagpy.chaos.CHAOS.plot_maps_external"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_maps_external</span></code></a>(time, radius, *[, nmax, …])</p></td>
+<td><p>Plot global map of the external field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.plot_maps_static" title="chaosmagpy.chaos.CHAOS.plot_maps_static"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_maps_static</span></code></a>(radius, *[, nmax])</p></td>
+<td><p>Plot global map of the static internal field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.plot_maps_tdep" title="chaosmagpy.chaos.CHAOS.plot_maps_tdep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_maps_tdep</span></code></a>(time, radius, *[, nmax, deriv])</p></td>
+<td><p>Plot global map of the time-dependent internal field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.plot_timeseries_tdep" title="chaosmagpy.chaos.CHAOS.plot_timeseries_tdep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_timeseries_tdep</span></code></a>(radius, theta, phi, …)</p></td>
+<td><p>Plot the time series of the time-dependent internal field from the CHAOS model at a given location.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.save_matfile" title="chaosmagpy.chaos.CHAOS.save_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_matfile</span></code></a>(filepath)</p></td>
+<td><p>Save CHAOS model to a <cite>mat</cite>-file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.save_shcfile" title="chaosmagpy.chaos.CHAOS.save_shcfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_shcfile</span></code></a>(filepath, *[, model, deriv, …])</p></td>
+<td><p>Save spherical harmonic coefficients to a file in <cite>shc</cite>-format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_gsm" title="chaosmagpy.chaos.CHAOS.synth_coeffs_gsm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_coeffs_gsm</span></code></a>(time, *[, nmax, source])</p></td>
+<td><p>Compute the spherical harmonic coefficients of the far-magnetospheric magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_sm" title="chaosmagpy.chaos.CHAOS.synth_coeffs_sm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_coeffs_sm</span></code></a>(time, *[, nmax, source, rc])</p></td>
+<td><p>Compute the spherical harmonic coefficients of the near-magnetospheric magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_static" title="chaosmagpy.chaos.CHAOS.synth_coeffs_static"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_coeffs_static</span></code></a>(*[, nmax])</p></td>
+<td><p>Compute the spherical harmonic coefficients of the static internal magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_tdep" title="chaosmagpy.chaos.CHAOS.synth_coeffs_tdep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_coeffs_tdep</span></code></a>(time, *[, nmax])</p></td>
+<td><p>Compute the spherical harmonic coefficients of the time-dependent internal magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_euler_angles" title="chaosmagpy.chaos.CHAOS.synth_euler_angles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_euler_angles</span></code></a>(time, satellite, *[, …])</p></td>
+<td><p>Extract Euler angles for specified satellite.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_values_gsm" title="chaosmagpy.chaos.CHAOS.synth_values_gsm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_values_gsm</span></code></a>(time, radius, theta, phi, *)</p></td>
+<td><p>Compute the vector components of the far-magnetospheric magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_values_sm" title="chaosmagpy.chaos.CHAOS.synth_values_sm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_values_sm</span></code></a>(time, radius, theta, phi, *)</p></td>
+<td><p>Compute the vector components of the near-magnetospheric magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_values_static" title="chaosmagpy.chaos.CHAOS.synth_values_static"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_values_static</span></code></a>(radius, theta, phi, *[, …])</p></td>
+<td><p>Compute the vector components of the static internal magnetic field from the CHAOS model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#chaosmagpy.chaos.CHAOS.synth_values_tdep" title="chaosmagpy.chaos.CHAOS.synth_values_tdep"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_values_tdep</span></code></a>(time, radius, theta, phi, *)</p></td>
+<td><p>Compute the vector components of the time-dependent internal magnetic field from the CHAOS model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc_e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc_i</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax_static</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.__call__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the magnetic field of all sources from the CHAOS model.</p>
+<p>All sources means the time-dependent and static internal fields, and
+the external magnetospheric (SM/GSM) fields including their
+induced parts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Array containing the time in modified Julian dates.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Radius of station in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Colatitude in degrees <span class="math notranslate nohighlight">\([0^\circ, 180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Longitude in degrees.</p>
+</dd>
+<dt><strong>rc_e</strong><span class="classifier">ndarray, shape (…), optional</span></dt><dd><p>External part of the RC-index (defaults to linearly interpolating
+the hourly values given by the built-in RC-index file).</p>
+</dd>
+<dt><strong>rc_i</strong><span class="classifier">ndarray, shape (…), optional</span></dt><dd><p>Internal part of the RC-index (defaults to linearly interpolating
+the hourly values given by the built-in RC-index file).</p>
+</dd>
+<dt><strong>source_list</strong><span class="classifier">list, [‘tdep’, ‘static’, ‘gsm’, ‘sm’] or str, {‘internal’, ‘external’}</span></dt><dd><p>Specify sources in any order. Default is all sources. Instead of a
+list, pass <code class="docutils literal notranslate"><span class="pre">source_list='internal'</span></code> which is equivalent to
+<code class="docutils literal notranslate"><span class="pre">source_list=['tdep',</span> <span class="pre">'static']</span></code> (internal sources) or
+<code class="docutils literal notranslate"><span class="pre">source_list='external'</span></code> which is the same as
+<code class="docutils literal notranslate"><span class="pre">source_list=['gsm',</span> <span class="pre">'sm']</span></code> (external sources including induced
+part).</p>
+</dd>
+<dt><strong>nmax_static</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum spherical harmonic degree of the static internal magnetic
+field (defaults to 85).</p>
+</dd>
+<dt><strong>verbose</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>Print messages (defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">source_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;tdep&#39;</span><span class="p">,</span> <span class="s1">&#39;static&#39;</span><span class="p">])</span>  <span class="c1"># only internal sources</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array(-40418.23217586)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.from_mat">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">satellites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.from_mat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.from_mat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternative constructor for creating a <a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> class instance.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to mat-file containing the CHAOS model.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">str, optional</span></dt><dd><p>User defined name of the model. Defaults to the filename without
+the file extension.</p>
+</dd>
+<dt><strong>satellites</strong><span class="classifier">list of strings, optional</span></dt><dd><p>List of satellite names whose Euler angles are stored in the
+mat-file. This is needed for correct referencing as this
+information is not given in the standard CHAOS mat-file format
+(defaults to <code class="docutils literal notranslate"><span class="pre">['oersted',</span> <span class="pre">'champ',</span> <span class="pre">'sac_c',</span> <span class="pre">'swarm_a',</span> <span class="pre">'swarm_b',</span>
+<span class="pre">'swarm_c',</span> <span class="pre">'cryosat-2_1',</span> <span class="pre">'cryosat-2_2',</span> <span class="pre">'cryosat-2_3']</span></code>.)</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>model</strong><span class="classifier"><a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> instance</span></dt><dd><p>Fully initialized model.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="../functions/chaosmagpy.chaos.load_CHAOS_matfile.html#chaosmagpy.chaos.load_CHAOS_matfile" title="chaosmagpy.chaos.load_CHAOS_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CHAOS_matfile</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<p>Load for example the mat-file <code class="docutils literal notranslate"><span class="pre">CHAOS-6-x7.mat</span></code> in the current working
+directory like this:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">chaosmagpy</span> <span class="kn">import</span> <span class="n">CHAOS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.from_shc">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">from_shc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leap_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.from_shc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.from_shc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alternative constructor for creating a <a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> class instance.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path to shc-file.</p>
+</dd>
+<dt><strong>name</strong><span class="classifier">str, optional</span></dt><dd><p>User defined name of the model. Defaults to <code class="docutils literal notranslate"><span class="pre">'CHAOS-&lt;version&gt;'</span></code>,
+where &lt;version&gt; is the default in
+<code class="docutils literal notranslate"><span class="pre">basicConfig['params.version']</span></code>.</p>
+</dd>
+<dt><strong>leap_year</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>Take leap year in time conversion into account. By default set to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, so that a conversion factor of 365.25 days per year is
+used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>model</strong><span class="classifier"><a class="reference internal" href="#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">CHAOS</span></code></a> instance</span></dt><dd><p>Class instance with either the time-dependent or static internal
+part initialized.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="../functions/chaosmagpy.chaos.load_CHAOS_shcfile.html#chaosmagpy.chaos.load_CHAOS_shcfile" title="chaosmagpy.chaos.load_CHAOS_shcfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CHAOS_shcfile</span></code></a></dt><dd></dd>
+</dl>
+</div>
+<p class="rubric">Examples</p>
+<p>Load for example the shc-file <code class="docutils literal notranslate"><span class="pre">CHAOS-6-x7_tdep.shc</span></code> in the current
+working directory, containing the coefficients of time-dependent
+internal part of the CHAOS-6-x7 model.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_shc</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7_tdep.shc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.plot_maps_external">
+<span class="sig-name descname"><span class="pre">plot_maps_external</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reference</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.plot_maps_external"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.plot_maps_external" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot global map of the external field from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Time given as MJD2000 (modified Julian date).</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Radius in kilometers.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>reference</strong><span class="classifier">{‘all’, ‘GSM’, ‘SM’}, optional</span></dt><dd><p>Choose contribution either from GSM, SM or both added
+(default is ‘all’).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘all’, ‘external’, ‘internal’}, optional</span></dt><dd><p>Choose source to be external (inducing), internal (induced) or
+both added (default is ‘all’).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>B_radius, B_theta, B_phi</dt><dd><p>Global map of the radial, colatitude and azimuthal field
+components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.plot_maps_static">
+<span class="sig-name descname"><span class="pre">plot_maps_static</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.plot_maps_static"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.plot_maps_static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot global map of the static internal field from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Array containing the radius in kilometers.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options are passed to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.plot_maps" title="chaosmagpy.chaos.BaseModel.plot_maps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.plot_maps()</span></code></a>
+method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>B_radius, B_theta, B_phi</dt><dd><p>Global map of the radial, colatitude and azimuthal field
+components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.plot_maps_tdep">
+<span class="sig-name descname"><span class="pre">plot_maps_tdep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.plot_maps_tdep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.plot_maps_tdep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot global map of the time-dependent internal field from the CHAOS
+model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Time given as MJD2000 (modified Julian date).</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Array containing the radius in kilometers.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>deriv</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Derivative in time (default is 0). For secular variation, choose
+<code class="docutils literal notranslate"><span class="pre">deriv=1</span></code>.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options are passed to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.plot_maps" title="chaosmagpy.chaos.BaseModel.plot_maps"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.plot_maps()</span></code></a> method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>B_radius, B_theta, B_phi</dt><dd><p>Global map of the radial, colatitude and azimuthal field
+components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.plot_timeseries_tdep">
+<span class="sig-name descname"><span class="pre">plot_timeseries_tdep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.plot_timeseries_tdep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.plot_timeseries_tdep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the time series of the time-dependent internal field from the
+CHAOS model at a given location.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Radius of station in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Colatitude in degrees <span class="math notranslate nohighlight">\([0^\circ, 180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">ndarray, shape (), (1,) or float</span></dt><dd><p>Longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>deriv</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Derivative in time (default is 0). For secular variation, choose
+<code class="docutils literal notranslate"><span class="pre">deriv=1</span></code>.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options to pass to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.plot_timeseries" title="chaosmagpy.chaos.BaseModel.plot_timeseries"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.plot_timeseries()</span></code></a>
+method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>B_radius, B_theta, B_phi</dt><dd><p>Time series plot of the radial, colatitude and azimuthal field
+components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.save_matfile">
+<span class="sig-name descname"><span class="pre">save_matfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.save_matfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.save_matfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save CHAOS model to a <cite>mat</cite>-file.</p>
+<p>The model must be fully specified as is the case if originally loaded
+from a <cite>mat</cite>-file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path and name of <cite>mat</cite>-file that is to be saved.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.save_shcfile">
+<span class="sig-name descname"><span class="pre">save_shcfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">leap_year</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.save_shcfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.save_shcfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save spherical harmonic coefficients to a file in <cite>shc</cite>-format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Path and name of output file <cite>*.shc</cite>.</p>
+</dd>
+<dt><strong>model</strong><span class="classifier">{‘tdep’, ‘static’}, optional</span></dt><dd><p>Choose part of the model to save (default is ‘tdep’).</p>
+</dd>
+<dt><strong>deriv</strong><span class="classifier">int, optional</span></dt><dd><p>Derivative of the time-dependent field (default is 0, ignored for
+static source).</p>
+</dd>
+<dt><strong>leap_year</strong><span class="classifier">{False, True}, optional</span></dt><dd><p>Take leap year in time conversion into account. By default set to
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, so that a conversion factor of 365.25 days per year is
+used.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_coeffs_gsm">
+<span class="sig-name descname"><span class="pre">synth_coeffs_gsm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_coeffs_gsm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_gsm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spherical harmonic coefficients of the far-magnetospheric
+magnetic field from the CHAOS model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Array containing the time in days.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘external’, ‘internal’}, optional</span></dt><dd><p>Choose source either external or internal (default is ‘external’).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (…, <code class="docutils literal notranslate"><span class="pre">nmax</span></code> * (<code class="docutils literal notranslate"><span class="pre">nmax</span></code> + 2))</span></dt><dd><p>Coefficients of the external GSM field in term of geographic
+coordinates (GEO).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_coeffs_gsm</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="go">array([11.63982782, -4.9276483 , -2.36281582,  0.46063709, -0.37934517,</span>
+<span class="go">       -0.18234297,  0.06281656,  0.07757099])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_coeffs_sm">
+<span class="sig-name descname"><span class="pre">synth_coeffs_sm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_coeffs_sm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_sm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spherical harmonic coefficients of the near-magnetospheric
+magnetic field from the CHAOS model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>time</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Array containing the time in days.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘external’, ‘internal’}, optional</span></dt><dd><p>Choose source either external or internal (default is ‘external’).</p>
+</dd>
+<dt><strong>rc</strong><span class="classifier">ndarray, shape (…), optional</span></dt><dd><p>External (internal) part of the RC-index (defaults to linearly
+interpolating the hourly values given by the built-in RC-index
+file).</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Use the external part of the RC-index for <code class="docutils literal notranslate"><span class="pre">source='external'</span></code>
+(default) and the internal part for <code class="docutils literal notranslate"><span class="pre">source='internal'</span></code>.</p>
+</div>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (…, <code class="docutils literal notranslate"><span class="pre">nmax</span></code> * (<code class="docutils literal notranslate"><span class="pre">nmax</span></code> + 2))</span></dt><dd><p>Coefficients of the external SM field coefficients in terms of
+geographic coordinates (GEO).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_coeffs_sm</span><span class="p">(</span><span class="mf">0.</span><span class="p">)</span>
+<span class="go">array([53.20309271,  3.79138724, -8.59458138, -0.62818711,  1.45506171,</span>
+<span class="go">       -0.57977672, -0.31660638, -0.43888236])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_coeffs_static">
+<span class="sig-name descname"><span class="pre">synth_coeffs_static</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_coeffs_static"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spherical harmonic coefficients of the static internal
+magnetic field from the CHAOS model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options are passed to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.synth_coeffs" title="chaosmagpy.chaos.BaseModel.synth_coeffs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.synth_coeffs()</span></code></a>
+method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (<code class="docutils literal notranslate"><span class="pre">nmax</span></code> * (<code class="docutils literal notranslate"><span class="pre">nmax</span></code> + 2),)</span></dt><dd><p>Coefficients of the static internal field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_coeffs_static</span><span class="p">(</span><span class="n">nmax</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="go">array([ 0.     , 0.     ,  0.     , ...,  0.01655, -0.06339,  0.00715])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_coeffs_tdep">
+<span class="sig-name descname"><span class="pre">synth_coeffs_tdep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_coeffs_tdep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_coeffs_tdep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spherical harmonic coefficients of the time-dependent
+internal magnetic field from the CHAOS model.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Array containing the time in modified Julian dates.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options to pass to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.synth_coeffs" title="chaosmagpy.chaos.BaseModel.synth_coeffs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.synth_coeffs()</span></code></a>
+method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (…, <code class="docutils literal notranslate"><span class="pre">nmax</span></code> * (<code class="docutils literal notranslate"><span class="pre">nmax</span></code> + 2))</span></dt><dd><p>Coefficients of the time-dependent internal field.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_coeffs_tdep</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">nmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># dipole coefficients</span>
+<span class="go">array([[-29614.72797782,  -1728.47079907,   5185.50518939],</span>
+<span class="go">       [-29614.33800306,  -1728.13680075,   5184.89196286]])</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_coeffs_tdep</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">nmax</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># SV coefficients</span>
+<span class="go">array([[ 14.25577646,  12.20214856, -22.43412895],</span>
+<span class="go">       [ 14.2317297 ,  12.19625726, -22.36146885]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_euler_angles">
+<span class="sig-name descname"><span class="pre">synth_euler_angles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">satellite</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dim</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrapolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_euler_angles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_euler_angles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract Euler angles for specified satellite.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Time given as MJD2000 (modified Julian date).</p>
+</dd>
+<dt><strong>satellite</strong><span class="classifier">str</span></dt><dd><p>Satellite from which to get the euler angles.</p>
+</dd>
+<dt><strong>dim</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum dimension (default is 3, for the three angles alpha, beta,
+gamma).</p>
+</dd>
+<dt><strong>deriv</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Derivative in time (default is 0).</p>
+</dd>
+<dt><strong>extrapolate</strong><span class="classifier">{‘linear’, ‘spline’, ‘constant’, ‘off’}, optional</span></dt><dd><p>Extrapolate to times outside of the model bounds. Defaults to
+<code class="docutils literal notranslate"><span class="pre">'linear'</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>angles</strong><span class="classifier">ndarray, shape (…, 3)</span></dt><dd><p>Euler angles alpha, beta and gamma in degrees, stored in trailing
+dimension.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">500.</span><span class="p">,</span> <span class="mf">600.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="p">[</span><span class="s1">&#39;satellites&#39;</span><span class="p">]</span>  <span class="c1"># check satellite names</span>
+<span class="go">(&#39;oersted&#39;, &#39;champ&#39;, &#39;sac_c&#39;, &#39;swarm_a&#39;, &#39;swarm_b&#39;, &#39;swarm_c&#39;)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">synth_euler_angles</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="s1">&#39;champ&#39;</span><span class="p">)</span>
+<span class="go">array([[-0.05521985, -1.5763316 ,  0.48787601],</span>
+<span class="go">       [-0.05440427, -1.57966925,  0.49043057]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_values_gsm">
+<span class="sig-name descname"><span class="pre">synth_values_gsm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_values_gsm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_values_gsm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the vector components of the far-magnetospheric magnetic
+field from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Time given as MJD2000 (modified Julian date).</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the radius in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the colatitude in degrees
+<span class="math notranslate nohighlight">\([0^\circ,180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘all’, ‘external’, ‘internal’}, optional</span></dt><dd><p>Choose source to be external (inducing), internal (induced) or
+both added (default to ‘all’).</p>
+</dd>
+<dt><strong>grid</strong><span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, field components are computed on a regular grid,
+which is created from <code class="docutils literal notranslate"><span class="pre">theta</span></code> and <code class="docutils literal notranslate"><span class="pre">phi</span></code> as their outer product
+(defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_gsm</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array([-8.18751916, -8.25661729])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_values_sm">
+<span class="sig-name descname"><span class="pre">synth_values_sm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc_e</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rc_i</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_values_sm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_values_sm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the vector components of the near-magnetospheric magnetic
+field from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Time given as MJD2000 (modified Julian date).</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the radius in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the colatitude in degrees
+<span class="math notranslate nohighlight">\([0^\circ,180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">float or ndarray, shape (…)</span></dt><dd><p>Array containing the longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘all’, ‘external’, ‘internal’}, optional</span></dt><dd><p>Choose source to be external (inducing), internal (induced) or
+both added (default to ‘all’).</p>
+</dd>
+<dt><strong>grid</strong><span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, field components are computed on a regular grid,
+which is created from <code class="docutils literal notranslate"><span class="pre">theta</span></code> and <code class="docutils literal notranslate"><span class="pre">phi</span></code> as their outer product
+(defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>).</p>
+</dd>
+<dt><strong>rc_e</strong><span class="classifier">ndarray, shape (…), optional</span></dt><dd><p>External part of the RC-index (defaults to linearly interpolating
+the hourly values given by the built-in RC-index file).</p>
+</dd>
+<dt><strong>rc_i</strong><span class="classifier">ndarray, shape (…), optional</span></dt><dd><p>Internal part of the RC-index (defaults to linearly interpolating
+the hourly values given by the built-in RC-index file).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_sm</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array([-18.85890361, -13.99893523])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_values_static">
+<span class="sig-name descname"><span class="pre">synth_values_static</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_values_static"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_values_static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the vector components of the static internal magnetic field
+from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Radius of station in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Colatitude in degrees <span class="math notranslate nohighlight">\([0^\circ, 180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Other options are passed to <a class="reference internal" href="chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel.synth_values" title="chaosmagpy.chaos.BaseModel.synth_values"><code class="xref py py-meth docutils literal notranslate"><span class="pre">BaseModel.synth_values()</span></code></a>
+method.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_static</span><span class="p">(</span><span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">nmax</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array(-7.5608993)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="chaosmagpy.chaos.CHAOS.synth_values_tdep">
+<span class="sig-name descname"><span class="pre">synth_values_tdep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">deriv</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grid</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extrapolate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/chaos.html#CHAOS.synth_values_tdep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.chaos.CHAOS.synth_values_tdep" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the vector components of the time-dependent internal
+magnetic field from the CHAOS model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>time</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Array containing the time in modified Julian dates.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Radius of station in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Colatitude in degrees <span class="math notranslate nohighlight">\([0^\circ, 180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">ndarray, shape (…) or float</span></dt><dd><p>Longitude in degrees.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree harmonic expansion (default is given by the model
+coefficients, but can also be smaller, if specified).</p>
+</dd>
+<dt><strong>deriv</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Derivative in time (None defaults to 0). For secular variation,
+choose <code class="docutils literal notranslate"><span class="pre">deriv=1</span></code>.</p>
+</dd>
+<dt><strong>grid</strong><span class="classifier">bool, optional</span></dt><dd><p>If <code class="docutils literal notranslate"><span class="pre">True</span></code>, field components are computed on a regular grid.
+Arrays <code class="docutils literal notranslate"><span class="pre">theta</span></code> and <code class="docutils literal notranslate"><span class="pre">phi</span></code> must have one dimension less than the
+output grid since the grid will be created as their outer product.</p>
+</dd>
+<dt><strong>extrapolate</strong><span class="classifier">{‘linear’, ‘quadratic’, ‘cubic’, ‘spline’, ‘constant’, ‘off’} or int, optional</span></dt><dd><p>Extrapolate to times outside of the model bounds. Specify
+polynomial degree as string or any order as integer. Defaults to
+<code class="docutils literal notranslate"><span class="pre">'linear'</span></code> (equiv. to order 2 polynomials).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>B_radius, B_theta, B_phi</strong><span class="classifier">ndarray, shape (…)</span></dt><dd><p>Radial, colatitude and azimuthal field components.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">CHAOS</span><span class="o">.</span><span class="n">from_mat</span><span class="p">(</span><span class="s1">&#39;CHAOS-6-x7.mat&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">10.</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Compute magnetic field components at specific location.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_tdep</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array([-40422.44815265, -40423.15091334])</span>
+</pre></div>
+</div>
+<p>Only dipole contribution:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_tdep</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">nmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array([-44325.97679843, -44324.95294588])</span>
+</pre></div>
+</div>
+<p>Secular variation:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span><span class="p">,</span> <span class="n">Bt</span><span class="p">,</span> <span class="n">Bp</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">synth_values_tdep</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">6371.2</span><span class="p">,</span> <span class="mf">45.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Br</span>
+<span class="go">array([-25.64604374, -25.69002078])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.chaos.BaseModel.html"
+                        title="previous chapter">chaosmagpy.chaos.BaseModel</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="../functions/chaosmagpy.chaos.load_CHAOS_matfile.html"
+                        title="next chapter">chaosmagpy.chaos.load_CHAOS_matfile</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/classes/chaosmagpy.chaos.CHAOS.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../functions/chaosmagpy.chaos.load_CHAOS_matfile.html" title="chaosmagpy.chaos.load_CHAOS_matfile"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.chaos.BaseModel.html" title="chaosmagpy.chaos.BaseModel"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.chaos.CHAOS</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

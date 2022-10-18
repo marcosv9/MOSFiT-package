@@ -79,11 +79,11 @@ def load_intermagnet_files(station: str,
     
     files_station = []
     
-    if files_path != None:
-        if files_path[-1] == '/':
-            pass
-        else:
-            files_path = f'{files_path}/'  
+    #if files_path != None:
+    #    if files_path[-1] == '/':
+    #        pass
+    #    else:
+    #        files_path = f'{files_path}/'  
    
     #starting reading files
     
@@ -100,10 +100,13 @@ def load_intermagnet_files(station: str,
 
             files_station.sort()
     else:
-        files_station.extend(glob.glob(f'{files_path}{station.lower()}*'))
+        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+                                                    f'{station.lower()}*'
+                                                    )
+                                       )
+                             )
 
-        files_station.sort()
-    
+        files_station.sort()   
     #detecting the correct number of skiprows for each file
     
     skip_values = spf.skiprows_detection(files_station)    
@@ -882,7 +885,7 @@ def sv_obs(station: str,
 
         elif inp3 == 'n':
 
-            print('No plots saved')
+            print('No plots saved!')
             
             #plot minute mean
             
@@ -1210,10 +1213,10 @@ def sv_obs(station: str,
                                               starttime = starttime, 
                                               endtime = endtime,
                                               df_station = df_station_jerk_detection,
-                                              df_CHAOS = df_chaos,
+                                              df_chaos = df_chaos,
                                               plot_detection = True,
                                               CHAOS_correction = True,
-                                              plot_CHAOS_prediction = True,
+                                              plot_chaos_prediction = True,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
                                               )
@@ -1225,10 +1228,10 @@ def sv_obs(station: str,
                                               starttime = starttime, 
                                               endtime = endtime,
                                               df_station = df_station,
-                                              df_CHAOS = None,
+                                              df_chaos = None,
                                               plot_detection = True,
-                                              CHAOS_correction = False,
-                                              plot_CHAOS_prediction = False,
+                                              chaos_correction = False,
+                                              plot_chaos_prediction = False,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
                                               )

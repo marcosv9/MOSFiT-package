@@ -1,0 +1,386 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chaosmagpy.config_utils &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.config_utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for chaosmagpy.config_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Parameters and options in ChaosMagPy are stored in a dictionary and can be</span>
+<span class="sd">modified as desired. The following list gives an overview of the possible</span>
+<span class="sd">keywords. The keywords can be accessed after importing chaosmagpy through:</span>
+
+<span class="sd">&gt;&gt;&gt; import chaosmagpy as cp</span>
+<span class="sd">&gt;&gt;&gt; cp.basicConfig[&#39;params.r_surf&#39;]  # get Earth&#39;s mean radius in km</span>
+<span class="sd">    6371.2</span>
+
+<span class="sd">**Parameters**</span>
+
+<span class="sd"> ======================  =============  =======================================</span>
+<span class="sd"> Value                   Type           Description</span>
+<span class="sd"> ======================  =============  =======================================</span>
+<span class="sd"> &#39;params.r_surf&#39;         `float`        Reference radius in kilometers</span>
+<span class="sd">                                        (defaults to Earth&#39;s surface radius of</span>
+<span class="sd">                                        6371.2 km).</span>
+<span class="sd"> &#39;params.r_cmb&#39;          `float`        Core-mantle boundary radius in</span>
+<span class="sd">                                        kilometers (defaults to 3485.0 km).</span>
+<span class="sd"> &#39;params.dipole&#39;         `list`,        Coefficients of the dipole (used for</span>
+<span class="sd">                         `ndarray`,     GSM/SM coordinate transformations) in</span>
+<span class="sd">                         `shape (3,)`   units of nanotesla.</span>
+<span class="sd"> &#39;params.ellipsoid&#39;      `list`,        Equatorial (index 0) and polar radius</span>
+<span class="sd">                         `ndarray`      (index 1) of the spheroid describing</span>
+<span class="sd">                         `shape (2,)`   Earth (WGS84) in units of kilometers.</span>
+<span class="sd"> &#39;params.CHAOS_version&#39;  `str`          Current version of the CHAOS model,</span>
+<span class="sd">                                        e.g. ``&#39;7.1&#39;``.</span>
+<span class="sd"> &#39;params.cdf_to_mjd&#39;     `int`          Number of days on Jan 01, 2000 since</span>
+<span class="sd">                                        Jan 01, 0000 (CDF start epoch)</span>
+<span class="sd"> ======================  =============  =======================================</span>
+
+<span class="sd">**Files**</span>
+
+<span class="sd"> ==========================  ===========  =====================================</span>
+<span class="sd"> Value                       Type         Description</span>
+<span class="sd"> ==========================  ===========  =====================================</span>
+<span class="sd"> &#39;files.RC_index&#39;            `h5-file`,   RC-index file (used for external</span>
+<span class="sd">                             `txt-file`   field computation). See also</span>
+<span class="sd">                                          :func:`data_utils.save_RC_h5file`.</span>
+<span class="sd"> &#39;files.GSM_spectrum&#39;        `npz-file`   GSM transformation coefficients. See</span>
+<span class="sd">                                          also :func:`coordinate_utils.\\</span>
+<span class="sd">                                          rotate_gauss_fft`.</span>
+<span class="sd"> &#39;files.SM_spectrum&#39;         `npz-file`   SM transformation coefficients. See</span>
+<span class="sd">                                          also :func:`coordinate_utils.\\</span>
+<span class="sd">                                          rotate_gauss_fft`.</span>
+<span class="sd"> &#39;files.Earth_conductivity&#39;  `txt-file`   Conductivity model of a layered Earth</span>
+<span class="sd">                                          (used for induced fields).</span>
+<span class="sd"> ==========================  ===========  =====================================</span>
+
+<span class="sd">**Plots**</span>
+
+<span class="sd"> ==========================  ===========  =====================================</span>
+<span class="sd"> Value                       Type         Description</span>
+<span class="sd"> ==========================  ===========  =====================================</span>
+<span class="sd"> &#39;plots.figure_width&#39;        `float`      Plot width in inches (defaults to 6.3</span>
+<span class="sd">                                          or equiv. 16cm)</span>
+<span class="sd"> ==========================  ===========  =====================================</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">    :toctree: classes</span>
+<span class="sd">    :template: myclass.rst</span>
+
+<span class="sd">    BasicConfig</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">contextmanager</span>
+
+<span class="n">ROOT</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+<span class="n">LIB</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ROOT</span><span class="p">,</span> <span class="s1">&#39;lib&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># copied/inspired by matplotlib.rcsetup</span>
+<span class="k">def</span> <span class="nf">check_path_exists</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check that path to file exists.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">s</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">s</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> does not exist.&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_float</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert to float.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not convert </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> to float.&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_int</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert to integer.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not convert </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> to integer.&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_string</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert to string.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Could not convert </span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1"> to string.&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_vector</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">len</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check that input is vector of required length.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">s</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">len</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Wrong length: </span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s1"> != </span><span class="si">{</span><span class="nb">len</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Not a valid vector. </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">check_version_string</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check correct format of version string.&quot;&quot;&quot;</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">check_string</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;\d+\.\d+&#39;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Not supported version format &quot;</span><span class="si">{</span><span class="n">s</span><span class="si">}</span><span class="s1">&quot;.&#39;</span>
+                         <span class="s1">&#39;Must be of the form &quot;x.x&quot; with x an integer.&#39;</span><span class="p">)</span>
+
+
+<span class="n">DEFAULTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;params.r_surf&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">6371.2</span><span class="p">,</span> <span class="n">check_float</span><span class="p">],</span>
+    <span class="s1">&#39;params.r_cmb&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">3485.0</span><span class="p">,</span> <span class="n">check_float</span><span class="p">],</span>
+    <span class="s1">&#39;params.dipole&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">29442.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1501.0</span><span class="p">,</span> <span class="mf">4797.1</span><span class="p">]),</span>
+                      <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">check_vector</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">len</span><span class="o">=</span><span class="mi">3</span><span class="p">)],</span>
+    <span class="s1">&#39;params.ellipsoid&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">6378.137</span><span class="p">,</span> <span class="mf">6356.752</span><span class="p">]),</span>
+                         <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">check_vector</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">len</span><span class="o">=</span><span class="mi">2</span><span class="p">)],</span>
+    <span class="s1">&#39;params.CHAOS_version&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;7.11&#39;</span><span class="p">,</span> <span class="n">check_version_string</span><span class="p">],</span>
+    <span class="s1">&#39;params.cdf_to_mjd&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">730485</span><span class="p">,</span> <span class="n">check_int</span><span class="p">],</span>
+
+    <span class="c1"># location of coefficient files</span>
+    <span class="s1">&#39;file.RC_index&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIB</span><span class="p">,</span> <span class="s1">&#39;RC_index.h5&#39;</span><span class="p">),</span>
+                      <span class="n">check_path_exists</span><span class="p">],</span>
+    <span class="s1">&#39;file.GSM_spectrum&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIB</span><span class="p">,</span> <span class="s1">&#39;frequency_spectrum_gsm.npz&#39;</span><span class="p">),</span>
+                          <span class="n">check_path_exists</span><span class="p">],</span>
+    <span class="s1">&#39;file.SM_spectrum&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIB</span><span class="p">,</span> <span class="s1">&#39;frequency_spectrum_sm.npz&#39;</span><span class="p">),</span>
+                         <span class="n">check_path_exists</span><span class="p">],</span>
+    <span class="s1">&#39;file.Earth_conductivity&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">LIB</span><span class="p">,</span> <span class="s1">&#39;Earth_conductivity.dat&#39;</span><span class="p">),</span>
+                                <span class="n">check_path_exists</span><span class="p">],</span>
+
+    <span class="c1"># plot related configuration</span>
+    <span class="s1">&#39;plots.figure_width&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">6.3</span><span class="p">,</span> <span class="n">check_float</span><span class="p">],</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="BasicConfig"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig">[docs]</a><span class="k">class</span> <span class="nc">BasicConfig</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for creating CHAOS configuration dictionary.&quot;&quot;&quot;</span>
+
+    <span class="n">defaults</span> <span class="o">=</span> <span class="n">DEFAULTS</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set and check value before updating dictionary.&quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">cval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">1</span><span class="p">](</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Key &quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot;: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">cval</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot; is not a valid parameter.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0[0]}</span><span class="s1">: </span><span class="si">{0[1]}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">items</span><span class="p">())))</span>
+
+<div class="viewcode-block" id="BasicConfig.reset"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load default values.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            Single keyword that is reset to the default.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="BasicConfig.fullreset"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig.fullreset">[docs]</a>    <span class="k">def</span> <span class="nf">fullreset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load all default values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">defaults</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span></div>
+
+<div class="viewcode-block" id="BasicConfig.load"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load configuration dictionary from file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath : str</span>
+<span class="sd">            Filepath and name to json-formatted configuration txt-file.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s1">&#39;Configuration dictionary loaded from file is empty.&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># check format and set key value pairs</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicConfig.save"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save configuration dictionary to a file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath : str</span>
+<span class="sd">            Filepath and name of the textfile that will be saved with the</span>
+<span class="sd">            configuration values.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">sort_keys</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Saved configuration textfile to </span><span class="si">{</span><span class="n">filepath</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicConfig.context"><a class="viewcode-back" href="../../classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig.context">[docs]</a>    <span class="nd">@contextmanager</span>
+    <span class="k">def</span> <span class="nf">context</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use context manager to temporarily change setting.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">            BasicConfig configuration key.</span>
+<span class="sd">        value</span>
+<span class="sd">            Value compatible with ``key``.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        Temporarily change the radius of Earth&#39;s surface for a computation</span>
+<span class="sd">        and then change it back to the original value.</span>
+
+<span class="sd">        .. code-block:: python</span>
+
+<span class="sd">          from chaosmagpy import basicConfig</span>
+
+<span class="sd">          print(&#39;Before: &#39;, basicConfig[&#39;params.r_surf&#39;])</span>
+
+<span class="sd">          # change Earth&#39;s radius to 10 km</span>
+<span class="sd">          with basicConfig.context(&#39;params.r_surf&#39;, 10):</span>
+<span class="sd">              # do something at r_surf = 10 km ...</span>
+<span class="sd">              print(&#39;Inside: &#39;, basicConfig[&#39;params.r_surf&#39;])</span>
+
+<span class="sd">          print(&#39;After: &#39;, basicConfig[&#39;params.r_surf&#39;])</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">old_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+        <span class="k">yield</span>
+        <span class="bp">self</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">old_value</span><span class="p">)</span></div></div>
+
+
+<span class="c1"># load defaults</span>
+<span class="n">basicConfig</span> <span class="o">=</span> <span class="n">BasicConfig</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">val</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="ow">in</span> <span class="n">DEFAULTS</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c1"># ensure default passes tests</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">test</span><span class="p">)</span> <span class="ow">in</span> <span class="n">DEFAULTS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">test</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="n">value</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">test</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.config_utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

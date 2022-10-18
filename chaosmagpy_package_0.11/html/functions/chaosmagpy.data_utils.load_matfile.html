@@ -1,0 +1,160 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.data_utils.load_matfile &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.data_utils.load_RC_datfile" href="chaosmagpy.data_utils.load_RC_datfile.html" />
+    <link rel="prev" title="chaosmagpy.plot_utils.nio_colormap" href="chaosmagpy.plot_utils.nio_colormap.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.data_utils.load_RC_datfile.html" title="chaosmagpy.data_utils.load_RC_datfile"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.nio_colormap.html" title="chaosmagpy.plot_utils.nio_colormap"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.data_utils.load_matfile</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-data-utils-load-matfile">
+<h1>chaosmagpy.data_utils.load_matfile<a class="headerlink" href="#chaosmagpy-data-utils-load-matfile" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chaosmagpy.data_utils.load_matfile">
+<span class="sig-prename descclassname"><span class="pre">chaosmagpy.data_utils.</span></span><span class="sig-name descname"><span class="pre">load_matfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_names</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/data_utils.html#load_matfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.data_utils.load_matfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load mat-file and return dictionary.</p>
+<p>Function loads mat-file by traversing the structure converting data into
+low-level numpy arrays of different types. There is no guarantee that any
+kind of data is read in correctly. The data dtype can also vary depending
+on the mat-file (v7.3 returns floats instead of integers). But it should
+work identically for v7.3 and prior mat-files. Arrays are squeezed if
+possible. Relies on the <code class="xref py py-mod docutils literal notranslate"><span class="pre">hdf5storage</span></code> package.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>filepath</strong><span class="classifier">str</span></dt><dd><p>Filepath and name of mat-file.</p>
+</dd>
+<dt><strong>variable_names</strong><span class="classifier">list of strings</span></dt><dd><p>Top-level variables to be loaded.</p>
+</dd>
+<dt><strong>**kwargs</strong><span class="classifier">keywords</span></dt><dd><p>Additional keyword arguments are passed to <code class="xref py py-func docutils literal notranslate"><span class="pre">hdf5storage.loadmat()</span></code>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>data</strong><span class="classifier">dict</span></dt><dd><p>Dictionary containing the data as dictionaries or numpy arrays.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.plot_utils.nio_colormap.html"
+                        title="previous chapter">chaosmagpy.plot_utils.nio_colormap</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chaosmagpy.data_utils.load_RC_datfile.html"
+                        title="next chapter">chaosmagpy.data_utils.load_RC_datfile</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/chaosmagpy.data_utils.load_matfile.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.data_utils.load_RC_datfile.html" title="chaosmagpy.data_utils.load_RC_datfile"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.plot_utils.nio_colormap.html" title="chaosmagpy.plot_utils.nio_colormap"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.data_utils.load_matfile</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>
