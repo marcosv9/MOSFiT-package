@@ -18,7 +18,7 @@ import data_processing_tools as dpt
 import support_functions as spf
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-#import cartopy.crs as ccrs
+import cartopy.crs as ccrs
  
 
 def project_directory():
@@ -1210,10 +1210,10 @@ def sv_obs(station: str,
                                               starttime = starttime, 
                                               endtime = endtime,
                                               df_station = df_station_jerk_detection,
-                                              df_CHAOS = df_chaos,
+                                              df_chaos = df_chaos,
                                               plot_detection = True,
-                                              CHAOS_correction = True,
-                                              plot_CHAOS_prediction = True,
+                                              chaos_correction = True,
+                                              plot_chaos_prediction = True,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
                                               )
@@ -1225,10 +1225,10 @@ def sv_obs(station: str,
                                               starttime = starttime, 
                                               endtime = endtime,
                                               df_station = df_station,
-                                              df_CHAOS = None,
+                                              df_chaos = None,
                                               plot_detection = True,
-                                              CHAOS_correction = False,
-                                              plot_CHAOS_prediction = False,
+                                              chaos_correction = False,
+                                              plot_chaos_prediction = False,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
                                               )
