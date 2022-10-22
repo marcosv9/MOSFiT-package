@@ -26,8 +26,8 @@ def project_directory():
     return os.getcwd()
 
 def load_intermagnet_files(station: str,
-                           starttime: str,
-                           endtime: str,
+                           starttime: str = None,
+                           endtime: str = None,
                            files_path: str = None
                            ) -> pd.DataFrame():
 
@@ -67,9 +67,12 @@ def load_intermagnet_files(station: str,
     #Validating the inputs
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    for i in [starttime, endtime]:
-        spf.validate(i)
-        
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.')    
     #checking the existence of the station argument
     
     if utt.IMO.check_existence(station) == False:
@@ -89,10 +92,8 @@ def load_intermagnet_files(station: str,
     
     print(f'Reading files from {station.upper()}...')
     
-    years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4]) + 1)
-            
-    
-    if files_path == None:
+    if files_path is None:
+        years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4]) + 1)
 
         for year in years_interval:
 
@@ -101,7 +102,7 @@ def load_intermagnet_files(station: str,
             files_station.sort()
     else:
         files_station.extend(glob.glob(os.path.join(f'{files_path}',
-                                                    f'{station.lower()}*'
+                                                    f'{station.lower()}*min*'
                                                     )
                                        )
                              )
@@ -154,8 +155,8 @@ def load_intermagnet_files(station: str,
     return df_station
 
 def sv_obs(station: str,
-           starttime: str,
-           endtime: str,
+           starttime: str = None,
+           endtime: str = None,
            plot_chaos: bool = False,
            files_path: str = None
            ):

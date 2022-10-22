@@ -261,7 +261,7 @@ def calculate_sv(dataframe: pd.DataFrame(),
     return df_sv
 
 def kp_index_correction(dataframe: pd.DataFrame(),
-                        kp: float,
+                        kp: float = 2,
                         ):
     '''
     Function o filter geomagnetic data based on Kp index
@@ -406,7 +406,7 @@ def chaos_model_prediction(station: str,
                                 )                        
     rc_data = h5py.File(rc_directory)
     
-    if (int(cp.data_utils.mjd2000(datetime.today())) - 1) != int(rc_data['time'][-1]):
+    if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
         
         rc_data.close()
         save_RC_h5file(rc_directory)
@@ -423,13 +423,13 @@ def chaos_model_prediction(station: str,
     Latitude = 90 - utt.IMO.latitude(station)
 
     Elevation = (utt.IMO.elevation(station)/1000) +R_REF
-    #Longitude = df_imos.loc[station]['Longitude']
+    #Longitude = df_IMOS.loc[station]['Longitude']
     
 
-    #Latitude = 90 - df_imos.loc[station]['Latitude']
+    #Latitude = 90 - df_IMOS.loc[station]['Latitude']
  
 
-    #Elevation = (df_imos.loc[station]['Elevation']/1000) + R_REF
+    #Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
 
     Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
@@ -551,8 +551,8 @@ def chaos_model_prediction(station: str,
     return df_station 
         
 def external_field_correction_chaos_model(station: str,
-                                          starttime: str,
-                                          endtime: str,
+                                          starttime: str = None,
+                                          endtime: str = None,
                                           df_station = None,
                                           df_chaos = None,
                                           files_path = None,
@@ -598,14 +598,35 @@ def external_field_correction_chaos_model(station: str,
     
     assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
     
-    for i in [starttime, endtime]:
-        spf.validate(i)
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.')   
     
     station = station.upper()
     
     if utt.IMO.check_existence(station) == False:
         print('Station must be an observatory IAGA CODE!')    
     
+    if df_station is not None:
+            
+        df_station = df_station.loc[starttime:endtime].copy()
+        
+    else:
+        df_station = mvs.load_intermagnet_files(station = station,
+                                                starttime = starttime,
+                                                endtime = endtime,
+                                                files_path = files_path
+                                                )
+        
+        df_station = df_station.loc[starttime:endtime]
+    
+    if starttime is None and endtime is None:
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
+        
     
     if df_chaos is not None:
 
@@ -625,18 +646,6 @@ def external_field_correction_chaos_model(station: str,
     df_chaos['Y_ext'] = df_chaos['Y_ext_gsm'] + df_chaos['Y_ext_sm']
     df_chaos['Z_ext'] = df_chaos['Z_ext_gsm'] + df_chaos['Z_ext_sm']
     
-    if df_station is not None:
-        
-        df_station = df_station.loc[starttime:endtime].copy()
-        
-    else:
-        df_station = mvs.load_intermagnet_files(station = station,
-                                                starttime = starttime,
-                                                endtime = endtime,
-                                                files_path = files_path
-                                                )
-        
-        df_station = df_station.loc[starttime:endtime]
     df_station = df_station.resample('H').mean()
         
     df_station['X'] = df_station['X'] - df_chaos['X_ext']
@@ -679,13 +688,25 @@ def rms(predictions: pd.DataFrame(),
     
     assert isinstance(observed_data, pd.DataFrame) or observed_data == None, 'observed_data must be a pandas dataframe'
     x = []
-    for col,cols in zip(predictions.columns, observed_data.columns):
+    
+    for col,cols in zip(['X_int', 'Y_int', 'Z_int'], observed_data.columns):
         
-        y = (observed_data[cols].resample('M').mean().diff(6) - observed_data[cols].resample('M').mean().diff(-6)).dropna()
-        ypred = (predictions[col].resample('M').mean().diff(6) - predictions[col].resample('M').mean().diff(-6)).dropna()
+        y = pd.DataFrame()
+        ypred = pd.DataFrame()
+        
+        y = calculate_sv(observed_data, apply_percentage=True)
+        ypred = calculate_sv(predictions, columns= ['X_int','Y_int','Z_int'])
+        
+        #y = (observed_data[cols].resample('M').mean().diff(6) - observed_data[cols].resample('M').mean().diff(-6)).dropna()
+        #print(y)
+        #ypred = (predictions[col].resample('M').mean().diff(6) - predictions[col].resample('M').mean().diff(-6)).dropna()
         ypred = ypred.reindex(y.index)
-        rms = np.sqrt(((ypred - y) ** 2).mean()).round(3)
+        
+        rms = np.sqrt(((ypred[col] - y[cols]) ** 2).mean()).round(3)
+        #rms2 = mean_squared_error(y[cols].values, ypred[col].values, squared = False)
+        
         x.append(rms)
+        #x2.append(rms2)
         #print('the rmse for ' + str(cols) + ' component is ' + str(rms) + '.')
     return x
 
@@ -1008,8 +1029,8 @@ def resample_obs_data(dataframe: pd.DataFrame(),
 def jerk_detection_window(station: str,
                           window_start: str, 
                           window_end: str, 
-                          starttime: str, 
-                          endtime: str,
+                          starttime: str = None, 
+                          endtime: str = None,
                           df_station = None,
                           df_chaos = None,
                           files_path = None,
@@ -1071,8 +1092,12 @@ def jerk_detection_window(station: str,
     
     #validating the inputs
     
-    for i in [starttime, endtime]:
-        spf.validate(i)
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.') 
 
     for i in [window_start, window_end]:
         spf.validate_ym(i)
@@ -1091,10 +1116,9 @@ def jerk_detection_window(station: str,
     station = station
     window_start = window_start + '-15'
     window_end = window_end + '-15'
-    starttime = starttime
-    endtime = endtime
     
     working_directory = project_directory()
+    
     directory = pathlib.Path(os.path.join(working_directory,
                                           'Filtered_data',
                                           f'{station}_data'
@@ -1121,7 +1145,10 @@ def jerk_detection_window(station: str,
                                                 files_path = files_path
                                                 )
 
-    
+    if starttime is None and endtime is None:
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
+        
     #cheking existence of HDZ components
     if convert_hdz_to_xyz == True:    
         df_station = utt.hdz_to_xyz_conversion(station = station,
@@ -1136,7 +1163,7 @@ def jerk_detection_window(station: str,
         
         df_chaos = df_chaos
     
-    if chaos_correction == True and df_chaos is not None:
+    if chaos_correction is True and df_chaos is not None:
         
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
@@ -1146,7 +1173,7 @@ def jerk_detection_window(station: str,
                                                                      files_path = None
                                                                      )
         
-    elif chaos_correction == True and df_chaos == None:
+    elif chaos_correction is True and df_chaos is None:
         df_station, df_chaos = external_field_correction_chaos_model(station = station,
                                                                      starttime = starttime,
                                                                      endtime = endtime,
@@ -1161,11 +1188,11 @@ def jerk_detection_window(station: str,
                          columns = None
                          )
     
-    if plot_chaos_prediction == False:
-        
-        pass
+    #if plot_chaos_prediction == False:
+    #    
+    #    pass
     
-    if chaos_correction and plot_chaos_prediction == True:
+    if chaos_correction is True and plot_chaos_prediction is True:
         
         df_chaos_sv = calculate_sv(dataframe = df_chaos,
                                    method = 'ADMM',
@@ -1228,7 +1255,7 @@ def jerk_detection_window(station: str,
 
         #plotting single figure
 
-        if plot_detection == True and plot_chaos_prediction == False or chaos_correction == False:
+        if plot_detection is True and plot_chaos_prediction is False or chaos_correction is False:
             colors = ['blue', 'green', 'black']
             fig, axes = plt.subplots(3,1,figsize = (12,8), sharex = True)
             plt.subplots_adjust(hspace=0.05)
@@ -1316,7 +1343,7 @@ def jerk_detection_window(station: str,
                               plot_changes = True,
                               station = [station.upper()]) 
         
-        elif plot_detection and plot_chaos_prediction and chaos_correction == True:
+        elif plot_detection is True and plot_chaos_prediction is True and chaos_correction is True:
             
             #plotting single figure
 
@@ -1425,11 +1452,3 @@ def jerk_detection_window(station: str,
                               station = [station.upper()])
         
     return df_jerk_window, df_slopes, breakpoints, r2
-
-if __name__ == '__main__':
-    jerk_detection_window('VSS',
-                          '2012-04',
-                          '2018-04',
-                          '2010-01-01',
-                          '2021-12-31',
-                          plot_chaos_prediction=True)
