@@ -18,7 +18,7 @@ import data_processing_tools as dpt
 import support_functions as spf
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-#import cartopy.crs as ccrs
+import cartopy.crs as ccrs
  
 
 def project_directory():
@@ -1216,7 +1216,7 @@ def sv_obs(station: str,
                                               df_station = df_station_jerk_detection,
                                               df_chaos = df_chaos,
                                               plot_detection = True,
-                                              CHAOS_correction = True,
+                                              chaos_correction = True,
                                               plot_chaos_prediction = True,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
@@ -1661,3 +1661,106 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
                 
         
     plt.show()
+
+def plot_sv(station,
+            starttime,
+            endtime,
+            files_path = None,
+            df_station = None,
+            apply_percentage: bool = False,
+            plot_chaos: bool = False,
+            chaos_correction: bool = False,
+            save_plot: bool = False
+            ):
+    
+    
+
+    
+    if df_station is None:
+        
+        df_station = load_intermagnet_files(station,
+                                                starttime,
+                                                endtime,
+                                                files_path)
+        
+    if chaos_correction == True:    
+        
+        df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
+                                                                        starttime,
+                                                                        endtime,
+                                                                        df_station,
+                                                                        files_path = files_path,
+                                                                        df_chaos=None
+                                                                        )
+    # calculating sv
+    
+    df_sv = dpt.calculate_sv(df_station, apply_percentage=apply_percentage)
+        
+    if plot_chaos == True:
+        
+        df_sv_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int', 'Y_int', 'Z_int'])
+        
+
+    
+    fig, axes = plt.subplots(3,1 ,figsize = (14,12))
+    plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
+    plt.subplots_adjust(hspace=0.22)
+    if plot_chaos == True:
+        for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']):
+            ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
+            ax.plot(df_sv[col], 'o', color = 'black')
+        #if First_QD_data != []:
+        #    SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+        #    ax.plot(df_sv[col].loc[df_sv.index > SV_QD_first_data], 'o', color = 'green', label = 'QD-data')
+            ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
+        #if str(df_sv.index[-1]) >= '2021-09-30':
+        #    ax.axvline(x = datetime.strptime('2022-03-30', '%Y-%m-%d') + pd.DateOffset(months=-6),
+        #           color = 'blue', label = 'RC-index limit')
+        
+            ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+            ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+            ax.xaxis.set_tick_params(labelrotation = 30, width=2)
+            ax.xaxis.get_ticklocs(minor=True)
+            ax.minorticks_on()
+            ax.yaxis.set_tick_params(which='minor', bottom=False)
+            ax.grid(alpha = 0.3)
+        
+            ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
+            ax.set_xticks(list(df_sv_chaos.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+            ax.legend()
+    else:
+        for ax, col in zip(axes.flatten(), df_sv.columns):
+            ax.plot(df_sv[col], 'o', color = 'black')
+        #if First_QD_data != []:
+        #    SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
+        #    ax.plot(df_sv[col].loc[df_sv.index > SV_QD_first_data], 'o', color = 'green', label = 'QD-data')
+            ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
+        #if str(df_sv.index[-1]) >= '2021-09-30':
+        #    ax.axvline(x = datetime.strptime('2022-03-30', '%Y-%m-%d') + pd.DateOffset(months=-6),
+        #           color = 'blue', label = 'RC-index limit')
+        
+            ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+            ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+            ax.xaxis.set_tick_params(labelrotation = 30, width=2)
+            ax.xaxis.get_ticklocs(minor=True)
+            ax.minorticks_on()
+            ax.yaxis.set_tick_params(which='minor', bottom=False)
+            ax.grid(alpha = 0.3)
+        
+            ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
+            ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+        ax.legend()
+    #plt.savefig(f'GFZ_stay/{station}_sv_corrected.jpeg', dpi = 300, bbox_inches = 'tight')
+    #plt.show()
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
