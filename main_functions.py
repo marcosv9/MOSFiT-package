@@ -101,13 +101,28 @@ def load_intermagnet_files(station: str,
 
             files_station.sort()
     else:
+
         files_station.extend(glob.glob(os.path.join(f'{files_path}',
                                                     f'{station.lower()}*min*'
                                                     )
-                                       )
-                             )
-
-        files_station.sort()   
+                                      )
+                            )
+    
+        files_station.sort()
+        if starttime is not None and endtime is not None:
+            start_index = []
+            end_index = []
+            for file, i in zip(files_station, np.arange(0,len(files_station))):
+                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
+                    start_index = i
+                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
+                    end_index = i
+            if start_index is []:
+                files_station = files_station[:end_index]
+            if end_index is []:
+                files_station = files_station[start_index:]
+            else:
+                files_station = files_station[start_index:end_index]
     #detecting the correct number of skiprows for each file
     
     skip_values = spf.skiprows_detection(files_station)    
@@ -212,7 +227,13 @@ def sv_obs(station: str,
     
 
     #detecting different data types
-    if endtime > '2018-12-31':
+    
+    if starttime is None and endtime is None:
+        
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
+    
+    if pd.to_datetime(endtime) > pd.to_datetime('2018-12-31'):
         
         First_QD_data = spf.data_type(station = station,
                                       starttime = starttime,
@@ -1341,7 +1362,7 @@ def plot_samples(station: str,
 
             plt.show()
             
-    if save_plots == False and plot_data_type != None:
+    if save_plots is False and plot_data_type is not None:
 
         samples = ['H', 'D',
                    'M', 'Y'
@@ -1510,7 +1531,10 @@ def plot_samples(station: str,
                         bbox_inches='tight')
             plt.show()
             
-def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
+def plot_tdep_map(time,
+                  deriv = 1,
+                  plot_changes = False,
+                  station = None):
     '''
     '''
     
@@ -1568,7 +1592,7 @@ def plot_tdep_map(time, deriv = 1, plot_changes = False, station = None):
     B_y = B_phi
     B_z = B_radius*-1
     
-    if plot_changes == True:
+    if plot_changes is True:
         
         #calculating values for previous years
         
@@ -1750,12 +1774,17 @@ def plot_sv(station,
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
         ax.legend()
+
     #plt.savefig(f'GFZ_stay/{station}_sv_corrected.jpeg', dpi = 300, bbox_inches = 'tight')
     #plt.show()
         
         
         
-        
+if __name__ == '__main__':
+    
+    #df = load_intermagnet_files('NGK',starttime = '2010-01-01', endtime = '2020-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')
+    #print(df)
+    sv_obs('NGK',starttime = '2010-01-01', endtime = '2021-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
         
         
         

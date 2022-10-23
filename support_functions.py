@@ -220,7 +220,8 @@ def header_sv_obs_files(station: str,
     
     working_directory = project_directory()
         
-    path = pathlib.Path(os.path.join(working_directory, 'Filtered_data',
+    path = pathlib.Path(os.path.join(working_directory,
+                                     'Filtered_data',
                                      f'{station}_data',
                                      f'{station.upper()}_{filename}_preliminary.txt'
                                      )
@@ -253,7 +254,10 @@ def header_sv_obs_files(station: str,
     
     #pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-    df_station = pd.read_csv(path, sep = '\s+', index_col = [0])
+    df_station = pd.read_csv(path,
+                             sep = '\s+',
+                             index_col = [0]
+                             )
     df_station.index = pd.to_datetime(df_station.index, infer_datetime_format=True)
    
     
@@ -267,11 +271,16 @@ def header_sv_obs_files(station: str,
               f'\nCHAOS model correction: {chaos_options[chaos_model]}'
               f'\n\n')
     
-    with open(f'{path_header}/header_file.txt', 'w+') as f2:
+    with open(os.path.join(f'{path_header}',
+                           'header_file.txt'), 'w+') as f2:
         f2.write(Header)
         header = f2.read()
     
-    filenames = [f'{path_header}/header_file.txt', path]
+    filenames = [os.path.join(f'{path_header}',
+                              'header_file.txt'),
+                 path
+                 ]
+    
     with open(output_path, 'w') as outfile:
         for fname in filenames:
             with open(fname) as infile:
@@ -279,12 +288,15 @@ def header_sv_obs_files(station: str,
                     outfile.write(line)
                     
     
-    os.remove(f'{path_header}/header_file.txt')
+    os.remove(os.path.join(f'{path_header}',
+                           'header_file.txt'
+                           )
+              )
     os.remove(path)
     
 def data_type(station: str,
-              starttime: str,
-              endtime: str,
+              starttime: str = None,
+              endtime: str = None,
               files_path = None):
     '''
     Function to verify the existence of Quasi-definitive data type in the dataset
@@ -315,28 +327,30 @@ def data_type(station: str,
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')
         
-    for i in [starttime, endtime]:
-        validate(i)
-    
-    if files_path != None:
-        if files_path[-1] == '/':
-            pass
-        else:
-            files_path = files_path + '/'  
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.')  
 
     files_station = [] 
 
     if endtime >= '2018-06-30':
-
-        years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4])+ 1)
     
-        if files_path == None:
+        if files_path is None:
+            years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4])+ 1)
             for year in years_interval:
     
                 files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
                 files_station.sort()
         else:
-            files_station.extend(glob.glob(f'{files_path}{station}*'))
+            files_station.extend(glob.glob(os.path.join(f'{files_path}',
+                                                        f'{station}*min*'
+                                                        )
+                                           )
+                                 )
+            
             files_station.sort()
     
         #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')

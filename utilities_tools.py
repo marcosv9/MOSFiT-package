@@ -196,31 +196,46 @@ def hdz_to_xyz_conversion(station: str,
     endtime = str(df_station.index[-1].date())
     
     years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4])+ 1)
+    
     files_station = []
 
     
-    if files_path == None:
+    if files_path is None:
+        
         for year in years_interval:
             files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
             files_station.sort()
     else:
         files_station.extend(glob.glob(os.path.join(f'{files_path}',
-                                                    f'{station}*'
+                                                    f'{station}*min*'
                                                     )
                                        )
                              )
         files_station.sort()
+        start_index = []
+        end_index = []
+        for file, i in zip(files_station, np.arange(0,len(files_station))):
+            if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
+                start_index = i
+            if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
+                end_index = i
+        if start_index is []:
+            files_station = files_station[:end_index]
+        if end_index is []:
+            files_station = files_station[start_index:]
+        else:
+            files_station = files_station[start_index:end_index]
             
             
     values_list = []
     for file in files_station:
         df_data = pd.read_csv(file,
-                        sep = '\s+',
-                        skiprows = 12,
-                        nrows = 40,
-                        usecols = [0, 3],
-                        names = ['date', 'col']
-                        )
+                              sep = '\s+',
+                              skiprows = 12,
+                              nrows = 40,
+                              usecols = [0, 3],
+                              names = ['date', 'col']
+                              )
         file = file
         idx = 0
         while df_data['col'][idx] != station.upper() + 'H':
@@ -412,7 +427,12 @@ def check_duplicate_files(station,
     
     working_directory = project_directory()
         
-    imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
+    imos_directory = pathlib.Path(os.path.join(working_directory,
+                                               'Data',
+                                               'Imos informations',
+                                               'IMOS_INTERMAGNET.txt'
+                                               )
+                                  )
     
     df_imos = pd.read_csv(imos_directory,
                           skiprows = 1,
@@ -433,9 +453,18 @@ def check_duplicate_files(station,
                         if len(glob.glob(f'{directory}/{filename}*')) > 1:
                             
                             try:
-                                os.remove(glob.glob(f'{directory}/{filename}qmin*')[0])
+                                os.remove(glob.glob(os.path.join(f'{directory}',
+                                                                 '{filename}qmin*'
+                                                                 )
+                                                    )[0]
+                                          )
                             except:
-                                os.remove(glob.glob(f'{directory}/{filename}dmin*')[0])
+                                os.remove(glob.glob(os.path.join(f'{directory}',
+                                                                 '{filename}dmin*'
+                                                                 )
+                                                    )[0]
+                                          )
+                                
                             print(f'file {os.path.basename(file)} removed')
                         #print(f'{files} in {year} for {station}.')
     if station != None:
@@ -454,9 +483,17 @@ def check_duplicate_files(station,
                     if len(glob.glob(f'{directory}/{filename}*')) > 1:
                         
                         try:
-                            os.remove(glob.glob(f'{directory}/{filename}qmin*')[0])
+                            os.remove(glob.glob(os.path.join(f'{directory}',
+                                                             '{filename}qmin*'
+                                                             )
+                                                )[0]
+                                      )
                         except:
-                            os.remove(glob.glob(f'{directory}/{filename}dmin*')[0])
+                            os.remove(glob.glob(os.path.join(f'{directory}',
+                                                             '{filename}dmin*'
+                                                             )
+                                                )[0]
+                                      )
                         print(f'file {os.path.basename(file)} removed')
     #return files
 
