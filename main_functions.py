@@ -18,7 +18,7 @@ import data_processing_tools as dpt
 import support_functions as spf
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import cartopy.crs as ccrs
+#import cartopy.crs as ccrs
  
 
 def project_directory():
@@ -1686,9 +1686,9 @@ def plot_tdep_map(time,
         
     plt.show()
 
-def plot_sv(station,
-            starttime,
-            endtime,
+def plot_sv(station: str,
+            starttime: str = None,
+            endtime: str = None,
             files_path = None,
             df_station = None,
             apply_percentage: bool = False,
@@ -1698,16 +1698,29 @@ def plot_sv(station,
             ):
     
     
-
+    #Validating the inputs
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.')    
+    #checking the existence of the station argument
+    
+    if utt.IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
+        
     
     if df_station is None:
         
         df_station = load_intermagnet_files(station,
-                                                starttime,
-                                                endtime,
-                                                files_path)
+                                            starttime,
+                                            endtime,
+                                            files_path)
         
-    if chaos_correction == True:    
+    if chaos_correction is True:    
         
         df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
                                                                         starttime,
@@ -1720,16 +1733,14 @@ def plot_sv(station,
     
     df_sv = dpt.calculate_sv(df_station, apply_percentage=apply_percentage)
         
-    if plot_chaos == True:
+    if plot_chaos is True:
         
         df_sv_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int', 'Y_int', 'Z_int'])
         
-
-    
-    fig, axes = plt.subplots(3,1 ,figsize = (14,12))
+    fig, axes = plt.subplots(3,1 ,figsize = (14,12), sharex = True)
     plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
-    plt.subplots_adjust(hspace=0.22)
-    if plot_chaos == True:
+    plt.subplots_adjust(hspace=0.05)
+    if plot_chaos is True:
         for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']):
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
             ax.plot(df_sv[col], 'o', color = 'black')
@@ -1752,6 +1763,7 @@ def plot_sv(station,
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv_chaos.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
             ax.legend()
+        plt.show()
     else:
         for ax, col in zip(axes.flatten(), df_sv.columns):
             ax.plot(df_sv[col], 'o', color = 'black')
@@ -1774,6 +1786,7 @@ def plot_sv(station,
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
         ax.legend()
+        plt.show()
 
     #plt.savefig(f'GFZ_stay/{station}_sv_corrected.jpeg', dpi = 300, bbox_inches = 'tight')
     #plt.show()
@@ -1784,8 +1797,13 @@ if __name__ == '__main__':
     
     #df = load_intermagnet_files('NGK',starttime = '2010-01-01', endtime = '2020-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')
     #print(df)
-    sv_obs('NGK',starttime = '2010-01-01', endtime = '2021-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
-        
+    #sv_obs('NGK',starttime = '2010-01-01', endtime = '2021-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
+    
+    plot_sv(station = 'VSS',
+            starttime = '2010-01-01',
+            endtime = '2020-12-31',
+            plot_chaos=True,
+            chaos_correction=True)    
         
         
         
