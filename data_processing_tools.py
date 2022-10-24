@@ -190,7 +190,7 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
 
 def calculate_sv(dataframe: pd.DataFrame(),
                  method: str = 'ADMM',
-                 columns: list = None,
+                 source: str = None,
                  apply_percentage:bool = False
                 ):
     '''
@@ -206,18 +206,16 @@ def calculate_sv(dataframe: pd.DataFrame(),
     
     method (str) - 'ADMM' or 'YD'
     
-    columns (list) - name of the geomagnetic components columns of your dataframe.
-              None if the columns are X, Y and Z or must be passed as a list.
-              
-    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
-                                           criteria. Defaults to False.
+    source (str) - geomagnetic source to calculate the SV. used for chaos model prediction
+                    must be 'tot' (total field) or 'int' (core field). Default is None, used for
+                    intermagnet observatories 
+    
     --------------------------------------------------------------------------------------------
     Example of use:
     
     calculate_sv(dataframe = name_of_your_dataframe,
                  method = 'ADMM',
-                 columns = ['X','Y','Z'],
-                 apply_percentage = True) 
+                 source = None) 
                 
     
     --------------------------------------------------------------------------------------------
@@ -230,17 +228,21 @@ def calculate_sv(dataframe: pd.DataFrame(),
  
     assert method.upper() in ['ADMM', 'YD'], 'method must be ADMM or YD'
     
+    assert source in ['tot', 'int', None], 'method must be ADMM or YD'
+    
     assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
         
     df = dataframe
     
     df_sv = pd.DataFrame()
     
-    if columns == None:
+    if source is None:
             columns = ['X', 'Y', 'Z']
     else:
-        columns = columns
-    
+        if source == 'tot':
+            columns = ['X_tot', 'Y_tot', 'Z_tot']
+        if source == 'int':
+            columns = ['X_int', 'Y_int', 'Z_int']
     #computing SV from ADMM
     if method == 'ADMM':
         df_admm = resample_obs_data(dataframe = df,
@@ -274,7 +276,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     dataframe - a pandas dataframe with geomagnetic data.
     
-    kp (float) = limit kp index value (float or int), from 0 to 9.
+    kp = limit kp index value (float or int), from 0 to 9.
     --------------------------------------------------------
     Example of use:
     
@@ -358,11 +360,11 @@ def chaos_model_prediction(station: str,
     --------------------------------------------------------------------------------
     Inputs:
     
-    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
     
-    starttime (str) - first day of the data (format = 'yyyy-mm-dd)
+    starttime - first day of the data (format = 'yyyy-mm-dd)
     
-    endtime (str) - last day of the data (format = 'yyyy-mm-dd)
+    endtime - last day of the data (format = 'yyyy-mm-dd)
     
     ----------------------------------------------------------------------------------
     
@@ -573,36 +575,20 @@ def external_field_correction_chaos_model(station: str,
     --------------------------------------------------------------------------------
     Inputs:
     
-    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
     
-    starttime (str) - first day of the data (format = 'yyyy-mm-dd) or None (read all files in the path)
+    starttime - first day of the data (format = 'yyyy-mm-dd)
     
-    endtime (str) - last day of the data (format = 'yyyy-mm-dd) or None (read all files in the path)
+    endtime - last day of the data (format = 'yyyy-mm-dd)
     
     df_station - dataframe with INTERMAGNET data or None (compute the INTERMAGNET data)
     
     df_chaos - dataframe with CHAOS predicted data or None (compute the CHAOS model data)
     
-    files_path (str) - path to the IAGA-2002 files.
-    
-    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
-                                           criteria. Defaults to False.
-    
-    ----------------------------------------------------------------------------------------- 
-    Example of use:
-    
-    external_field_correction_chaos_model(station = 'NGK',
-                                          starttime = '2010-01-01',
-                                          endtime = "2022-05-30",
-                                          df_station = df_ngk,
-                                          df_chaos = None,
-                                          files_path = 'path/to/files',
-                                          apply_percentage = False
-                                          )
-                                          
     ----------------------------------------------------------------------------------
     
     Return a hourly mean dataframe corrected from CHAOS-7 model external field
+    
     
     '''
     
@@ -714,7 +700,7 @@ def rms(predictions: pd.DataFrame(),
         ypred = pd.DataFrame()
         
         y = calculate_sv(observed_data, apply_percentage=True)
-        ypred = calculate_sv(predictions, columns= ['X_int','Y_int','Z_int'])
+        ypred = calculate_sv(predictions, source = 'int')
         
         #y = (observed_data[cols].resample('M').mean().diff(6) - observed_data[cols].resample('M').mean().diff(-6)).dropna()
         #print(y)
@@ -739,7 +725,7 @@ def night_time_selection(station: str,
     ---------------------------------------------------------------------
     Inputs:
     
-    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
     
     dataframe - a pandas dataframe with geomagnetic data.
     
@@ -782,37 +768,26 @@ def night_time_selection(station: str,
 
 def hampel_filter_denoising(dataframe: pd.DataFrame(),
                             window_size: int,
-                            n_sigmas: int = 3,
-                            plot_figure: bool = False,
-                            apply_percentage: bool = False
+                            n_sigmas=3,
+                            plot_figure:bool = False,
+                            apply_percentage = False
                             ):
     '''
 
-    Denoise each component using a median absolute deviation filter
+    
     ------------------------------------------------------------------------------------
     
     Inputs:
     
     dataframe - a pandas dataframe with geomagnetic data. 
     
-    window_size (int) - size of the moving window to calculate the absolute median,
-                        in hours (60 represents 60 hours).
+    window_size - integer, size of the moving window to calculate the absolute median
     
-    n_sigmas (int) - Number of standard deviations to be consider as a outlier
+    n_sigmas - Number of standard deviations to be consider as a outlier
     
-    plot_figure (bool) - True or False, option to plot a comparison between real and denoised data.
+    plot_figure - boolean, option to plot a comparison between real and denoised data.
     
-    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
-                                           criteria. Defaults to False.
     ------------------------------------------------------------------------------------
-    Example of use:
-    
-    hampel_filter_denoising(dataframe = dataframe_name
-                            window_size = 100,
-                            n_sigmas = 3,
-                            plot_figure = False,
-                            apply_percentage = False
-                            )
     
     Return a hourly dataframe denoised 
     '''
@@ -1226,7 +1201,7 @@ def jerk_detection_window(station: str,
         
         df_chaos_sv = calculate_sv(dataframe = df_chaos,
                                    method = 'ADMM',
-                                   columns = ['X_int', 'Y_int', 'Z_int']
+                                   source = 'int'
                                    )
     else:
         

@@ -384,7 +384,7 @@ def sv_obs(station: str,
     if input_chaos == 'y':
         
         df_chaos_sv = dpt.calculate_sv(df_chaos,
-                                       columns = ['X_int', 'Y_int', 'Z_int'],
+                                       source = 'int',
                                        apply_percentage = False
                                       )   
     else:
@@ -1749,13 +1749,13 @@ def plot_sv(station: str,
         
     if plot_chaos is True:
         
-        df_sv_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int', 'Y_int', 'Z_int'])
+        df_sv_chaos = dpt.calculate_sv(df_chaos, source = 'int')
         
     fig, axes = plt.subplots(3,1 ,figsize = (14,10), sharex = True)
     plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
     plt.subplots_adjust(hspace=0.05)
     if plot_chaos is True:
-        for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']):
+        for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']): 
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
             ax.plot(df_sv[col], 'o', color = 'black')
         #if First_QD_data != []:
