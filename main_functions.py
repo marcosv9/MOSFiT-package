@@ -44,13 +44,14 @@ def load_intermagnet_files(station: str,
     
     station - 3 letters IAGA code (str)
     
-    starttime - first day of the data (format = 'yyyy-mm-dd', str)
+    starttime - first day of the data (format = 'yyyy-mm-dd', str) or None
     
-    endtime - last day of the data (format = 'yyyy-mm-dd', str)
+    endtime - last day of the data (format = 'yyyy-mm-dd', str) or None
     
     files_path - path to the IAGA-2002 intermagnet files (str) or None
                  if None it will use the default path for the files
     
+    if starttime and endtime are None, all the files will be readed.
     ----------------------------------------------------------
     Example of use:
     
@@ -113,6 +114,7 @@ def load_intermagnet_files(station: str,
             start_index = []
             end_index = []
             for file, i in zip(files_station, np.arange(0,len(files_station))):
+                
                 if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
                     start_index = i
                 if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
@@ -138,7 +140,8 @@ def load_intermagnet_files(station: str,
                                         parse_dates = {'Date': ['date', 'Time']},
                                         names = ['date', 'Time', 'X', 'Y', 'Z']
                                         ) for skiprows,
-                                              file in zip(skip_values[0], skip_values[1])), 
+                                              file in zip(skip_values[0], skip_values[1])
+                                              ), 
                                               ignore_index = True
                            )
     
@@ -206,9 +209,10 @@ def sv_obs(station: str,
     endtime - last day of the data (format = 'yyyy-mm-dd)
     
     plot_chaos - boolean (True or False). If the CHAOS model prediction was computed,
-                 Will be plotted the comparisons.
+                 Will be plotted the comparisons. 
     
-    convert_HDZ_to_XYZ - boolean (True or False). 
+    files_path - path to the IAGA-2002 intermagnet files (str) or None
+                 if None it will use the default path for the files
     
     -----------------------------------------------
     
@@ -1270,21 +1274,6 @@ def sv_obs(station: str,
             
     return df_station[starttime:endtime]        
                 
-def read_txt_sv(station: str,
-                starttime: str,
-                endtime: str
-               ) -> pd.DataFrame():
-    
-    
-    path = f'SV_update/{station.upper()}_data/SV_{station.upper()}.txt'
-
-    df_sv = pd.read_csv(path,
-                        sep = '\s+',
-                        index_col = [0])
-    df_sv.index = pd.to_datetime(df_sv.index, infer_datetime_format=True)
-    df_sv = df_sv.loc[starttime:endtime]
-    
-    return df_sv
 
 def plot_samples(station: str,
                  dataframe: pd.DataFrame(),
@@ -1690,14 +1679,39 @@ def plot_sv(station: str,
             starttime: str = None,
             endtime: str = None,
             files_path = None,
-            df_station = None,
+            df_station: pd.DataFrame() = None,
             apply_percentage: bool = False,
             plot_chaos: bool = False,
             chaos_correction: bool = False,
             save_plot: bool = False
             ):
-    
-    
+    """
+    Function to plot the Secular Variation
+
+    Args:
+        station (str): 3 letters IAGA code of the observatory
+        
+        starttime (str, optional): First day of interest (yyyy-mm-dd). Defaults to None.
+        
+        endtime (str, optional): Last day of interest (yyyy-mm-dd). Defaults to None.
+        
+        files_path (_type_, optional): Path to the IAGA-2002 files. Defaults to None.
+        
+        df_station (pd.DataFrame, optional): pd.Dataframe with the data, must be readed 
+                                             with load_intermagnet_files. Defaults to None.
+        
+        apply_percentage (bool, optional): True or False, 90% of data availability resample 
+                                           criteria. Defaults to False.
+        
+        plot_chaos (bool, optional): True or False, option to plot the time-dependent CHAOS-7 
+                                     model prediction. Defaults to False.
+        
+        chaos_correction (bool, optional): True or False, option to correct external geomagnetic 
+                                           field using the CHAOS-7 model prediction. Defaults to False.
+        
+        save_plot (bool, optional): True or False, option to save the figure. Defaults to False.
+        
+    """
     #Validating the inputs
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
@@ -1737,7 +1751,7 @@ def plot_sv(station: str,
         
         df_sv_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int', 'Y_int', 'Z_int'])
         
-    fig, axes = plt.subplots(3,1 ,figsize = (14,12), sharex = True)
+    fig, axes = plt.subplots(3,1 ,figsize = (14,10), sharex = True)
     plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
     plt.subplots_adjust(hspace=0.05)
     if plot_chaos is True:
@@ -1785,11 +1799,10 @@ def plot_sv(station: str,
         
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
-        ax.legend()
-        plt.show()
+    if save_plot is True:
+        plt.savefig(f'{station}_sv.jpeg', dpi = 300, bbox_inches = 'tight')
+    plt.show()
 
-    #plt.savefig(f'GFZ_stay/{station}_sv_corrected.jpeg', dpi = 300, bbox_inches = 'tight')
-    #plt.show()
         
         
         

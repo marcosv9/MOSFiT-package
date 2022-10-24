@@ -30,7 +30,10 @@ def project_directory():
 
 def update_qd_and_dd(data: str):
     """
+    Update list of quiet and disturbed days.
     
+    Used automatically when function to remove disturbed days
+    or keep quiet days are used.
     """
 
     #validating input parameter
@@ -205,15 +208,8 @@ def header_sv_obs_files(station: str,
     Output with informations about the used observatory
     and used data processing options.
     
-    ---------------------------------------------------------------------------------------
-    Inputs:
-    Station - 
-    filename - 
-    data_denoise - 
-    exernal_correction -
-    chaos_model
-    
-    
+    ------------------------------------------------------------------------------------
+    used automatically
     """  
     if utt.IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')
@@ -304,13 +300,13 @@ def data_type(station: str,
     ----------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code (str)
+    station (str) - 3 letters IAGA code 
     
-    starttime - first day of the data (format = 'yyyy-mm-dd', str)
+    starttime (str) - first day of the data (format = 'yyyy-mm-dd')
     
-    endtime - last day of the data (format = 'yyyy-mm-dd', str)
+    endtime (str) - last day of the data (format = 'yyyy-mm-dd')
     
-    files_path - path to the IAGA-2002 intermagnet files (str) or None
+    files_path (str) - path to the IAGA-2002 intermagnet files or None
                  if None it will use the default path for the files
     
     --------------------------------------------------------------------------------------
@@ -318,7 +314,8 @@ def data_type(station: str,
     
     data_type(station = 'VSS',
               starttime = '2000-01-25',
-              endtime = '2021-01-25')
+              endtime = '2021-01-25',
+              files_path = 'path//to/files')
     
     
     '''
@@ -390,8 +387,16 @@ def header_sv_files(station: str,
                     external_correction: str,
                     chaos_model:str
                     ):
-    '''    
-    '''
+    """"
+    Function to add a header in the txt outputs of the Function sv_obs.
+    
+    Output with informations about the used observatory
+    and used data processing options.
+    
+    ------------------------------------------------------------------------------------
+    used automatically
+    """  
+    
     #validating inputs
     
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
@@ -477,7 +482,6 @@ def date_to_decinal_year_converter(date):
     Function to convert a datetime to decimal year.
     
     --------------------------------------------------------    
-    
     Inputs:
     
     date - must be a datetime
@@ -561,6 +565,15 @@ def skiprows_detection(files_station):
     return skiprows_list      
 
 def decimal_year_to_date(date):
+    """
+    Function to convert from decimal year to date
+
+    Args:
+        date (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     
     decimal_date = float(date)
     year = int(decimal_date)

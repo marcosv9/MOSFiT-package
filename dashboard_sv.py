@@ -289,9 +289,9 @@ def mosfit_dash():
                                                                                 starttime = str(df.index.date[0]),
                                                                                 endtime = str(df.index.date[-1]),
                                                                                 df_station = df_detection,
-                                                                                df_CHAOS = df_chaos,
-                                                                                CHAOS_correction = False, 
-                                                                                plot_CHAOS_prediction=False,
+                                                                                df_chaos = df_chaos,
+                                                                                chaos_correction = False, 
+                                                                                plot_chaos_prediction=False,
                                                                                 plot_detection=False)
             
             df_jerk_stats = pd.DataFrame()
