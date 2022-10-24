@@ -190,7 +190,7 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
 
 def calculate_sv(dataframe: pd.DataFrame(),
                  method: str = 'ADMM',
-                 columns = None,
+                 columns: list = None,
                  apply_percentage:bool = False
                 ):
     '''
@@ -204,17 +204,20 @@ def calculate_sv(dataframe: pd.DataFrame(),
 
     dataframe - a pandas dataframe with geomagnetic data.
     
-    method- 'ADMM' or 'YD'
+    method (str) - 'ADMM' or 'YD'
     
-    columns - name of the geomagnetic components columns of your dataframe.
+    columns (list) - name of the geomagnetic components columns of your dataframe.
               None if the columns are X, Y and Z or must be passed as a list.
-    
+              
+    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
+                                           criteria. Defaults to False.
     --------------------------------------------------------------------------------------------
     Example of use:
     
     calculate_sv(dataframe = name_of_your_dataframe,
                  method = 'ADMM',
-                 columns = ['X','Y','Z']) 
+                 columns = ['X','Y','Z'],
+                 apply_percentage = True) 
                 
     
     --------------------------------------------------------------------------------------------
@@ -271,7 +274,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     dataframe - a pandas dataframe with geomagnetic data.
     
-    kp = limit kp index value (float or int), from 0 to 9.
+    kp (float) = limit kp index value (float or int), from 0 to 9.
     --------------------------------------------------------
     Example of use:
     
@@ -355,11 +358,11 @@ def chaos_model_prediction(station: str,
     --------------------------------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
+    starttime (str) - first day of the data (format = 'yyyy-mm-dd)
     
-    endtime - last day of the data (format = 'yyyy-mm-dd)
+    endtime (str) - last day of the data (format = 'yyyy-mm-dd)
     
     ----------------------------------------------------------------------------------
     
@@ -570,20 +573,36 @@ def external_field_correction_chaos_model(station: str,
     --------------------------------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
+    starttime (str) - first day of the data (format = 'yyyy-mm-dd) or None (read all files in the path)
     
-    endtime - last day of the data (format = 'yyyy-mm-dd)
+    endtime (str) - last day of the data (format = 'yyyy-mm-dd) or None (read all files in the path)
     
     df_station - dataframe with INTERMAGNET data or None (compute the INTERMAGNET data)
     
     df_chaos - dataframe with CHAOS predicted data or None (compute the CHAOS model data)
     
+    files_path (str) - path to the IAGA-2002 files.
+    
+    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
+                                           criteria. Defaults to False.
+    
+    ----------------------------------------------------------------------------------------- 
+    Example of use:
+    
+    external_field_correction_chaos_model(station = 'NGK',
+                                          starttime = '2010-01-01',
+                                          endtime = "2022-05-30",
+                                          df_station = df_ngk,
+                                          df_chaos = None,
+                                          files_path = 'path/to/files',
+                                          apply_percentage = False
+                                          )
+                                          
     ----------------------------------------------------------------------------------
     
     Return a hourly mean dataframe corrected from CHAOS-7 model external field
-    
     
     '''
     
@@ -720,7 +739,7 @@ def night_time_selection(station: str,
     ---------------------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
     
     dataframe - a pandas dataframe with geomagnetic data.
     
@@ -763,26 +782,37 @@ def night_time_selection(station: str,
 
 def hampel_filter_denoising(dataframe: pd.DataFrame(),
                             window_size: int,
-                            n_sigmas=3,
-                            plot_figure:bool = False,
-                            apply_percentage = False
+                            n_sigmas: int = 3,
+                            plot_figure: bool = False,
+                            apply_percentage: bool = False
                             ):
     '''
 
-    
+    Denoise each component using a median absolute deviation filter
     ------------------------------------------------------------------------------------
     
     Inputs:
     
     dataframe - a pandas dataframe with geomagnetic data. 
     
-    window_size - integer, size of the moving window to calculate the absolute median
+    window_size (int) - size of the moving window to calculate the absolute median,
+                        in hours (60 represents 60 hours).
     
-    n_sigmas - Number of standard deviations to be consider as a outlier
+    n_sigmas (int) - Number of standard deviations to be consider as a outlier
     
-    plot_figure - boolean, option to plot a comparison between real and denoised data.
+    plot_figure (bool) - True or False, option to plot a comparison between real and denoised data.
     
+    apply_percentage (bool, optional) - True or False, 90% of data availability resample 
+                                           criteria. Defaults to False.
     ------------------------------------------------------------------------------------
+    Example of use:
+    
+    hampel_filter_denoising(dataframe = dataframe_name
+                            window_size = 100,
+                            n_sigmas = 3,
+                            plot_figure = False,
+                            apply_percentage = False
+                            )
     
     Return a hourly dataframe denoised 
     '''

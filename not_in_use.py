@@ -111,6 +111,40 @@ def polynomial_jerk_detection(station, window_start,
         
     return df_SV, jerk_prediction 
 
+def check_data_availability(station: str):
+    '''
+    check the available data period, based on the IAGA code. 
+    
+    '''
+    
+    assert len(station) == 3, 'station must be a three letters IAGA Code'
+    
+    if IMO.check_existence(station) == False:
+        print(f'Station must be an observatory IAGA CODE!')
+        
+    f = []
+    file_path = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\*\\*\\{station}*'
+    f.extend(glob.glob(file_path))
+    f.sort()
+    print(f'The first available date for {station.upper()} is {f[0][21:29]}')
+    print(f'The last available date for {station.upper()} is {f[-1][21:29]}')
+    
+def read_txt_sv(station: str,
+                starttime: str,
+                endtime: str
+               ) -> pd.DataFrame():
+    
+    
+    path = f'SV_update/{station.upper()}_data/SV_{station.upper()}.txt'
+
+    df_sv = pd.read_csv(path,
+                        sep = '\s+',
+                        index_col = [0])
+    df_sv.index = pd.to_datetime(df_sv.index, infer_datetime_format=True)
+    df_sv = df_sv.loc[starttime:endtime]
+    
+    return df_sv
+
 def jerk_detection(station, dataframe,linear_segments, starttime, endtime):
     
     '''

@@ -21,25 +21,6 @@ from os.path import exists
 
 def project_directory():
     return os.getcwd()
-
-def check_data_availability(station: str):
-    '''
-    check the available data period, based on the IAGA code.
-    
-    
-    '''
-    
-    assert len(station) == 3, 'station must be a three letters IAGA Code'
-    
-    if IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
-        
-    f = []
-    file_path = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\*\\*\\{station}*'
-    f.extend(glob.glob(file_path))
-    f.sort()
-    print(f'The first available date for {station.upper()} is {f[0][21:29]}')
-    print(f'The last available date for {station.upper()} is {f[-1][21:29]}')
             
 def download_data_intermagnet(datatype,
                               year,
@@ -155,11 +136,11 @@ def hdz_to_xyz_conversion(station: str,
     
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory (str).
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory (str).
     
     dataframe - a pandas dataframe with geomagnetic data (pd.dataframe).
     
-    files_path - path to the IAGA-2002 intermagnet files (str) or None
+    files_path (str)- path to the IAGA-2002 intermagnet files (str) or None
                  if None it will use the default path for the files
                  
     ----------------------------------------------------------------
@@ -168,7 +149,7 @@ def hdz_to_xyz_conversion(station: str,
     
     hdz_to_xyz_conversion(station = 'VSS',
                           dataframe = name_of_datafrme,
-                          files_path = files_path)
+                          files_path = 'files_path')
     
     ------------------------------------------------------------------
     
