@@ -355,7 +355,7 @@ def mosfit_dash():
         #adding chaos SV prediction
         if plot == 'Yes' and sample == 'SV':
             
-            df_chaos = dpt.calculate_sv(df_chaos, columns = ['X_int','Y_int','Z_int'])
+            df_chaos = dpt.calculate_sv(df_chaos, source = 'int')
             
             fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['X_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV X'),row=1, col=1)
             fig.add_trace(go.Scatter(x=df_chaos.index, y=df_chaos['Y_int'], mode = 'lines', line_color='#D62728', name = 'CHAOS SV Y'),row=2, col=1)
