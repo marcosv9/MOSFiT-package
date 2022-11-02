@@ -1,0 +1,11 @@
+svenv/
+obsproject/
+new_figs_maa/
+func_tests/
+Filtered_data/
+
+*.ipynb
+*jpeg
+*.png
+*.txt
+not_in_use.py

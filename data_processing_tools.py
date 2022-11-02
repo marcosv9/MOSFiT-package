@@ -545,13 +545,17 @@ def chaos_model_prediction(station: str,
     df_station['Z_crust'] = B_crust[0].round(3)*-1
     
 
-    df_station['X_ext_gsm'] = B_gsm[1].round(3)*-1
-    df_station['Y_ext_gsm'] = B_gsm[2].round(3)
-    df_station['Z_ext_gsm'] = B_gsm[0].round(3)*-1
+    #df_station['X_ext_gsm'] = B_gsm[1].round(3)*-1
+    #df_station['Y_ext_gsm'] = B_gsm[2].round(3)
+    #df_station['Z_ext_gsm'] = B_gsm[0].round(3)*-1
+    #
+    #df_station['X_ext_sm'] = B_sm[1].round(3)*-1
+    #df_station['Y_ext_sm'] = B_sm[2].round(3)
+    #df_station['Z_ext_sm'] = B_sm[0].round(3)*-1
     
-    df_station['X_ext_sm'] = B_sm[1].round(3)*-1
-    df_station['Y_ext_sm'] = B_sm[2].round(3)
-    df_station['Z_ext_sm'] = B_sm[0].round(3)*-1
+    df_station['X_ext'] = B_theta_ext.round(3)*-1
+    df_station['Y_ext'] = B_phi_ext.round(3)
+    df_station['Z_ext'] = B_radius_ext.round(3)*-1
     
     return df_station 
         
@@ -647,9 +651,9 @@ def external_field_correction_chaos_model(station: str,
     #df_chaos.index = df_chaos.index + to_offset('30min')
         
         
-    df_chaos['X_ext'] = df_chaos['X_ext_gsm'] + df_chaos['X_ext_sm']
-    df_chaos['Y_ext'] = df_chaos['Y_ext_gsm'] + df_chaos['Y_ext_sm']
-    df_chaos['Z_ext'] = df_chaos['Z_ext_gsm'] + df_chaos['Z_ext_sm']
+    #df_chaos['X_ext'] = df_chaos['X_ext_gsm'] + df_chaos['X_ext_sm']
+    #df_chaos['Y_ext'] = df_chaos['Y_ext_gsm'] + df_chaos['Y_ext_sm']
+    #df_chaos['Z_ext'] = df_chaos['Z_ext_gsm'] + df_chaos['Z_ext_sm']
     
     df_station = df_station.resample('H').mean()
         
@@ -716,7 +720,9 @@ def rms(predictions: pd.DataFrame(),
     return x
 
 def night_time_selection(station: str,
-                         dataframe: pd.DataFrame()
+                         dataframe: pd.DataFrame(),
+                         h_min:int = 5,
+                         h_max:int = 23
                          ):
     
     '''
@@ -725,10 +731,13 @@ def night_time_selection(station: str,
     ---------------------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
     
-    dataframe - a pandas dataframe with geomagnetic data.
+    dataframe (pd.DataFrame()) - a pandas dataframe with geomagnetic data.
     
+    h_min (int) - minimun hour for the nighttime interval (Default is 5)
+    
+    h_max (int) - maximun hour for the nighttime interval (Default is 23)
     ---------------------------------------------------------------------------
         
     Example of use:
@@ -744,8 +753,8 @@ def night_time_selection(station: str,
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!') 
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!') 
         
     station = station.upper()    
 
@@ -758,7 +767,7 @@ def night_time_selection(station: str,
     df_lt = df_obs.shift(round(time_to_shift, 0), freq = 'H')
     
     df_NT_lt = pd.DataFrame()
-    df_NT_lt = df_lt.drop(df_lt.loc[(df_lt.index.hour > 5) & (df_lt.index.hour < 23)].index).dropna()
+    df_NT_lt = df_lt.drop(df_lt.loc[(df_lt.index.hour > h_min) & (df_lt.index.hour < h_max)].index).dropna()
     
     df_NT = pd.DataFrame()
     df_NT = df_NT_lt.shift(round(-time_to_shift, 0), freq = 'H')
@@ -1190,7 +1199,7 @@ def jerk_detection_window(station: str,
     #calculating SV from intermagnet files
     df_sv = calculate_sv(dataframe = df_station,
                          method = 'ADMM',
-                         columns = None
+                         source = None
                          )
     
     #if plot_chaos_prediction == False:

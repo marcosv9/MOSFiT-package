@@ -42,11 +42,11 @@ def load_intermagnet_files(station: str,
     ----------------------------------------------------------
     Inputs:
     
-    station - 3 letters IAGA code (str)
+    station (str) - 3 letters IAGA code
     
-    starttime - first day of the data (format = 'yyyy-mm-dd', str) or None
+    starttime (str, None) - first day of the data (format = 'yyyy-mm-dd', str) or None
     
-    endtime - last day of the data (format = 'yyyy-mm-dd', str) or None
+    endtime (str, None) - last day of the data (format = 'yyyy-mm-dd', str) or None
     
     files_path - path to the IAGA-2002 intermagnet files (str) or None
                  if None it will use the default path for the files
@@ -76,8 +76,8 @@ def load_intermagnet_files(station: str,
             raise ValueError('if starttime and endtime are None, you must inform files_path.')    
     #checking the existence of the station argument
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
    
     #creating a list to allocate the file paths
     
@@ -301,7 +301,7 @@ def sv_obs(station: str,
     
     if inp == 'Q':
         
-        df_station = dpt.keep_Q_Days(df_station)
+        df_station = dpt.keep_quiet_days(df_station)
         
     if inp == 'D':
         
@@ -526,7 +526,7 @@ def sv_obs(station: str,
             print(directory)   
             break
 
-        elif inp2 =='n':
+        elif inp2 == 'n':
 
             print(f'No files saved!')
 
@@ -805,7 +805,7 @@ def sv_obs(station: str,
             plt.show()
             
 
-            if input_chaos == 'y' and plot_chaos == True:
+            if input_chaos == 'y' and plot_chaos is True:
                 
                 #plotting real SV and corrected SV comparison
                 
@@ -1122,7 +1122,7 @@ def sv_obs(station: str,
             plt.show()
             
             
-            if input_chaos == 'y' and plot_chaos == True:
+            if input_chaos == 'y' and plot_chaos is True:
                 
                 #plotting real SV and corrected SV comparison
                 
@@ -1303,12 +1303,12 @@ def plot_samples(station: str,
     
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')    
         
     working_directory = project_directory()
     
-    if save_plots == False and plot_data_type == None:
+    if save_plots is False and plot_data_type is None:
     
         samples = ['H','D','M','Y']
         colors = ['blue','green','black']
@@ -1331,6 +1331,7 @@ def plot_samples(station: str,
                         )
             
             plt.xlabel('Date (Years)', fontsize = 12)
+                          
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
@@ -1403,7 +1404,7 @@ def plot_samples(station: str,
                 
             plt.show()
                        
-    if save_plots == True and plot_data_type == None:
+    if save_plots is True and plot_data_type is None:
         
         directory = pathlib.Path(os.path.join(working_directory,
                                               'Filtered_data',
@@ -1457,7 +1458,7 @@ def plot_samples(station: str,
                         )
             plt.show()
             
-    if save_plots == True and plot_data_type != None:
+    if save_plots is True and plot_data_type is not None:
         
         First_QD_data = plot_data_type
         directory = pathlib.Path(os.path.join(working_directory,
@@ -1680,10 +1681,12 @@ def plot_sv(station: str,
             endtime: str = None,
             files_path = None,
             df_station: pd.DataFrame() = None,
+            df_chaos: pd.DataFrame() = None,
             apply_percentage: bool = False,
             plot_chaos: bool = False,
             chaos_correction: bool = False,
-            save_plot: bool = False
+            save_plot: bool = False,
+            convert_hdz_to_xyz: bool = False
             ):
     """
     Function to plot the Secular Variation
@@ -1718,13 +1721,17 @@ def plot_sv(station: str,
     if not [i for i in (starttime, endtime) if i is None]:
         for i in [starttime, endtime]:
             spf.validate(i)
-    else:
+            
+    if [i for i in (starttime, endtime) if i is None] and df_station is not None:
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
+    else:    
         if files_path is None:
-            raise ValueError('if starttime and endtime are None, you must inform files_path.')    
+            raise ValueError('if starttime, endtime and df_station are None, you must inform files_path.')    
     #checking the existence of the station argument
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
         
     
     if df_station is None:
@@ -1734,6 +1741,7 @@ def plot_sv(station: str,
                                             endtime,
                                             files_path)
         
+        
     if chaos_correction is True:    
         
         df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
@@ -1741,11 +1749,18 @@ def plot_sv(station: str,
                                                                         endtime,
                                                                         df_station,
                                                                         files_path = files_path,
-                                                                        df_chaos=None
+                                                                        df_chaos = df_chaos
                                                                         )
+    if chaos_correction is False and plot_chaos is True and df_chaos is None:
+        
+        df_chaos = dpt.chaos_model_prediction(station, starttime, endtime)
     # calculating sv
     
-    df_sv = dpt.calculate_sv(df_station, apply_percentage=apply_percentage)
+    if convert_hdz_to_xyz is True:
+        
+        df_station = utt.hdz_to_xyz_conversion(station, df_station, files_path)
+    
+    df_sv = dpt.calculate_sv(df_station, apply_percentage = apply_percentage)
         
     if plot_chaos is True:
         
@@ -1777,7 +1792,7 @@ def plot_sv(station: str,
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv_chaos.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
             ax.legend()
-        plt.show()
+        
     else:
         for ax, col in zip(axes.flatten(), df_sv.columns):
             ax.plot(df_sv[col], 'o', color = 'black')
@@ -1802,7 +1817,12 @@ def plot_sv(station: str,
     if save_plot is True:
         plt.savefig(f'{station}_sv.jpeg', dpi = 300, bbox_inches = 'tight')
     plt.show()
-
+    
+    
+    if plot_chaos is True:
+        return df_sv, df_sv_chaos
+    else:
+        return df_sv
         
         
         
