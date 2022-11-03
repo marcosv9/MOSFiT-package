@@ -327,11 +327,11 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
         KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
     
-    df_kp=pd.DataFrame()
+    df_kp = pd.DataFrame()
     df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
     df_kp['Date'] = df_kp['Date'].drop_duplicates()
     df_kp.index = df_kp['Date']
-    df_kp =df_kp.dropna()
+    df_kp = df_kp.dropna()
     
     df_disturbed = pd.DataFrame()
     
@@ -385,8 +385,8 @@ def chaos_model_prediction(station: str,
     for i in [starttime, endtime]:
         spf.validate(i)
         
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
     
             
     working_directory = project_directory()
@@ -616,8 +616,8 @@ def external_field_correction_chaos_model(station: str,
     
     station = station.upper()
     
-    if utt.IMO.check_existence(station) == False:
-        print('Station must be an observatory IAGA CODE!')    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')  
     
     if df_station is not None:
             
@@ -695,7 +695,7 @@ def rms(predictions: pd.DataFrame(),
     
     assert isinstance(predictions, pd.DataFrame), 'predictions must be a pandas dataframe'
     
-    assert isinstance(observed_data, pd.DataFrame) or observed_data == None, 'observed_data must be a pandas dataframe'
+    assert isinstance(observed_data, pd.DataFrame) or observed_data is None, 'observed_data must be a pandas dataframe'
     x = []
     
     for col,cols in zip(['X_int', 'Y_int', 'Z_int'], observed_data.columns):
@@ -764,13 +764,13 @@ def night_time_selection(station: str,
 
     df_obs = dataframe
     
-    df_lt = df_obs.shift(round(time_to_shift, 0), freq = 'H')
+    df_lt = df_obs.shift(round(time_to_shift, 2), freq = 'H')
     
     df_NT_lt = pd.DataFrame()
     df_NT_lt = df_lt.drop(df_lt.loc[(df_lt.index.hour > h_min) & (df_lt.index.hour < h_max)].index).dropna()
     
     df_NT = pd.DataFrame()
-    df_NT = df_NT_lt.shift(round(-time_to_shift, 0), freq = 'H')
+    df_NT = df_NT_lt.shift(round(-time_to_shift, 2), freq = 'H')
     
     print('The night time period was selected.')
     return df_NT
@@ -831,7 +831,7 @@ def hampel_filter_denoising(dataframe: pd.DataFrame(),
             if (np.abs(dataframe[column][i] - x0) > n_sigmas * S0):
                 df_denoised[column][i] = x0
                 
-    if plot_figure == True:
+    if plot_figure is True:
         
         fig, axis = plt.subplots(3 ,1, figsize = (16,10))
         for col, ax in zip(dataframe.columns, axis.flatten()):
@@ -906,7 +906,7 @@ def resample_obs_data(dataframe: pd.DataFrame(),
     if sample == 'H' and apply_percentage == False:
             
         df_station = df_station.resample('H').mean()
-        df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
+        df_station.index = df_station.index + to_offset('30min')
             
     if sample == 'H' and apply_percentage == True:
                           
@@ -922,12 +922,12 @@ def resample_obs_data(dataframe: pd.DataFrame(),
             
             df_station = df_station.resample('H').mean()
 
-        df_station.index = df_station.index + to_offset('29min') + to_offset('30s')
+        df_station.index = df_station.index + to_offset('30min')
             
     if sample == 'D' and apply_percentage == False:
             
         df_station = df_station.resample('D').mean()
-        df_station.index = df_station.index + to_offset('11H') + to_offset('59min') + to_offset('30s')       
+        df_station.index = df_station.index + to_offset('12H')       
         
     elif sample == 'D' and apply_percentage == True:
         
@@ -944,7 +944,7 @@ def resample_obs_data(dataframe: pd.DataFrame(),
             df_station = tmp['mean'].where(tmp['count']>=1440*0.9)
         
         df_station = df_station.resample('D').mean()
-        df_station.index = df_station.index  + to_offset('11H') + to_offset('59min') + to_offset('30s')
+        df_station.index = df_station.index  + to_offset('12H')
             
     if sample == 'M' and apply_percentage == False:
         
