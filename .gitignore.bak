@@ -5,7 +5,7 @@ func_tests/
 Filtered_data/
 
 *.ipynb
-*.jpeg
+*jpeg
 *.png
 *.txt
 not_in_use.py
