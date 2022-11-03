@@ -1,54 +1,121 @@
-
 ##  About Me
 I'm a Marcos Vinicius Silva...
 
 
 # Fast geomagnetic jerk detection 
-My Thesis project in geomagnetism.
+
+My Master project in geomagnetism.
 
 A python tool to study the secular variation of the geomagnetic field and accelerate the geomagnetic jerk detection.
 
-Actually works for every INTERMAGNET geomagnetic observatory (definitive and quasi-definitive data).
+Actually works for every INTERMAGNET geomagnetic observatory (definitive and quasi-definitive IAGA-2002 data).
 
 There are functions to reduce the external field contribution, calculate the secular variation, detect geomagnetic jerks...
 
-The library is separetade in modules called data processing tools, utility tools, support functions and main functions. 
+The package is separetade in modules called data_processing_tools, utility_tools, support_functions and main_functions. 
+
+All the functions have a docstring with the inputs explanation and an usage example.
+
+## Setting up MOSFiT package
+
+The MOSFiT python package was built to work with INTERMAGNET minute mean data in the IAGA-2002 format, in order to analyse the SV and check INTERMAGNET Magnetic Observatory (IMO) data quality. The definitive and quasi-definitive data are mainly used because of higher quality and reliability, especially for SV studies. However, we can also apply MOSFiT to others types of IAGA-2002 data, i.e. provisional data).
+
+Step 1: Requirements and software installation.
+
+MOSFiT is developed in the Python 3 language. The package can be compiled in the command window or in a “jupyter notebook enviroment”.
+
+You can download MOSFiT in: https://github.com/marcosv9/Thesis-Marcos. In this same link, there is a documentation of how to use the package functions, with some examples.
 
 
+Step 2: Downloading IAGA-2002 data.
 
-## Import function suggestion
+In order to use MOSFiT, it is necessary to have the data stored in a local computer.
+
+This data can be downloaded from the INTERMAGNET website (https://www.intermagnet.org/), directly from the INTERMAGNET ftp server (ftp://ftp.seismo.nrcan.gc.ca/intermagnet/) or by using the MOSFiT function called “download INTERMAGNET file” (by choosing datatype, year, month and the list of observatories).
+
+MOSFiT will only read filenames in the same format of INTERMAG-NET IAGA-2002 2. After the data is downloaded, the user may organize all files from different observatories in a single or multiple folders.
+
+
+## Package modules import suggestion
 
 To use the developed funtions, is necessary to import them. I suggest to use the following statements to import the modules.
 
 ```bash
-  from Thesis_Marcos import data_processing_tools as dpt
-  from Thesis_Marcos import utilities_tools as utt
-  from Thesis_Marcos import thesis_functions as mvs
-  from Thesis_Marcos import support_functions as spf
+  import data_processing_tools as dpt
+  import utilities_tools as utt
+  import main_functions as mvs
+  import support_functions as spf
 ```
 
+## load_intermagnet_files
 
-## Load_INTERMAGNET_files
+This function is the most important, since it reads any geomagnetic data following the IAGA-2002 format.
 
-Function to read INTERMAGNET observatory files, works with minute mean IAGA2002 quasi-definitive and definitive files. It will return a pandas dataframe. 
+The output is a pandas DataFrame indexed by time and the columns are the X, Y and Z geomagnetic components.
+
+Its output is used as input is most of the data processing functions.
+ 
 
 ```python
-
-Load_INTERMAGNET_files(station = 'obs IAGA code',starttime = 'yyyy-mm-dd',endtime = 'yyyy-mm-dd',path = 'path to files')
+load_intermagnet_files(station = 'XXX',
+                       starttime = 'yyyy-mm-dd',
+                       endtime = 'yyyy-mm-dd',
+                       files_path = 'path//to//files')
 
 ```
 The returned dataframe can be manipulated by the user or processed with the others functions of the package. 
 
 You can set a specific directory or just use the default (automatically created when the files are downloaded using download_data_INTERMAGNET function).
 
+## data_processing_tools functions
+
+Here I explain the principal function of the data_processing_tools module.
+
+As the name says such functions are responsable for the data processing.
+
+Most of them are methods to reduce the external field contribution from the observatory data. In order to investigate the SV.
+
+
+### resample_observatory_data
+
+This function allows the user to resample geomagnetic observatory
+
+data into different samples (hourly, daily, monthly and annual).
+
+```python
+resample_obs_data(dataframe = df_name,
+                  sample = 'H',
+                  apply_percentage = True)
+```
+![](figures/worflow.png)
+
+### calculate_sv
+
+```python
+calculate_sv(station = 'VSS',
+             stattime = '2000-01-01',
+             endtime = '2021-06-30',
+             files_path = 'path//to//files',
+             plot_chaos = True)
+```
+
 
 ## SV_OBS Usage
 
-SV_OBS is the main funcion, allowing the user to process the geomagnetic data in a interactive workflow, using most of the available data_processing functions.
+sv_obs is a function that includes the most important data processing options.
+
+The processing according to the figure is already implemented in a dedicated function.
+
+However the user can combine any of the processing steps in any possible order or combination
+
+It allows the user to process the geomagnetic data in a interactive workflow,
+
+ using most of the available data_processing functions.
 
 ![](figures/worflow.png)
 
 ```python
 
-SV_OBS(station = 'VSS', stattime = '2000-01-01, endtime = '2021-06-30', plot_chaos = True, convert_HDZ_to_XYZ = True)
+SV_OBS(station = 'VSS', stattime = '2000-01-01', endtime = '2021-06-30', files_path = 'path//to//files', plot_chaos = True)
 ```
+
