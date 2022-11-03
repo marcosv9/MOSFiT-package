@@ -3,6 +3,8 @@ obsproject/
 new_figs_maa/
 func_tests/
 Filtered_data/
+figs/
+text_files/
 
 *.ipynb
 *.jpeg
