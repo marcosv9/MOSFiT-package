@@ -57,11 +57,7 @@ Its output is used as input is most of the data processing functions.
  
 
 ```python
-load_intermagnet_files(station = 'XXX',
-                       starttime = 'yyyy-mm-dd',
-                       endtime = 'yyyy-mm-dd',
-                       files_path = 'path//to//files')
-
+load_intermagnet_files(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd', files_path = 'path//to//files')
 ```
 The returned dataframe can be manipulated by the user or processed with the others functions of the package. 
 
@@ -83,22 +79,16 @@ This function allows the user to resample geomagnetic observatory
 data into different samples (hourly, daily, monthly and annual).
 
 ```python
-resample_obs_data(dataframe = df_name,
-                  sample = 'H',
-                  apply_percentage = True)
+resample_obs_data(dataframe = df_name, sample = 'H', apply_percentage = True)
 ```
-![](figures/worflow.png)
+![](figures/resample_obs_data.jpeg)
 
 ### calculate_sv
 
 ```python
-calculate_sv(station = 'VSS',
-             stattime = '2000-01-01',
-             endtime = '2021-06-30',
-             files_path = 'path//to//files',
-             plot_chaos = True)
+calculate_sv(station = 'VSS', stattime = '2000-01-01', endtime = '2021-06-30', files_path = 'path//to//files', plot_chaos = True)
 ```
-
+![](figures/VSS_SV.jpeg)
 
 ## SV_OBS Usage
 
