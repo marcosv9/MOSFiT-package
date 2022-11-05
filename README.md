@@ -35,6 +35,7 @@ This data can be downloaded from the INTERMAGNET website (https://www.intermagne
 
 MOSFiT will only read filenames in the same format of INTERMAG-NET IAGA-2002 2. After the data is downloaded, the user may organize all files from different observatories in a single or multiple folders.
 
+Most MOSFIT functions require an input called 'station'. It is the 3 letter IAGA code of the INTERMAGNET observatory. In MOSFiT there is a database with all INTERMAGNET observatories registered (IAGA code, latitude, longitude and altitude, this informations are used in many data processing functions). If you want to use MOSFiT with an observatory or location that are not registered in the database, there is a MOSFiT class called IMO that includes any location into the database. See utilities_tools section for an explanation about how to include any location.
 
 ## Package modules import suggestion
 
@@ -86,12 +87,27 @@ Example of different data samples calculated using MOSFiT.
 
 ![](figures/resample_obs_data.jpeg)
 
+### hampel_filter_denoising
+
+This function to denoise geomagnetic data based on a median absolute deviation filter
+
+In order to reduce computacional coast the function automatically resample the minute mean data (default from IAGA-2002 data and output from load_intermagnet_files) 
+into hourly mean values  
+
+```python
+import data_processing_tools as dpt
+dpt.hampel_filter_denoising(dataframe = df_name, window_size = 200, n_sigmas = 3, apply_percentage = True, plot_figure = True)
+```
+Example of denoised hourly mean data.
+
+![](figures/hampel_filter_ex.jpeg)
+
 
 ### kp_index_correction
 
 The function removes periods with Kp index values above user input limit from the geomagnetic components 
 
-Find the index on https://kp.gfz-potsdam.de/en/
+Find the Kp index on https://kp.gfz-potsdam.de/en/
 
 ```python
 import data_processing_tools as dpt
@@ -104,7 +120,7 @@ dpt.kp_index_correction(dataframe = df_name, kp = 2)
 
 The function select only the top 10 international quiet days from each month
 
-Find the list on https://kp.gfz-potsdam.de/en/
+Find the list of quiet days for each month on https://kp.gfz-potsdam.de/en/
 
 ```python
 import data_processing_tools as dpt
@@ -117,7 +133,7 @@ Example of SV calculate using normal data and selecting quiet days for each mont
 
 The function remove the top 5 international disturbed days from each month
 
-Find the list on https://kp.gfz-potsdam.de/en/
+Find the list of disturbed days for each month on https://kp.gfz-potsdam.de/en/
 
 ```python
 import data_processing_tools as dpt
@@ -128,9 +144,7 @@ Example of SV calculate using normal data and removing the top 5 disturbed days 
 
 ### night_time_selection
 
-The function remove the top 5 international disturbed days from each month
-
-Find the list on https://kp.gfz-potsdam.de/en/
+The function select the nighttime period from the geomagnetic data (default from 22pm to 2 am LT)
 
 ```python
 import data_processing_tools as dpt
@@ -149,6 +163,60 @@ dpt.calculate_sv(dataframe = df_name, method = 'ADMM')
 ```
 Example of SV calculate from VSS monthly means using MOSFiT.
 ![](figures/VSS_SV.jpeg)
+
+### chaos_model_prediction
+Predict core fiel, crustal field and magnetospheric field (GSM and SM) from CHAOS-7 model predictions in a hourly rate
+
+find the model realease on http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+
+References
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020), The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly, Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9 [.pdf]
+ 
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. and Toeffner-Clausen, L., (2019) DTU Candidate models for IGRF-13. Technical Note submitted to IGRF-13 task force, 1st October 2019 [.pdf]
+
+Example of how to use MOSFiT chaos_model_prediction. The station (3 letter IAGA code) must be in the MOSFiT imos database. All INTERMAGNET observatories are included in the database automatically. If you are interest in predict the field for other observatory or location, use the 'IMO' MOSFiT class to add the location in the database. See utilities_tools section for an explanation about how to include the location.  
+
+```python
+import data_processing_tools as dpt
+dpt.chaos_model_prediction(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd', n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
+```    
+
+### chaos_model_prediction
+Predict core fiel, crustal field and magnetospheric field (GSM and SM) from CHAOS-7 model predictions in a hourly rate
+
+find the model realease on http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+
+References
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020), The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly, Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9 [.pdf]
+ 
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. and Toeffner-Clausen, L., (2019) DTU Candidate models for IGRF-13. Technical Note submitted to IGRF-13 task force, 1st October 2019 [.pdf]
+
+Example of how to use MOSFiT chaos_model_prediction. The station (3 letter IAGA code) must be in the MOSFiT imos database. All INTERMAGNET observatories are included in the database automatically. If you are interest in predict the field for other observatory or location, use the 'IMO' MOSFiT class to add the location in the database. See utilities_tools section for an explanation about how to include the location.  
+
+```python
+import data_processing_tools as dpt
+dpt.chaos_model_prediction(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd', n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
+```   
+
+### external_field_correction_chaos_model
+
+Subtract the magnetospheric field (GSM and SM) from CHAOS-7 model predictions from the observatory data
+
+find the model realease on http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+
+References
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020), The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly, Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9 [.pdf]
+ 
+Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. and Toeffner-Clausen, L., (2019) DTU Candidate models for IGRF-13. Technical Note submitted to IGRF-13 task force, 1st October 2019 [.pdf]
+
+Example of how to use MOSFiT external_field_correction_chaos_model.  
+
+```python
+import data_processing_tools as dpt
+dpt.external_field_correction_chaos_model(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',df_station = None, df_chaos = None, n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
+``` 
+Example of SV calculate from VSS monthly means using MOSFiT magnetospheric field correction from CHAOS predictions.
+![](figures/chaos_correction_ex.jpeg)
 
 ## SV_OBS Usage
 
