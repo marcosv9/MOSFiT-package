@@ -79,15 +79,75 @@ This function allows the user to resample geomagnetic observatory
 data into different samples (hourly, daily, monthly and annual).
 
 ```python
-resample_obs_data(dataframe = df_name, sample = 'H', apply_percentage = True)
+import data_processing_tools as dpt
+dpt.resample_obs_data(dataframe = df_name, sample = 'H', apply_percentage = True)
 ```
+Example of different data samples calculated using MOSFiT.
+
 ![](figures/resample_obs_data.jpeg)
+
+
+### kp_index_correction
+
+The function removes periods with Kp index values above user input limit from the geomagnetic components 
+
+Find the index on https://kp.gfz-potsdam.de/en/
+
+```python
+import data_processing_tools as dpt
+dpt.kp_index_correction(dataframe = df_name, kp = 2)
+```
+![](figures/kp_index_ex.jpeg)
+
+
+### keep_quiet_days
+
+The function select only the top 10 international quiet days from each month
+
+Find the list on https://kp.gfz-potsdam.de/en/
+
+```python
+import data_processing_tools as dpt
+dpt.keep_quiet_days(dataframe = df_name)
+```
+Example of SV calculate using normal data and selecting quiet days for each monthly.
+![](figures/quiet_days_ex.jpeg)
+
+### remove_disturbed_days
+
+The function remove the top 5 international disturbed days from each month
+
+Find the list on https://kp.gfz-potsdam.de/en/
+
+```python
+import data_processing_tools as dpt
+dpt.remove_disturbed_days(dataframe = df_name)
+```
+Example of SV calculate using normal data and removing the top 5 disturbed days from each month.
+![](figures/disturbed_days_ex.jpeg)
+
+### night_time_selection
+
+The function remove the top 5 international disturbed days from each month
+
+Find the list on https://kp.gfz-potsdam.de/en/
+
+```python
+import data_processing_tools as dpt
+dpt.night_time_selection(station = 'XXX', dataframe = df_name)
+```
+Example of SV calculate using normal data and selecting only nighttime period.
+![](figures/nighttime_ex.jpeg)
 
 ### calculate_sv
 
+Calculate geomagnetic secular variation using monthly means or annual means
+
 ```python
-calculate_sv(station = 'VSS', stattime = '2000-01-01', endtime = '2021-06-30', files_path = 'path//to//files', plot_chaos = True)
+import data_processing_tools as dpt
+dpt.calculate_sv(dataframe = df_name, method = 'ADMM')
 ```
+Example of SV calculate from VSS monthly means using MOSFiT.
 ![](figures/VSS_SV.jpeg)
 
 ## SV_OBS Usage
