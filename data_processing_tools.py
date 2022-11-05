@@ -154,7 +154,7 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     qd_list_directory = pathlib.Path(os.path.join(working_directory,
                                                   'Data',
                                                   'Disturbed and Quiet Days',
-                                                  'Disturbed_Days_list.txt'
+                                                  'Quiet_Days_list.txt'
                                                   )
                                      )
 
@@ -297,6 +297,12 @@ def kp_index_correction(dataframe: pd.DataFrame(),
 
     df_station = dataframe.copy()
     
+    if abs(df_station.index[1] - df_station.index[0]).seconds == 3600:
+        sample_rate = 'H'
+        df_station = df_station.resample('H').mean()
+    else:
+        sample_rate = 'min'
+    
     working_directory = project_directory()
     
     kp_directory = pathlib.Path(os.path.join(working_directory,
@@ -310,9 +316,10 @@ def kp_index_correction(dataframe: pd.DataFrame(),
                       sep = '\t',
                       index_col = ['Date'])
     
+    
     KP_.index = pd.to_datetime(KP_.index, format = '%Y-%m-%d %H:%M:%S')
     
-    if datetime.today() > KP_.index[-1]:
+    if df_station.index[-1] > KP_.index[-1]:
         print('Updating the index')
     
     #updating the Kp_index for the most recent data
@@ -326,19 +333,36 @@ def kp_index_correction(dataframe: pd.DataFrame(),
                           )
     
         KP_.index = pd.to_datetime(KP_['Date'], format = '%Y %m %d %H.%f')
+        
+        KP_.pop('Date')
+        
+        KP_.to_csv(kp_directory,
+                   sep = '\t',
+                   index = ['Date'])
+        
+    kp_new_index = pd.date_range(str(df_station.index[0].date()), f'{str(df_station.index[-1].date())} 21:00:00', freq = sample_rate)
     
-    df_kp = pd.DataFrame()
-    df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
-    df_kp['Date'] = df_kp['Date'].drop_duplicates()
-    df_kp.index = df_kp['Date']
-    df_kp = df_kp.dropna()
+    KP_ = KP_.reindex(kp_new_index).ffill()
     
-    df_disturbed = pd.DataFrame()
+    KP_ = KP_.loc[KP_['Kp'] <= kp]
     
-    for i in df_kp.index:
-        df_disturbed = pd.concat([df_disturbed, df_station.loc[str(i)]])
-        #df_station.drop(df_station.loc[str(i)].index, inplace = True)
-    df_station.drop(df_disturbed.index, inplace = True)
+    df_station = df_station.reindex(KP_.index)
+    
+    if sample_rate == 'H':
+        df_station = resample_obs_data(df_station, 'H')
+    
+    #df_kp = pd.DataFrame()
+    #df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
+    #df_kp['Date'] = df_kp['Date'].drop_duplicates()
+    #df_kp.index = df_kp['Date']
+    #df_kp = df_kp.dropna()
+    
+    #df_disturbed = pd.DataFrame()
+    #
+    #for i in df_kp.index:
+    #    df_disturbed = pd.concat([df_disturbed, df_station.loc[str(i)]])
+    #    #df_station.drop(df_station.loc[str(i)].index, inplace = True)
+    #df_station.drop(df_disturbed.index, inplace = True)
     
     return df_station
 
@@ -568,7 +592,7 @@ def external_field_correction_chaos_model(station: str,
                                           apply_percentage: bool = False
                                           ):    
     '''
-    Correct the INTERMAGNET observatory data with the CHAOS-7.9 model external geomagnetic field prediction.
+    Correct the INTERMAGNET observatory data with the CHAOS-7.11 model external geomagnetic field prediction.
     
     Find the model in the website - http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
     
@@ -599,11 +623,11 @@ def external_field_correction_chaos_model(station: str,
     #validant inputs
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_station, pd.DataFrame) or df_station is None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(df_chaos, pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_chaos, pd.DataFrame) or df_chaos is None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(files_path, str) or files_path == None, 'files_path must be a string or None'
+    assert isinstance(files_path, str) or files_path is None, 'files_path must be a string or None'
     
     assert isinstance(apply_percentage, bool), 'apply_percentage must be True or False'
     
@@ -621,7 +645,7 @@ def external_field_correction_chaos_model(station: str,
     
     if df_station is not None:
             
-        df_station = df_station.loc[starttime:endtime].copy()
+        df_station = df_station
         
     else:
         df_station = mvs.load_intermagnet_files(station = station,
@@ -630,7 +654,7 @@ def external_field_correction_chaos_model(station: str,
                                                 files_path = files_path
                                                 )
         
-        df_station = df_station.loc[starttime:endtime]
+        #df_station = df_station.loc[starttime:endtime]
     
     if starttime is None and endtime is None:
         starttime = str(df_station.index[0].date())
@@ -660,7 +684,7 @@ def external_field_correction_chaos_model(station: str,
     df_station['X'] = df_station['X'] - df_chaos['X_ext']
     df_station['Y'] = df_station['Y'] - df_chaos['Y_ext']
     df_station['Z'] = df_station['Z'] - df_chaos['Z_ext'] 
-    
+   
     df_station = resample_obs_data(df_station,
                                    'H',
                                    apply_percentage = apply_percentage
@@ -894,29 +918,34 @@ def resample_obs_data(dataframe: pd.DataFrame(),
     assert sample in samples, 'sample must be one of %s' % samples
     
     df_station = dataframe
+    
+    if abs(df_station.index[1] - df_station.index[0]).seconds == 3600:
+        sample_rate = 'hourly'
+    else:
+        sample_rate = 'minute'
         
-    if sample == 'min' and apply_percentage == False:
+    if sample == 'min' and apply_percentage is False:
         
         df_station = df_station
 
-    if sample == 'min' and apply_percentage == True:
+    if sample == 'min' and apply_percentage is True:
         
         df_station = df_station
         
-    if sample == 'H' and apply_percentage == False:
+    if sample == 'H' and apply_percentage is False:
             
         df_station = df_station.resample('H').mean()
         df_station.index = df_station.index + to_offset('30min')
             
-    if sample == 'H' and apply_percentage == True:
+    if sample == 'H' and apply_percentage is True:
                           
         tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
-        if any(tmp['count'].median()) <= 1 == True:
-
-            df_station = df_station.resample('H').mean()
-                
-            df_station = tmp['mean'].where(tmp['count']>=1*0.9)
+        if sample_rate == 'hourly':
+        # if any(tmp['count'].median()) <= 1 is True:
+            
+            df_station = df_station
+            #df_station = tmp['mean'].where(tmp['count']>=1*0.9)
         else:
             df_station = tmp['mean'].where(tmp['count']>=60*0.9)
             
@@ -924,18 +953,19 @@ def resample_obs_data(dataframe: pd.DataFrame(),
 
         df_station.index = df_station.index + to_offset('30min')
             
-    if sample == 'D' and apply_percentage == False:
+    if sample == 'D' and apply_percentage is False:
             
         df_station = df_station.resample('D').mean()
         df_station.index = df_station.index + to_offset('12H')       
         
-    elif sample == 'D' and apply_percentage == True:
+    elif sample == 'D' and apply_percentage is True:
         
         tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
         
-        if any(tmp['count'].median() <= 30) == True:
+        if sample_rate == 'hourly':
+        #if any(tmp['count'].median() <= 30) is True:
             
-            df_station = df_station.resample('H').mean()
+            #df_station = df_station.resample('H').mean()
             
             df_station = tmp['mean'].where(tmp['count']>=24*0.9)
             
@@ -946,7 +976,7 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         df_station = df_station.resample('D').mean()
         df_station.index = df_station.index  + to_offset('12H')
             
-    if sample == 'M' and apply_percentage == False:
+    if sample == 'M' and apply_percentage is False:
         
         
         df_station = df_station.resample('M').mean()
@@ -954,13 +984,14 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
         df_station.index = idx1.union(idx2)
         
-    if sample == 'M' and apply_percentage == True:
+    if sample == 'M' and apply_percentage is True:
         
         tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
         
-        if any(tmp['count'].median() <= 800) == True:
+        if sample_rate == 'hourly':
+        # if any(tmp['count'].median() <= 800) is True:
             
-            df_station = df_station.resample('H').mean()
+            #df_station = df_station.resample('H').mean()
 
             tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
             
@@ -988,14 +1019,14 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         df_station.index = idx1.union(idx2)
             
             
-    if sample == 'Y' and apply_percentage == False:
+    if sample == 'Y' and apply_percentage is False:
         
         df_station = df_station.resample('Y').mean()
         leap_year = []
         
         for years in df_station.index.year:
             
-            if spf.year.check_leap_year(years) == True:
+            if spf.year.check_leap_year(years) is True:
                 
                 leap_year.append(years)
                 
@@ -1003,24 +1034,25 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         idx_normal = df_station.loc[~df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+2D') + to_offset('11H') + to_offset('59min') + to_offset('30s')        
         df_station.index = idx_normal.union(idx_leap)
         
-    if sample == 'Y' and apply_percentage == True:
+    if sample == 'Y' and apply_percentage is True:
         
         Days = df_station.groupby(pd.Grouper(freq='M')).agg(['count']).swaplevel(0,1,axis=1)
         Days['Days'] = df_station.resample('M').mean().index.days_in_month
         tmp = df_station.groupby(pd.Grouper(freq='Y')).agg(['mean','count']).swaplevel(0,1,axis=1)
         tmp['Days'] = Days['Days'].resample('Y').sum()
         
-        if tmp['count'].median().any() <= 8784:
+        if sample_rate == 'hourly':
+        # if tmp['count'].median().any() <= 8784:
             
             df_station = df_station.resample('H').mean()
             
-            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24]
-            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24]
-            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24]
+            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.90*24]
+            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.90*24]
+            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.90*24]
         else:
-            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.60*24*60]
-            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.60*24*60]
-            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.60*24*60]
+            X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['Days']*0.90*24*60]
+            Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['Days']*0.90*24*60]
+            Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['Days']*0.90*24*60]
         
         
         df_station['X'] = X
@@ -1031,7 +1063,7 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         
         for years in df_station.index.year:
             
-            if spf.year.check_leap_year(years) == True:
+            if spf.year.check_leap_year(years) is True:
                 leap_year.append(years)
                 
         idx_leap = df_station.loc[df_station.index.year.isin(leap_year)].index + to_offset('-6M') + to_offset('+1D') + to_offset('23H') + to_offset('59min') + to_offset('30s')
@@ -1118,9 +1150,9 @@ def jerk_detection_window(station: str,
         
     assert len(station) == 3, 'station must be a three letters IAGA Code'
     
-    assert isinstance(df_station, pd.DataFrame) or df_station == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_station, pd.DataFrame) or df_station is None, 'df_station must be a pandas dataframe or None'
     
-    assert isinstance(df_chaos, pd.DataFrame) or df_chaos == None, 'df_station must be a pandas dataframe or None'
+    assert isinstance(df_chaos, pd.DataFrame) or df_chaos is None, 'df_station must be a pandas dataframe or None'
      
     for check_bool in [plot_detection, plot_chaos_prediction,
                        convert_hdz_to_xyz, save_plots]:
@@ -1164,7 +1196,7 @@ def jerk_detection_window(station: str,
         endtime = str(df_station.index[-1].date())
         
     #cheking existence of HDZ components
-    if convert_hdz_to_xyz == True:    
+    if convert_hdz_to_xyz is True:    
         df_station = utt.hdz_to_xyz_conversion(station = station,
                                                dataframe = df_station,
                                                files_path = files_path
@@ -1202,7 +1234,7 @@ def jerk_detection_window(station: str,
                          source = None
                          )
     
-    #if plot_chaos_prediction == False:
+    #if plot_chaos_prediction is False:
     #    
     #    pass
     
@@ -1263,7 +1295,7 @@ def jerk_detection_window(station: str,
         #    #print('Equation number: ',(i + 1) + 'for ' + str(column) + 'component')
         #    print(eqn_list[-1])
         #    #f_list.append(lambdify(x, eqn_list[-1]))
-    if plot_detection == False:
+    if plot_detection is False:
         pass
     else:
 
@@ -1299,7 +1331,7 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on() 
                 ax.grid(alpha = 0.5)
                 ax.legend()
-            if save_plots == True:
+            if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
                                          f'{station}_jerk_detection.jpeg',
@@ -1343,7 +1375,7 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5)
             #fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
-            if save_plots == True:
+            if save_plots is True:
                 plt.savefig(os.path.join(directory,
                                          '{station}_jerk_detection_2.jpeg'
                                          ), 
@@ -1401,7 +1433,7 @@ def jerk_detection_window(station: str,
                 ax.grid(alpha = 0.5) 
                 ax.legend()
                 
-            if save_plots == True:
+            if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
                                          '{station}_jerk_detection.jpeg'
@@ -1452,7 +1484,7 @@ def jerk_detection_window(station: str,
             #         fontsize = 10
             #         )
             
-            if save_plots == True:
+            if save_plots is True:
                 plt.savefig(os.path.join(directory,
                                          f'{station}_jerk_detection_2.jpeg'),
                             dpi= 300,

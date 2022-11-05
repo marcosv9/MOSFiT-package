@@ -18,7 +18,7 @@ import data_processing_tools as dpt
 import support_functions as spf
 import matplotlib.gridspec as gridspec
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-#import cartopy.crs as ccrs
+import cartopy.crs as ccrs
  
 
 def project_directory():
@@ -642,7 +642,8 @@ def sv_obs(station: str,
                     ax.yaxis.set_tick_params(which='minor', bottom=False)
                     ax.minorticks_on() 
 
-                plt.savefig(os.path.join(directory, f'{station}_minute_mean.jpeg'
+                plt.savefig(os.path.join(directory,
+                                         f'{station}_minute_mean.jpeg'
                                          ),
                             dpi = 300,
                             bbox_inches='tight'
@@ -739,9 +740,12 @@ def sv_obs(station: str,
                 ax[2,1].legend()
 
 
-            plt.savefig(os.path.join(directory, f'{station}_Var_SV.jpeg'),
-                                     dpi = 300,
-                                     bbox_inches = 'tight')
+            plt.savefig(os.path.join(directory,
+                                     f'{station}_Var_SV.jpeg'
+                                     ),
+                        dpi = 300,
+                        bbox_inches = 'tight'
+                        )
             plt.show()      
             
              #plot of SV alone     
