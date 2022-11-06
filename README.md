@@ -87,7 +87,7 @@ There are others functions into the modules, including the support_functions mod
 | [dpt.kp_index_selection](#kp_index_selection)(dataframe, kp) | Select only periods with Kp values <= the defined limit. Default is 2|
 | [dpt.calculate_sv](#calculate_sv)(dataframe, method, source, ...) |Calculate SV from geomagnetic data using monthly or annual means (input must be output from load_intermagnet_files or chaos_model_prediction). Default is monthly means|
 | [dpt.chaos_model_prediction](#chaos_model_prediction)(station, starttime, endtime, n_core, ...) | Predict diferent sources of the geomagnetic from CHAOS-7 model (core, crust, magnetospheric (GSM + SM)).|
-| [dpt.external_field_correction_chaos_model](#external_field_correction_chaos_model}(station, starttime, endtime, ...) | Correct magnetospheric field from geomagnetic data|
+| [dpt.external_field_correction_chaos_model](#external_field_correction_chaos_model)(station, starttime, endtime, ...) | Correct magnetospheric field from geomagnetic data|
 | [dpt.jerk_detection_window](#jerk_detection_window)(station, window_start, window_end, ...) | Automatically adjust two straight line segments in the SV for an user specified time window|
 
 #### utilities_tools
@@ -258,7 +258,15 @@ Example of SV calculate from VSS monthly means using MOSFiT magnetospheric field
 
 <img src="figures/chaos_correction_ex.jpeg" width=70% height=70%>
 
+### jerk_detection_window
 
+Automatically fits two straight line segments for an user selected window. Determine the geomagnetic jerk occurrence time (t0), amplitude (A) and coefficiente of determination (R2). 
+
+The function uses the occurrence time as input in the [plot_tdep_map] to plot the SA changes for the jerk detection.
+
+```python
+jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
+```
 ## SV_OBS Usage
 
 sv_obs is a function that includes the most important data processing options.
