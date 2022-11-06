@@ -65,7 +65,7 @@ There are others functions into the modules, including the support_functions mod
 
 | Function | Description                |
 | :-------- | :------------------------- |
-| mvs.load_intermagnet_files(station, starttime, endtime, files_path) | read and merge IAGA-2002 file format into a pandas DataFrame |
+| mvs.load_intermagnet_files(## load_intermagnet_files)(station, starttime, endtime, files_path) | read and merge IAGA-2002 file format into a pandas DataFrame |
 | mvs.sv_obs(station, starttime, endtime, plot_chaos, files_path) | interactive data processing workflow ultil geomagnetic jerk detection|
 | mvs.plot_sample(station, dataframe, save_plots ...) | automatically plot hourly, daily, monthly and annual means|
 | mvs.plot_sv(station, starttime, endtime, df_station, df_chaos, ...) | automatically plot SV with options to correct the data and plot CHAOS prediction|
