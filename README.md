@@ -66,10 +66,10 @@ There are others functions into the modules, including the support_functions mod
 | Function | Description                |
 | :-------- | :------------------------- |
 | [mvs.load_intermagnet_files](#load_intermagnet_files)(station, starttime, endtime, files_path) | read and merge IAGA-2002 file format into a pandas DataFrame |
-| mvs.sv_obs(station, starttime, endtime, plot_chaos, files_path) | interactive data processing workflow ultil geomagnetic jerk detection|
-| mvs.plot_sample(station, dataframe, save_plots ...) | automatically plot hourly, daily, monthly and annual means|
-| mvs.plot_sv(station, starttime, endtime, df_station, df_chaos, ...) | automatically plot SV with options to correct the data and plot CHAOS prediction|
-| mvs.plot_tdep_map(time, deriv, plot_changes, station) | plot a global map of the SV or SA as well as their changes (from CHAOS prediction)|
+| [mvs.sv_obs](#sv_obs)(station, starttime, endtime, plot_chaos, files_path) | interactive data processing workflow ultil geomagnetic jerk detection|
+| [mvs.plot_sample](#plot_samples)(station, dataframe, save_plots ...) | automatically plot hourly, daily, monthly and annual means|
+| [mvs.plot_sv](#plot_sv)(station, starttime, endtime, df_station, df_chaos, ...) | automatically plot SV with options to correct the data and plot CHAOS prediction|
+| [mvs.plot_tdep_map](plot_tdep_map)(time, deriv, plot_changes, station) | plot a global map of the SV or SA as well as their changes (from CHAOS prediction)|
 
 
 #### data_processing_tools
@@ -79,16 +79,16 @@ There are others functions into the modules, including the support_functions mod
 ```
 | Function | Description                |
 | :-------- | :------------------------- |
-| dpt.resample_obs_data(dataframe, sample, apply_percentage) | Resample obs minute or hourly means into hourly, daily, monthly or annual means |
-| dpt.hampel_filter_denoising(dataframe, window_size, n_sigmas, ...)| Denoising filter based on median absolute deviation|
-| dpt.night_time_selection(station, dataframe)| Select the nighttime period from geomagnetic data. Default from 22pm to 2am LT.|
-| dpt.keep_quiet_days(dataframe)| Select only top 10 quiet days from each month|
-| dpt.remove_disturbed_days(dataframe)| Remove top 5 disturbed days from each month|
-| dpt.kp_index_selection(dataframe, kp) | Select only periods with Kp values <= the defined limit. Default is 2|
-| dpt.calculate_sv(dataframe, method, source, ...) |Calculate SV from geomagnetic data using monthly or annual means (input must be output from load_intermagnet_files or chaos_model_prediction). Default is monthly means|
-| dpt.chaos_model_prediction(station, starttime, endtime, n_core, ...) | Predict diferent sources of the geomagnetic from CHAOS-7 model (core, crust, magnetospheric (GSM + SM)).|
-| dpt.external_field_correction_chaos_model(station, starttime, endtime, ...) | Correct magnetospheric field from geomagnetic data|
-| dpt.jerk_detection_window(station, window_start, window_end, ...) | Automatically adjust two straight line segments in the SV for an user specified time window|
+| [dpt.resample_obs_data](#resample_obs_data)(dataframe, sample, apply_percentage) | Resample obs minute or hourly means into hourly, daily, monthly or annual means |
+| [dpt.hampel_filter_denoising](#hampel_filter_denoising)(dataframe, window_size, n_sigmas, ...)| Denoising filter based on median absolute deviation|
+| [dpt.night_time_selection](#night_time_selection)(station, dataframe)| Select the nighttime period from geomagnetic data. Default from 22pm to 2am LT.|
+| [dpt.keep_quiet_days](#keep_quiet_days)(dataframe)| Select only top 10 quiet days from each month|
+| [dpt.remove_disturbed_days](#remove_disturbed_days)(dataframe)| Remove top 5 disturbed days from each month|
+| [dpt.kp_index_selection](#kp_index_selection)(dataframe, kp) | Select only periods with Kp values <= the defined limit. Default is 2|
+| [dpt.calculate_sv](#calculate_sv)(dataframe, method, source, ...) |Calculate SV from geomagnetic data using monthly or annual means (input must be output from load_intermagnet_files or chaos_model_prediction). Default is monthly means|
+| [dpt.chaos_model_prediction](#chaos_model_prediction)(station, starttime, endtime, n_core, ...) | Predict diferent sources of the geomagnetic from CHAOS-7 model (core, crust, magnetospheric (GSM + SM)).|
+| [dpt.external_field_correction_chaos_model](#external_field_correction_chaos_model}(station, starttime, endtime, ...) | Correct magnetospheric field from geomagnetic data|
+| [dpt.jerk_detection_window](#jerk_detection_window)(station, window_start, window_end, ...) | Automatically adjust two straight line segments in the SV for an user specified time window|
 
 #### utilities_tools
 
