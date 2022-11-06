@@ -151,7 +151,6 @@ The returned dataframe can be manipulated by the user or processed with the othe
 
 You can set a specific directory or just use the default (automatically created when the files are downloaded using download_data_INTERMAGNET function).
 
-
 ### sv_obs
 
 sv_obs is a function that includes the most important data processing options.
@@ -185,12 +184,23 @@ mvs.plot_samples(station = 'VSS', dataframe: df_name, save_plots = False, plot_d
 Function to automatically plot the SV for an observatory
 
 ```python
-plot_sv(station = 'NGK', starttime = None, endtime = None, files_path = None, df_station = df_name, df_chaos = None, apply_percentage = False, plot_chaos = True, chaos_correction = True, save_plot = False, convert_hdz_to_xyz = False)
+import main_functions as mvs
+mvs.plot_sv(station = 'NGK', starttime = None, endtime = None, files_path = None, df_station = df_name, df_chaos = None, apply_percentage = False, plot_chaos = True, chaos_correction = True, save_plot = False, convert_hdz_to_xyz = False)
 ```    
 Example of SV from NGK automatically created using the function. The CHAOS model internal field predictions is also an option as well as correct the magnetospheric field.
 <img src="figures/plot_sv_ex.jpeg" width=70% height=70%>
+
 ### plot_tdep_map
 
+Plot a SV or SA world map for the CHAOS model predictions. It is possible to plot SV and SA changes as well as include 'stations' in the map (see figure)
+
+```python
+import main_functions as mvs
+mvs.plot_tdep_map('2022-07-01', deriv = 1, plot_changes=False, station = ['VSS','NGK','TTB'])
+``` 
+Example of output from plot_tdep_map
+
+<img src="figures/plot_tdep.jpeg" width=70% height=70%>
 
 # data_processing_tools functions usage
 
@@ -339,14 +349,15 @@ Automatically fits two straight line segments for an user selected window. Deter
 The function uses the occurrence time as input in the [plot_tdep_map](#plot_tdep_map) to plot the SA changes for the jerk detection.
 
 ```python
-jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
+import data_processing_tools as dpt
+dpt.jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
 ```
 
 
 
 Geomagnetic jerk detection |  Statistics
 :-------------------------:|:-------------------------:
-<img src="figures/jerk_ex.jpg" width=70% height=70%> | <img src="figures/detections_stats.jpg" width=70% height=70%> 
+<img src="figures/jerk_ex.jpg" width=85% height=85%> | <img src="figures/detection_stats.jpg" width=100% height=100%> 
 
 SA changes for the occurrence time
 
