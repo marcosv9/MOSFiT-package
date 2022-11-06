@@ -139,7 +139,7 @@ dpt.resample_obs_data(dataframe = df_name, sample = 'H', apply_percentage = True
 ```
 Example of different data samples calculated using MOSFiT.
 
-![](figures/resample_obs_data.jpeg)
+<img src="figures/resample_obs_data.jpeg" width=70% height=70%>
 
 ### hampel_filter_denoising
 
@@ -154,7 +154,7 @@ dpt.hampel_filter_denoising(dataframe = df_name, window_size = 200, n_sigmas = 3
 ```
 Example of denoised hourly mean data.
 
-![](figures/hampel_filter_ex.jpeg)
+<img src="figures/hampel_filter_ex.jpeg" width=70% height=70%>
 
 
 ### kp_index_correction
@@ -167,8 +167,7 @@ Find the Kp index on https://kp.gfz-potsdam.de/en/
 import data_processing_tools as dpt
 dpt.kp_index_correction(dataframe = df_name, kp = 2)
 ```
-![](figures/kp_index_ex.jpeg)
-
+<img src="figures/kp_index_ex.jpeg" width=70% height=70%>
 
 ### keep_quiet_days
 
@@ -181,7 +180,8 @@ import data_processing_tools as dpt
 dpt.keep_quiet_days(dataframe = df_name)
 ```
 Example of SV calculate using normal data and selecting quiet days for each monthly.
-![](figures/quiet_days_ex.jpeg)
+
+<img src="figures/quiet_days_ex.jpeg" width=70% height=70%>
 
 ### remove_disturbed_days
 
@@ -194,7 +194,8 @@ import data_processing_tools as dpt
 dpt.remove_disturbed_days(dataframe = df_name)
 ```
 Example of SV calculate using normal data and removing the top 5 disturbed days from each month.
-![](figures/disturbed_days_ex.jpeg)
+
+<img src="figures/disturbed_days_ex.jpeg" width=70% height=70%>
 
 ### night_time_selection
 
@@ -205,7 +206,8 @@ import data_processing_tools as dpt
 dpt.night_time_selection(station = 'XXX', dataframe = df_name)
 ```
 Example of SV calculate using normal data and selecting only nighttime period.
-![](figures/nighttime_ex.jpeg)
+
+<img src="figures/nighttime_ex.jpeg" width=70% height=70%>
 
 ### calculate_sv
 
@@ -216,7 +218,7 @@ import data_processing_tools as dpt
 dpt.calculate_sv(dataframe = df_name, method = 'ADMM')
 ```
 Example of SV calculate from VSS monthly means using MOSFiT.
-![](figures/VSS_SV.jpeg)
+<img src="figures/VSS_SV.jpeg" width=50% height=50%>
 
 ### chaos_model_prediction
 Predict core fiel, crustal field and magnetospheric field (GSM and SM) from CHAOS-7 model predictions in a hourly rate
@@ -234,23 +236,6 @@ Example of how to use MOSFiT chaos_model_prediction. The station (3 letter IAGA 
 import data_processing_tools as dpt
 dpt.chaos_model_prediction(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd', n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
 ```    
-
-### chaos_model_prediction
-Predict core fiel, crustal field and magnetospheric field (GSM and SM) from CHAOS-7 model predictions in a hourly rate
-
-find the model realease on http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
-
-References
-Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020), The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly, Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9 [.pdf]
- 
-Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. and Toeffner-Clausen, L., (2019) DTU Candidate models for IGRF-13. Technical Note submitted to IGRF-13 task force, 1st October 2019 [.pdf]
-
-Example of how to use MOSFiT chaos_model_prediction. The station (3 letter IAGA code) must be in the MOSFiT imos database. All INTERMAGNET observatories are included in the database automatically. If you are interest in predict the field for other observatory or location, use the 'IMO' MOSFiT class to add the location in the database. See utilities_tools section for an explanation about how to include the location.  
-
-```python
-import data_processing_tools as dpt
-dpt.chaos_model_prediction(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd', n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
-```   
 
 ### external_field_correction_chaos_model
 
@@ -270,7 +255,9 @@ import data_processing_tools as dpt
 dpt.external_field_correction_chaos_model(station = 'XXX', starttime = 'yyyy-mm-dd', endtime = 'yyyy-mm-dd',df_station = None, df_chaos = None, n_core = 20, n_crust = 110, n_gsm = 2, n_sm = 2)
 ``` 
 Example of SV calculate from VSS monthly means using MOSFiT magnetospheric field correction from CHAOS predictions.
-![](figures/chaos_correction_ex.jpeg)
+
+<img src="figures/chaos_correction_ex.jpeg" width=70% height=70%>
+
 
 ## SV_OBS Usage
 
@@ -284,7 +271,7 @@ It allows the user to process the geomagnetic data in a interactive workflow,
 
  using most of the available data_processing functions.
 
-![](figures/worflow.png)
+<img src="figures/worflow.png" width=70% height=70%>
 
 ```python
 
