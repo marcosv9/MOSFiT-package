@@ -16,18 +16,33 @@ The package is separetade in modules called data_processing_tools, utility_tools
 
 All the functions have a docstring with the inputs explanation and an usage example.
 
+
+# Documentation summary
+
+* [Setting up MOSFiT package](#Setting-up-MOSFiT-package)
+  * [Package installation](#Package-installation)
+  * [Downloading IAGA-2002 data](#Downloading-IAGA-2002-data) 
+* [Package modules import suggestion](#Package-modules-import-suggestion)
+* [Requirements](#Requirements)
+* [Modules functions](#Modules-functions)
+  * [main_functions](#main_functions)
+  * [data_processing_tools](#data_processing_tools)
+  * [utilities_tools](#utilities_tools)
+ * [main_functions-usage](#main_functions-usage) 
+ * [data_processing_tools functions usage](#data_processing_tools-functions-usage)  
+
 ## Setting up MOSFiT package
 
 The MOSFiT python package was built to work with INTERMAGNET minute mean data in the IAGA-2002 format, in order to analyse the SV and check INTERMAGNET Magnetic Observatory (IMO) data quality. The definitive and quasi-definitive data are mainly used because of higher quality and reliability, especially for SV studies. However, we can also apply MOSFiT to others types of IAGA-2002 data, i.e. provisional data).
 
-Step 1: Requirements and software installation.
+### Package installation
 
 MOSFiT is developed in the Python 3 language. The package can be compiled in the command window or in a “jupyter notebook enviroment”.
 
 You can download MOSFiT in: https://github.com/marcosv9/Thesis-Marcos. In this same link, there is a documentation of how to use the package functions, with some examples.
 
 
-Step 2: Downloading IAGA-2002 data.
+### Downloading IAGA-2002 data
 
 In order to use MOSFiT, it is necessary to have the data stored in a local computer.
 
@@ -47,6 +62,19 @@ To use the developed funtions, is necessary to import them. I suggest to use the
   import main_functions as mvs
   import support_functions as spf
 ```
+
+## Requirements
+
+* scipy
+* chaosmagpy
+* numpy
+* pandas
+* matplotlib
+* glob2
+* pathlib2
+* pwlf
+* chaosmagpy
+* scikit-learn
 
 
 ## Modules functions
@@ -69,7 +97,7 @@ There are others functions into the modules, including the support_functions mod
 | [mvs.sv_obs](#sv_obs)(station, starttime, endtime, plot_chaos, files_path) | interactive data processing workflow ultil geomagnetic jerk detection|
 | [mvs.plot_sample](#plot_samples)(station, dataframe, save_plots ...) | automatically plot hourly, daily, monthly and annual means|
 | [mvs.plot_sv](#plot_sv)(station, starttime, endtime, df_station, df_chaos, ...) | automatically plot SV with options to correct the data and plot CHAOS prediction|
-| [mvs.plot_tdep_map](plot_tdep_map)(time, deriv, plot_changes, station) | plot a global map of the SV or SA as well as their changes (from CHAOS prediction)|
+| [mvs.plot_tdep_map](#plot_tdep_map)(time, deriv, plot_changes, station) | plot a global map of the SV or SA as well as their changes (from CHAOS prediction)|
 
 
 #### data_processing_tools
@@ -118,7 +146,7 @@ The returned dataframe can be manipulated by the user or processed with the othe
 
 You can set a specific directory or just use the default (automatically created when the files are downloaded using download_data_INTERMAGNET function).
 
-## data_processing_tools functions
+## data_processing_tools functions usage
 
 Here I explain the principal function of the data_processing_tools module.
 
@@ -127,7 +155,7 @@ As the name says such functions are responsable for the data processing.
 Most of them are methods to reduce the external field contribution from the observatory data. In order to investigate the SV.
 
 
-### resample_observatory_data
+### resample_obs_data
 
 This function allows the user to resample geomagnetic observatory
 
@@ -262,7 +290,7 @@ Example of SV calculate from VSS monthly means using MOSFiT magnetospheric field
 
 Automatically fits two straight line segments for an user selected window. Determine the geomagnetic jerk occurrence time (t0), amplitude (A) and coefficiente of determination (R2). 
 
-The function uses the occurrence time as input in the [plot_tdep_map] to plot the SA changes for the jerk detection.
+The function uses the occurrence time as input in the [plot_tdep_map](#plot_tdep_map) to plot the SA changes for the jerk detection.
 
 ```python
 jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
