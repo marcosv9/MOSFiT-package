@@ -1,6 +1,0 @@
-﻿chaosmagpy.coordinate\_utils.q\_response
-========================================
-
-.. currentmodule:: chaosmagpy.coordinate_utils
-
-.. autofunction:: q_response

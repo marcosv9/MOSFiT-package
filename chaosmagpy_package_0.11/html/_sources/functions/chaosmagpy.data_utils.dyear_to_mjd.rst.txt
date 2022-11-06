@@ -1,6 +1,0 @@
-﻿chaosmagpy.data\_utils.dyear\_to\_mjd
-=====================================
-
-.. currentmodule:: chaosmagpy.data_utils
-
-.. autofunction:: dyear_to_mjd

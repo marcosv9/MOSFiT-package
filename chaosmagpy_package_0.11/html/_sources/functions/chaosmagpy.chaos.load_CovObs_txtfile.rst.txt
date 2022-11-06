@@ -1,6 +1,0 @@
-﻿chaosmagpy.chaos.load\_CovObs\_txtfile
-======================================
-
-.. currentmodule:: chaosmagpy.chaos
-
-.. autofunction:: load_CovObs_txtfile

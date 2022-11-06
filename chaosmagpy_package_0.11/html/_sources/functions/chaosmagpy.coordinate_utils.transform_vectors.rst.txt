@@ -1,6 +1,0 @@
-﻿chaosmagpy.coordinate\_utils.transform\_vectors
-===============================================
-
-.. currentmodule:: chaosmagpy.coordinate_utils
-
-.. autofunction:: transform_vectors

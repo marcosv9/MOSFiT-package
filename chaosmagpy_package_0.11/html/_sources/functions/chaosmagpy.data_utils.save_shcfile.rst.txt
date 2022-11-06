@@ -1,6 +1,0 @@
-﻿chaosmagpy.data\_utils.save\_shcfile
-====================================
-
-.. currentmodule:: chaosmagpy.data_utils
-
-.. autofunction:: save_shcfile
