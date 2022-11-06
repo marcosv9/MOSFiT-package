@@ -1,6 +1,0 @@
-﻿chaosmagpy.coordinate\_utils.sun\_position
-==========================================
-
-.. currentmodule:: chaosmagpy.coordinate_utils
-
-.. autofunction:: sun_position

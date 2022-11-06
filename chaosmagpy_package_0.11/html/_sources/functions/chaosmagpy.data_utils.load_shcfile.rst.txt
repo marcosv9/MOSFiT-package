@@ -1,6 +1,0 @@
-﻿chaosmagpy.data\_utils.load\_shcfile
-====================================
-
-.. currentmodule:: chaosmagpy.data_utils
-
-.. autofunction:: load_shcfile

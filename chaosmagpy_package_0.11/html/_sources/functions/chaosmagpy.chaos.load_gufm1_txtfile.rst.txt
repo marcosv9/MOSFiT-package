@@ -1,6 +1,0 @@
-﻿chaosmagpy.chaos.load\_gufm1\_txtfile
-=====================================
-
-.. currentmodule:: chaosmagpy.chaos
-
-.. autofunction:: load_gufm1_txtfile

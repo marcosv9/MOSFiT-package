@@ -1,9 +1,0 @@
-﻿chaosmagpy.config_utils.BasicConfig
-===================================
-
-.. currentmodule:: chaosmagpy.config_utils
-
-.. autoclass:: BasicConfig
-    :members:
-    :special-members: __call__
-    :show-inheritance:
