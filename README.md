@@ -188,7 +188,7 @@ Function to automatically plot the SV for an observatory
 plot_sv(station = 'NGK', starttime = None, endtime = None, files_path = None, df_station = df_name, df_chaos = None, apply_percentage = False, plot_chaos = True, chaos_correction = True, save_plot = False, convert_hdz_to_xyz = False)
 ```    
 Example of SV from NGK automatically created using the function. The CHAOS model internal field predictions is also an option as well as correct the magnetospheric field.
-<img src="figures/plot_sv_ex.png" width=70% height=70%>
+<img src="figures/plot_sv_ex.jpeg" width=70% height=70%>
 ### plot_tdep_map
 
 
@@ -292,7 +292,7 @@ import data_processing_tools as dpt
 dpt.calculate_sv(dataframe = df_name, method = 'ADMM')
 ```
 Example of SV calculate from VSS monthly means using MOSFiT.
-<img src="figures/VSS_SV.jpeg" width=50% height=50%>
+<img src="figures/VSS_SV.jpeg" width=70% height=70%>
 
 ### chaos_model_prediction
 Predict core fiel, crustal field and magnetospheric field (GSM and SM) from CHAOS-7 model predictions in a hourly rate
@@ -341,4 +341,15 @@ The function uses the occurrence time as input in the [plot_tdep_map](#plot_tdep
 ```python
 jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
 ```
+
+
+
+Geomagnetic jerk detection |  Statistics
+:-------------------------:|:-------------------------:
+<img src="figures/jerk_ex.jpg" width=70% height=70%> | <img src="figures/detections_stats.jpg" width=70% height=70%> 
+
+SA changes for the occurrence time
+
+<img src="figures/jerk_ex_2.jpg" width=70% height=70%>
+
 
