@@ -1,3 +1,5 @@
+scipy
+chaosmagpy
 numpy
 pandas
 matplotlib

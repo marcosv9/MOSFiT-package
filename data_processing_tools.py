@@ -340,7 +340,9 @@ def kp_index_correction(dataframe: pd.DataFrame(),
                    sep = '\t',
                    index = ['Date'])
         
-    kp_new_index = pd.date_range(str(df_station.index[0].date()), f'{str(df_station.index[-1].date())} 21:00:00', freq = sample_rate)
+    kp_new_index = pd.date_range(str(df_station.index[0].date()),
+                                 f'{str(df_station.index[-1].date())} 21:00:00',
+                                 freq = sample_rate)
     
     KP_ = KP_.reindex(kp_new_index).ffill()
     
@@ -366,10 +368,195 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     return df_station
 
+def chaos_internal_field_prediction(station: str,
+                                    starttime: str,
+                                    endtime: str,
+                                    n_core = 20,
+                                    n_crust = 110
+                                    ):
+    
+    assert len(station) == 3, 'station must be a three letters IAGA Code'
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
+        
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
+    
+    working_directory = project_directory()
+    
+    #loading CHAOS model    
+    chaos_path = glob.glob(os.path.join(working_directory,
+                                        'chaosmagpy_package_*.*',
+                                        'data',
+                                        'CHAOS*'
+                                        )
+                           )
+    model = cp.load_CHAOS_matfile(chaos_path[0])
+    
+    station = station.upper()
+    
+    rc_directory = pathlib.Path(os.path.join(working_directory,
+                                             'Data',
+                                             'chaos rc',
+                                             'newest_RC_file.h5'
+                                             )
+                                )                        
+    rc_data = h5py.File(rc_directory)
+    
+    if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
+        
+        rc_data.close()
+        save_RC_h5file(rc_directory)
+        cp.basicConfig['file.RC_index'] = rc_directory
+    else:
+        rc_data.close()
+        cp.basicConfig['file.RC_index'] = rc_directory    
+    #setting the Earth radius reference
+    R_REF = 6371.2
+
+    #getting coordenates for the stations
+    Longitude = utt.IMO.longitude(station)
+
+    Latitude = 90 - utt.IMO.latitude(station)
+
+    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
+
+    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
+    Time =cp.data_utils.mjd2000(Date)
+    
+    # Internal field
+    print(f'Initiating geomagnetic field computation for {station.upper()}.')
+    print(f'Computing core field.')
+    
+    B_core = model.synth_values_tdep(time = Time,
+                                     radius = Elevation,
+                                     theta = Latitude ,
+                                     phi = Longitude,
+                                     nmax = n_core
+                                    )
+    
+    
+    print(f'Computing crustal field up to degree 110.')
+
+    B_crust = model.synth_values_static(radius = Elevation,
+                                        theta = Latitude,
+                                        phi = Longitude,
+                                        nmax = n_crust
+                                       )   
+     
+    df_station = pd.DataFrame()
+    df_station.index = Date
+    
+    df_station['X_int'] = B_core[1].round(3)*-1
+    df_station['Y_int'] = B_core[2].round(3)
+    df_station['Z_int'] = B_core[0].round(3)*-1
+    
+    df_station['X_crust'] = B_crust[1].round(3)*-1
+    df_station['Y_crust'] = B_crust[2].round(3)
+    df_station['Z_crust'] = B_crust[0].round(3)*-1
+
+    return df_station 
+
+
+def chaos_external_field_prediction(station: str,
+                                    starttime: str,
+                                    endtime: str,
+                                    n_gsm = 2,
+                                    n_sm = 2
+                                    ):
+    
+    assert len(station) == 3, 'station must be a three letters IAGA Code'
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
+        
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
+    
+    working_directory = project_directory()
+    
+    #loading CHAOS model    
+    chaos_path = glob.glob(os.path.join(working_directory,
+                                        'chaosmagpy_package_*.*',
+                                        'data',
+                                        'CHAOS*'
+                                        )
+                           )
+    model = cp.load_CHAOS_matfile(chaos_path[0])
+    
+    station = station.upper()
+    
+    rc_directory = pathlib.Path(os.path.join(working_directory,
+                                             'Data',
+                                             'chaos rc',
+                                             'newest_RC_file.h5'
+                                             )
+                                )                        
+    rc_data = h5py.File(rc_directory)
+    
+    if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
+        
+        rc_data.close()
+        save_RC_h5file(rc_directory)
+        cp.basicConfig['file.RC_index'] = rc_directory
+    else:
+        rc_data.close()
+        cp.basicConfig['file.RC_index'] = rc_directory    
+    #setting the Earth radius reference
+    R_REF = 6371.2
+
+    #getting coordenates for the stations
+    Longitude = utt.IMO.longitude(station)
+
+    Latitude = 90 - utt.IMO.latitude(station)
+
+    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
+
+    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
+    Time =cp.data_utils.mjd2000(Date)
+    
+    # Internal field
+    print(f'Initiating geomagnetic magnetospheric field computation for {station.upper()}.')
+    print('Computing field due to external sources, incl. induced field: GSM.')
+    B_gsm = model.synth_values_gsm(time = Time,
+                                   radius = Elevation, 
+                                   theta = Latitude,
+                                   phi = Longitude, 
+                                   source='all',
+                                   nmax = n_gsm
+                                   )
+    
+    B_sm = model.synth_values_sm(time = Time,
+                                 radius = Elevation,
+                                 theta = Latitude,
+                                 phi = Longitude,
+                                 source='all',
+                                 nmax = n_sm,
+                                 )
+     
+    df_station = pd.DataFrame()
+    df_station.index = Date
+    
+    df_station['X_gsm'] = B_gsm[1].round(3)*-1
+    df_station['Y_gsm'] = B_gsm[2].round(3)
+    df_station['Z_gsm'] = B_gsm[0].round(3)*-1
+    
+    df_station['X_sm'] = B_sm[1].round(3)*-1
+    df_station['Y_sm'] = B_sm[2].round(3)
+    df_station['Z_sm'] = B_sm[0].round(3)*-1
+
+    return df_station 
+
 def chaos_model_prediction(station: str,
                            starttime: str,
-                           endtime: str
+                           endtime: str,
+                           n_core = 20,
+                           n_crust = 110,
+                           n_gsm = 2,
+                           n_sm = 2
                            ):
+    
     '''
     Compute the CHAOS-7.10 model geomagnetic field prediction for a INTERMAGNET observatory.
     
@@ -470,7 +657,7 @@ def chaos_model_prediction(station: str,
                                      radius = Elevation,
                                      theta = Latitude ,
                                      phi = Longitude,
-                                     nmax = 20
+                                     nmax = n_core
                                     )
 
     print(f'Computing crustal field up to degree 110.')
@@ -478,7 +665,7 @@ def chaos_model_prediction(station: str,
     B_crust = model.synth_values_static(radius = Elevation,
                                         theta = Latitude,
                                         phi = Longitude,
-                                        nmax = 110
+                                        nmax = n_crust
                                        )
     
     # complete internal contribution
@@ -492,7 +679,7 @@ def chaos_model_prediction(station: str,
                                    theta = Latitude,
                                    phi = Longitude, 
                                    source='all',
-                                   nmax = 2
+                                   nmax = n_gsm
                                    )
     
     B_sm = model.synth_values_sm(time = Time,
@@ -500,7 +687,7 @@ def chaos_model_prediction(station: str,
                                  theta = Latitude,
                                  phi = Longitude,
                                  source='all',
-                                 nmax = 2,
+                                 nmax = n_sm,
                                  )
 
     #if endtime <= '2022-02-28':
@@ -588,6 +775,10 @@ def external_field_correction_chaos_model(station: str,
                                           endtime: str = None,
                                           df_station = None,
                                           df_chaos = None,
+                                          n_core = 20,
+                                          n_crust = 110,
+                                          n_gsm = 2,
+                                          n_sm = 2,
                                           files_path = None,
                                           apply_percentage: bool = False
                                           ):    
@@ -634,9 +825,13 @@ def external_field_correction_chaos_model(station: str,
     if not [i for i in (starttime, endtime) if i is None]:
         for i in [starttime, endtime]:
             spf.validate(i)
-    else:
-        if files_path is None:
-            raise ValueError('if starttime and endtime are None, you must inform files_path.')   
+                
+    if df_station is None and files_path is None:   
+        raise ValueError('df_station is None, you must inform files_path.')   
+    
+    if [i for i in (starttime, endtime) if i is None] and df_station is not None:
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
     
     station = station.upper()
     
@@ -669,7 +864,11 @@ def external_field_correction_chaos_model(station: str,
         
         df_chaos = chaos_model_prediction(station = station,
                                           starttime = starttime,
-                                          endtime = endtime
+                                          endtime = endtime,
+                                          n_core = n_core,
+                                          n_crust = n_crust,
+                                          n_gsm = n_gsm,
+                                          n_sm = n_sm  
                                          )
         
     #df_chaos.index = df_chaos.index + to_offset('30min')
@@ -1141,9 +1340,13 @@ def jerk_detection_window(station: str,
     if not [i for i in (starttime, endtime) if i is None]:
         for i in [starttime, endtime]:
             spf.validate(i)
-    else:
-        if files_path is None:
-            raise ValueError('if starttime and endtime are None, you must inform files_path.') 
+                
+    if df_station is None and files_path is None:   
+        raise ValueError('df_station is None, you must inform files_path.')   
+    
+    if [i for i in (starttime, endtime) if i is None] and df_station is not None:
+        starttime = str(df_station.index[0].date())
+        endtime = str(df_station.index[-1].date())
 
     for i in [window_start, window_end]:
         spf.validate_ym(i)
@@ -1324,7 +1527,7 @@ def jerk_detection_window(station: str,
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
-                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
@@ -1425,7 +1628,7 @@ def jerk_detection_window(station: str,
                         #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
-                ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+                ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
