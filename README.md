@@ -28,7 +28,7 @@ All the functions have a docstring with the inputs explanation and an usage exam
   * [main_functions](#main_functions)
   * [data_processing_tools](#data_processing_tools)
   * [utilities_tools](#utilities_tools)
- * [main_functions-usage](#main_functions-usage) 
+ * [main_functions usage](#main_functions-usage) 
  * [data_processing_tools functions usage](#data_processing_tools-functions-usage)  
 
 ## Setting up MOSFiT package
@@ -85,7 +85,7 @@ Functions listed here are fundamental in the geomagnetic data processing.
 
 There are others functions into the modules, including the support_functions module that was not mentioned. Most of them are internally used by the package.  
 
-#### main_functions
+### main_functions
 
 ```python
   import main_functions as mvs
@@ -100,7 +100,7 @@ There are others functions into the modules, including the support_functions mod
 | [mvs.plot_tdep_map](#plot_tdep_map)(time, deriv, plot_changes, station) | plot a global map of the SV or SA as well as their changes (from CHAOS prediction)|
 
 
-#### data_processing_tools
+### data_processing_tools
 
 ```python
   import data_processing_tools as dpt
@@ -118,7 +118,7 @@ There are others functions into the modules, including the support_functions mod
 | [dpt.external_field_correction_chaos_model](#external_field_correction_chaos_model)(station, starttime, endtime, ...) | Correct magnetospheric field from geomagnetic data|
 | [dpt.jerk_detection_window](#jerk_detection_window)(station, window_start, window_end, ...) | Automatically adjust two straight line segments in the SV for an user specified time window|
 
-#### utilities_tools
+### utilities_tools
 
 ```python
   import utilities_tools as utt
@@ -130,7 +130,12 @@ There are others functions into the modules, including the support_functions mod
 |utt.IMO(self, station, latitude, longitude, ...) |Class representing IMO. Can be used to check IMO informations on MOSFiT database (IMO existence, latitude, longitude, altitude) as well as add a new IMO or delete|
 
 
-## load_intermagnet_files
+# main_functions usage
+The main_functions package module consist of functions to load (read) and visualize IAGA-2002 data. 
+
+It also has an interactive function [sv_obs](#sv_obs) that includes the most important data processing options.
+
+### load_intermagnet_files
 
 This function is the most important, since it reads any geomagnetic data following the IAGA-2002 format.
 
@@ -146,7 +151,48 @@ The returned dataframe can be manipulated by the user or processed with the othe
 
 You can set a specific directory or just use the default (automatically created when the files are downloaded using download_data_INTERMAGNET function).
 
-## data_processing_tools functions usage
+
+### sv_obs
+
+sv_obs is a function that includes the most important data processing options.
+
+The processing according to the figure is already implemented in a dedicated function.
+
+However the user can combine any of the processing steps in any possible order or combination
+
+It allows the user to process the geomagnetic data in a interactive workflow,
+
+ using most of the available data_processing functions.
+
+<img src="figures/worflow.png" width=70% height=70%>
+
+```python
+
+sv_obs(station = 'VSS', stattime = '2000-01-01', endtime = '2021-06-30', files_path = 'path//to//files', plot_chaos = True)
+```
+
+### plot_samples
+
+Automatically plot hourly, daily, monthly and annual means for X, Y and Z
+
+```python
+import main_functions as mvs
+mvs.plot_samples(station = 'VSS', dataframe: df_name, save_plots = False, plot_data_type = True, apply_percentage = False )
+```
+
+### plot_sv
+
+Function to automatically plot the SV for an observatory
+
+```python
+plot_sv(station = 'NGK', starttime = None, endtime = None, files_path = None, df_station = df_name, df_chaos = None, apply_percentage = False, plot_chaos = True, chaos_correction = True, save_plot = False, convert_hdz_to_xyz = False)
+```    
+Example of SV from NGK automatically created using the function. The CHAOS model internal field predictions is also an option as well as correct the magnetospheric field.
+<img src="figures/plot_sv_ex.png" width=70% height=70%>
+### plot_tdep_map
+
+
+# data_processing_tools functions usage
 
 Here I explain the principal function of the data_processing_tools module.
 
@@ -294,23 +340,5 @@ The function uses the occurrence time as input in the [plot_tdep_map](#plot_tdep
 
 ```python
 jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
-```
-## SV_OBS Usage
-
-sv_obs is a function that includes the most important data processing options.
-
-The processing according to the figure is already implemented in a dedicated function.
-
-However the user can combine any of the processing steps in any possible order or combination
-
-It allows the user to process the geomagnetic data in a interactive workflow,
-
- using most of the available data_processing functions.
-
-<img src="figures/worflow.png" width=70% height=70%>
-
-```python
-
-SV_OBS(station = 'VSS', stattime = '2000-01-01', endtime = '2021-06-30', files_path = 'path//to//files', plot_chaos = True)
 ```
 
