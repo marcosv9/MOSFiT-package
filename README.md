@@ -187,8 +187,10 @@ Function to automatically plot the SV for an observatory
 import main_functions as mvs
 mvs.plot_sv(station = 'NGK', starttime = None, endtime = None, files_path = None, df_station = df_name, df_chaos = None, apply_percentage = False, plot_chaos = True, chaos_correction = True, save_plot = False, convert_hdz_to_xyz = False)
 ```    
+
 Example of SV from NGK automatically created using the function. The CHAOS model internal field predictions is also an option as well as correct the magnetospheric field.
-<img src="figures/plot_sv_ex.jpeg" width=70% height=70%>
+
+<img src="figures/plot_sv_ex.jpg" width=70% height=70%>
 
 ### plot_tdep_map
 
@@ -200,7 +202,7 @@ mvs.plot_tdep_map('2022-07-01', deriv = 1, plot_changes=False, station = ['VSS',
 ``` 
 Example of output from plot_tdep_map
 
-<img src="figures/plot_tdep.jpeg" width=70% height=70%>
+<img src="figures/plot_tdep.jpg" width=70% height=70%>
 
 # data_processing_tools functions usage
 
