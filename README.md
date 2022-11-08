@@ -29,7 +29,8 @@ All the functions have a docstring with the inputs explanation and an usage exam
   * [data_processing_tools](#data_processing_tools)
   * [utilities_tools](#utilities_tools)
  * [main_functions usage](#main_functions-usage) 
- * [data_processing_tools functions usage](#data_processing_tools-functions-usage)  
+ * [data_processing_tools functions usage](#data_processing_tools-functions-usage) 
+ * [utilities_tools functions usage](#utilities_tools-usage)  
 
 ## Setting up MOSFiT package
 
@@ -202,7 +203,7 @@ mvs.plot_tdep_map('2022-07-01', deriv = 1, plot_changes=False, station = ['VSS',
 ``` 
 Example of output from plot_tdep_map
 
-<img src="figures/plot_tdep.jpg" width=70% height=70%>
+<img src="figures/plot_tdep.jpg" width=100% height=100%>
 
 # data_processing_tools functions usage
 
@@ -355,8 +356,6 @@ import data_processing_tools as dpt
 dpt.jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
 ```
 
-
-
 Geomagnetic jerk detection |  Statistics
 :-------------------------:|:-------------------------:
 <img src="figures/jerk_ex.jpg" width=85% height=85%> | <img src="figures/detection_stats.jpg" width=100% height=100%> 
@@ -365,4 +364,56 @@ SA changes for the occurrence time
 
 <img src="figures/jerk_ex_2.jpg" width=70% height=70%>
 
+# utilities_tools usage
 
+Here I describe some functions that let easier the use of the package.
+
+### IMO (class)
+
+Class used to check the IMOs database, IMO coordinates and to delete or add a new IMO in the database.
+
+Very useful if you want to add a specific location in the world, station or observatory. Adding the location you can use all package features if your data format is IAGA-2002.
+
+Checking existent database
+```python
+import utilities_tools as utt
+utt.IMO.database()
+``` 
+<img src="figures/imos_database.jpg" width=70% height=70%>
+
+The coordinates can be checked by:
+```python
+import utilities_tools as utt
+utt.IMO.latitude('VSS')
+utt.IMO.longitude('VSS')
+utt.IMO.elevation('VSS')
+``` 
+Adding a new IMO
+```python
+import utilities_tools as utt
+utt.IMO.add('XXX', 123 , 123, 123)
+``` 
+Deleting an IMO
+```python
+import utilities_tools as utt
+utt.IMO.delete('XXX')
+``` 
+Checking the existince of an especific IMO on the database
+```python
+import utilities_tools as utt
+utt.IMO.check_existence('XXX')
+``` 
+
+###hdz_to_xyz_conversion
+
+Sometimes quasi-definitive IAGA-2002 data are submited containing HDZ components (also some data in the past).
+This Function search for periods with HDZ components reported and convert to XYZ.
+
+Checking the existince of an especific IMO on the database
+
+```python
+import utilities_tools as utt
+utt.hdz_to_xyz_conversion('XXX', dataframe = df_name, files_path = 'path//to//files')
+```
+
+``` 
