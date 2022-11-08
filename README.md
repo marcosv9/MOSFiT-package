@@ -379,7 +379,7 @@ Checking existent database
 import utilities_tools as utt
 utt.IMO.database()
 ``` 
-<img src="figures/imos_database.jpg" width=70% height=70%>
+<img src="figures/imos_database.png" width=70% height=70%>
 
 The coordinates can be checked by:
 ```python
