@@ -1,6 +1,0 @@
-﻿chaosmagpy.coordinate\_utils.local\_time
-========================================
-
-.. currentmodule:: chaosmagpy.coordinate_utils
-
-.. autofunction:: local_time

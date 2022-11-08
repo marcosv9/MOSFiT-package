@@ -1,6 +1,0 @@
-﻿chaosmagpy.data\_utils.gauss\_units
-===================================
-
-.. currentmodule:: chaosmagpy.data_utils
-
-.. autofunction:: gauss_units

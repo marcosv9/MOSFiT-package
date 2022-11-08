@@ -5,6 +5,10 @@ func_tests/
 Filtered_data/
 figs/
 text_files/
+temp/
+figures/
+assets/
+trash_files/
 
 *.ipynb
 *.jpeg
