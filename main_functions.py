@@ -1580,7 +1580,7 @@ def plot_tdep_map(time,
     # compute radial SV up to degree 16 using CHAOS
 
     B_radius, B_theta, B_phi = model.synth_values_tdep(time, radius, theta, phi,
-                                                       nmax=16, deriv=deriv, grid=True)
+                                                       nmax=20, deriv=deriv, grid=True)
     
     B_x = B_theta*-1
     B_y = B_phi
@@ -1591,7 +1591,7 @@ def plot_tdep_map(time,
         #calculating values for previous years
         
         B_radiusp, B_thetap, B_phip = model.synth_values_tdep(previous_year, radius, theta, phi,
-                                                              nmax=16, deriv=deriv, grid=True)
+                                                              nmax=20, deriv=deriv, grid=True)
     
         B_xp = B_thetap*-1
         B_yp = B_phip
@@ -1600,7 +1600,7 @@ def plot_tdep_map(time,
         
         #calculating values for next year
         B_radiusn, B_thetan, B_phin = model.synth_values_tdep(next_year, radius, theta, phi,
-                                                              nmax=16, deriv=deriv, grid=True)
+                                                              nmax=20, deriv=deriv, grid=True)
     
         B_xn = B_thetan*-1
         B_yn = B_phin

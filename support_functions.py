@@ -76,33 +76,35 @@ def update_qd_and_dd(data: str):
     
     if data == 'DD':
         
-        df = pd.read_csv(f'{path_local}/qdrecent.txt',
+        df = pd.read_csv(os.path.join(f'{path_local}',
+                                      'qdrecent.txt'
+                                      ),
                          skiprows = 4,
                          sep = '\s+',
                          header = None,
                          usecols = [0,1,12,13,14,15,16],
-                         names = ['Month', 'Year', 'D1',
-                                  'D2', 'D3', 'D4', 'D5'
+                         names = ['Month', 'Year', 'DD1',
+                                  'DD2', 'DD3', 'DD4', 'DD5'
                                   ]
                          )
                         
          
-        columns = ['D1','D2',
-                   'D3','D4',
-                   'D5'
+        columns = ['DD1','DD2',
+                   'DD3','DD4',
+                   'DD5'
                   ]
         
         df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
         
         for col in columns:
-            df[f'Test{col}'] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
+            df[f'{col}'] = df['Year'].astype(str)+'-'+df['Month'].astype(str)+'-'+df[col].astype(str)
         for col in columns:
-            df[f'Test{col}'] = df[f'Test{col}'].str.replace('*','')
+            df[f'{col}'] = df[f'{col}'].str.replace('*','')
         df_dd = pd.DataFrame()
         
-        df_dd['DD'] = pd.concat([df['TestD1'] ,df['TestD2'],
-                                 df['TestD3'], df['TestD4'],
-                                 df['TestD5']
+        df_dd['DD'] = pd.concat([df['DD1'] ,df['DD2'],
+                                 df['DD3'], df['DD4'],
+                                 df['DD5']
                                 ]
                                )
         
@@ -117,13 +119,17 @@ def update_qd_and_dd(data: str):
         #reading the current QD and DD list
         
         pathlib.Path(os.path.join(working_directory,
-                                                  'Data',
-                                                  'Disturbed and Quiet Days',
-                                                  'Disturbed_Days_list.txt'
-                                                  )
-                                     )
+                                 'Data',
+                                 'Disturbed and Quiet Days',
+                                 'Disturbed_Days_list.txt'
+                                  )
+                    )
         
-        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local, 'Disturbed_Days_list.txt')))
+        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local,
+                                                        'Disturbed_Days_list.txt'
+                                                        )
+                                           )
+                              )
         
         df_list['DD'] = pd.to_datetime(df_list['DD'], format= '%Y-%m-%d')
         #df_list.set_index('DD',inplace=True)
@@ -149,29 +155,29 @@ def update_qd_and_dd(data: str):
                                      6, 7, 8,
                                      9, 10, 11
                                      ],
-                          names = ['Month', 'Year', 'Q1',
-                                   'Q2', 'Q3', 'Q4', 'Q5',
-                                   'Q6', 'Q7', 'Q8', 'Q9',
-                                   'Q10'
+                          names = ['Month', 'Year', 'QD1',
+                                   'QD2', 'QD3', 'QD4', 'QD5',
+                                   'QD6', 'QD7', 'QD8', 'QD9',
+                                   'QD10'
                                   ]
                            )
         
-        columns = [f'Q{i}' for i in range(1, 11)]
+        columns = [f'QD{i}' for i in range(1, 11)]
         
         df['Month'] = pd.to_datetime(df.Month, format='%b').dt.month
         
         for col in columns:
-            df['Test' +  col] = df['Year'].astype(str) + '-' + df['Month'].astype(str) + '-' + df[col].astype(str)
+            df[col] = df['Year'].astype(str) + '-' + df['Month'].astype(str) + '-' + df[col].astype(str)
         for col in columns:
-            df['Test' + col] = df['Test' + col].str.replace('A', '')
+            df[col] = df[col].str.replace('A', '')
         for col in columns:
-            df['Test' + col] = df['Test' + col].str.replace('K', '')
+            df[col] = df[col].str.replace('K', '')
         
         df_qd = pd.DataFrame()
-        df_qd['QD'] = pd.concat([df['TestQ1'], df['TestQ2'], df['TestQ3'],
-                                 df['TestQ4'], df['TestQ5'], df['TestQ6'],
-                                 df['TestQ7'], df['TestQ8'], df['TestQ9'],
-                                 df['TestQ10']
+        df_qd['QD'] = pd.concat([df['QD1'], df['QD2'], df['QD3'],
+                                 df['QD4'], df['QD5'], df['QD6'],
+                                 df['QD7'], df['QD8'], df['QD9'],
+                                 df['QD10']
                                 ]
                                )
         
@@ -182,7 +188,11 @@ def update_qd_and_dd(data: str):
         
         #df_qd = df_qd.sort_index()
         
-        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local, 'Quiet_Days_list.txt')))
+        df_list = pd.read_csv(pathlib.Path(os.path.join(path_local,
+                                                        'Quiet_Days_list.txt'
+                                                        )
+                                           )
+                              )
         
         df_list['QD'] = pd.to_datetime(df_list['QD'], format= '%Y-%m-%d')
         #df_list.set_index('DD',inplace=True)
@@ -211,8 +221,8 @@ def header_sv_obs_files(station: str,
     ------------------------------------------------------------------------------------
     used automatically
     """  
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
     
     working_directory = project_directory()
         
@@ -257,7 +267,7 @@ def header_sv_obs_files(station: str,
     df_station.index = pd.to_datetime(df_station.index, infer_datetime_format=True)
    
     
-    Header = (f'Thesis project provisory header'
+    Header = (f'MOSFiT package'
               f'\nIAGA CODE {str(station.upper())}'
               f'\nLatitude {str(utt.IMO.latitude(station.upper()))}'
               f'\nLongitude {str(utt.IMO.longitude(station.upper()))}'
@@ -321,8 +331,8 @@ def data_type(station: str,
     '''
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'Station must be an observatory IAGA CODE!')
         
     if not [i for i in (starttime, endtime) if i is None]:
         for i in [starttime, endtime]:
@@ -333,7 +343,7 @@ def data_type(station: str,
 
     files_station = [] 
 
-    if endtime >= '2018-06-30':
+    if pd.to_datetime(endtime) >= pd.to_datetime('2018-06-30'):
     
         if files_path is None:
             years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4])+ 1)
@@ -401,8 +411,8 @@ def header_sv_files(station: str,
     
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    if utt.IMO.check_existence(station) == False:
-        print(f'Station must be an observatory IAGA CODE!')
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
     
     working_directory = project_directory()
         
@@ -447,10 +457,10 @@ def header_sv_files(station: str,
                              index_col = [0])
     
     df_station.index = pd.to_datetime(df_station.index,
-                                      infer_datetime_format=True)
+                                      infer_datetime_format = True)
     
     
-    header = (f'Thesis project provisory header'
+    header = (f'MOSFiT package'
               f'\nIAGA CODE {str(station.upper())}'
               f'\nLatitude {str(utt.IMO.latitude(station.upper()).round(2))}'
               f'\nLongitude {str(utt.IMO.longitude(station.upper()).round(2))}'
@@ -562,6 +572,7 @@ def skiprows_detection(files_station):
                 skiprows += 1
                 skiprows_list[0].append(skiprows)     
                 skiprows_list[1].append(file)
+                
     return skiprows_list      
 
 def decimal_year_to_date(date):
@@ -581,4 +592,5 @@ def decimal_year_to_date(date):
 
     base = datetime(year, 1, 1)
     result = base + timedelta(seconds=(base.replace(year=base.year + 1) - base).total_seconds() * rest)
+    
     return result.date()      

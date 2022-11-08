@@ -1279,6 +1279,7 @@ def jerk_detection_window(station: str,
                           df_station = None,
                           df_chaos = None,
                           files_path = None,
+                          apply_percentage:bool = False,
                           plot_detection: bool = True,
                           chaos_correction: bool = True,
                           plot_chaos_prediction:bool = False,
@@ -1419,7 +1420,8 @@ def jerk_detection_window(station: str,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
                                                                      df_chaos= df_chaos,
-                                                                     files_path = None
+                                                                     files_path = None,
+                                                                     apply_percentage = apply_percentage
                                                                      )
         
     elif chaos_correction is True and df_chaos is None:
@@ -1428,13 +1430,15 @@ def jerk_detection_window(station: str,
                                                                      endtime = endtime,
                                                                      df_station = df_station,
                                                                      df_chaos = None,
+                                                                     apply_percentage = apply_percentage,
                                                                      files_path = None
                                                                      )
     
     #calculating SV from intermagnet files
     df_sv = calculate_sv(dataframe = df_station,
                          method = 'ADMM',
-                         source = None
+                         source = None,
+                         apply_percentage = apply_percentage
                          )
     
     #if plot_chaos_prediction is False:
@@ -1445,7 +1449,8 @@ def jerk_detection_window(station: str,
         
         df_chaos_sv = calculate_sv(dataframe = df_chaos,
                                    method = 'ADMM',
-                                   source = 'int'
+                                   source = 'int',
+                                   apply_percentage = False
                                    )
     else:
         
@@ -1463,7 +1468,7 @@ def jerk_detection_window(station: str,
     
     df_slopes = pd.DataFrame()
     #rsq = pd.DataFrame()
-    df_rsq = pd.DataFrame()
+    #dfx_rsq = pd.DataFrame()
 
     #eqn_list = []
     r2 = []
@@ -1506,8 +1511,8 @@ def jerk_detection_window(station: str,
 
         if plot_detection is True and plot_chaos_prediction is False or chaos_correction is False:
             colors = ['blue', 'green', 'black']
-            fig, axes = plt.subplots(3,1,figsize = (12,8), sharex = True)
-            plt.subplots_adjust(hspace=0.05)
+            fig, axes = plt.subplots(3,1,figsize = (14,10), sharex = True)
+            plt.subplots_adjust(hspace=0.1)
             plt.suptitle(f'{station.upper()} secular variation', fontsize = 12, y = 0.94)
             plt.xlabel('Date (Years)', fontsize = 12)
             
@@ -1537,10 +1542,12 @@ def jerk_detection_window(station: str,
             if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection.jpeg',
-                                         bbox_inches='tight'
-                                         )
+                                         f'{station}_jerk_detection.png'
+                                         ),
+                            bbox_inches='tight',
+                            dpi = 300, 
                             )
+                            
                 plt.show()
  
             #plotting multiple figure// small xaxis
@@ -1580,7 +1587,8 @@ def jerk_detection_window(station: str,
             #fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
-                                         '{station}_jerk_detection_2.jpeg'
+                                         f'{station}_jerk_detection_2.png',
+                                         dpi = 300
                                          ), 
                             dpi = 300,
                             bbox_inches='tight'
@@ -1598,11 +1606,11 @@ def jerk_detection_window(station: str,
 
             colors = ['blue', 'green', 'black']
             
-            fig, axes = plt.subplots(3,1,figsize = (12,8), sharex=True)
+            fig, axes = plt.subplots(3,1,figsize = (14,10), sharex=True)
             plt.suptitle(f'{station.upper()} secular variation',
                          fontsize = 14,
                          y = 0.92)
-            plt.subplots_adjust(hspace=0.05)
+            plt.subplots_adjust(hspace=0.1)
             plt.xlabel('Date (Years)', fontsize = 12)
             
             for col, chaos_col, ax, color in zip(df_sv.columns, df_chaos_sv.columns, axes.flatten(), colors):
@@ -1639,7 +1647,7 @@ def jerk_detection_window(station: str,
             if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
-                                         '{station}_jerk_detection.jpeg'
+                                         f'{station}_jerk_detection.png'
                                          ),
                             dpi= 300,
                             bbox_inches='tight')
@@ -1689,7 +1697,8 @@ def jerk_detection_window(station: str,
             
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection_2.jpeg'),
+                                         f'{station}_jerk_detection_2.png'
+                                         ),
                             dpi= 300,
                             bbox_inches='tight'
                             )

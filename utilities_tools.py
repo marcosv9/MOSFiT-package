@@ -195,7 +195,7 @@ def hdz_to_xyz_conversion(station: str,
         files_station.sort()
         start_index = []
         end_index = []
-        for file, i in zip(files_station, np.arange(0,len(files_station))):
+        for file, i in zip(files_station, np.arange(0, len(files_station))):
             if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
                 start_index = i
             if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
@@ -303,7 +303,7 @@ class IMO(object):
     
     def code(station):
         
-        if IMO.check_existence(station) == True:
+        if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
@@ -312,7 +312,7 @@ class IMO(object):
         return station
     
     def latitude(station):
-        if IMO.check_existence(station) == True:
+        if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
@@ -321,7 +321,7 @@ class IMO(object):
     
     def longitude(station):
         
-        if IMO.check_existence(station) == True:
+        if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
@@ -330,7 +330,7 @@ class IMO(object):
     
     def elevation(station: str):
         
-        if IMO.check_existence(station) == True:
+        if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
@@ -395,7 +395,7 @@ def check_duplicate_files(station,
     end_year = str(int(end_year) + 1)
     
     
-    if station != None:
+    if station is not None:
         station = station.lower()
     
     months_list = ['01', '02', '03',
@@ -421,7 +421,7 @@ def check_duplicate_files(station,
                            usecols=[0, 1, 2, 3],
                            names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
                            index_col= ['Imos'])
-    if station == None:
+    if station is None:
         for station in df_imos.index[0:150]:
             for year in year_period.year:
                 directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
@@ -448,7 +448,7 @@ def check_duplicate_files(station,
                                 
                             print(f'file {os.path.basename(file)} removed')
                         #print(f'{files} in {year} for {station}.')
-    if station != None:
+    if station is not None:
         for year in year_period.year:
             directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
             files = glob.glob(os.path.join(f'{directory}',
@@ -528,7 +528,7 @@ def update_hourly_database(starttime,
                     
                 df = dpt.resample_obs_data(df, 'H', apply_percentage= False)
                 
-                if exists(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt') == True:
+                if exists(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt') is True:
                     df_base = pd.read_csv(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt', sep = '\t')
                     df_base.index = pd.to_datetime(df_base['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
                     df_base.pop('Date')
@@ -550,7 +550,7 @@ def update_hourly_database(starttime,
                                                           starttime = starttime,
                                                           endtime = endtime)
                 
-                if exists(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data{station.upper()}_chaos_hourly_data.txt") == True:
+                if exists(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data{station.upper()}_chaos_hourly_data.txt") is True:
                     
                     df_chaos = pd.read_csv(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_chaos_hourly_data.txt', sep = '\t')
                     df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
