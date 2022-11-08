@@ -127,8 +127,8 @@ There are others functions into the modules, including the support_functions mod
 | Function or Class | Description                |
 | :-------- | :------------------------- |
 |utt.download_intermagnet_data()| Download observatory quasi-definitive or defintive data from INTERMAGNET fpt server and save in the computer|
-|utt.hdz_to_xyz_conversion(station, dataframe, files_path)| Check the existence of reported HDZ components and convert to XYZ components |
-|utt.IMO(self, station, latitude, longitude, ...) |Class representing IMO. Can be used to check IMO informations on MOSFiT database (IMO existence, latitude, longitude, altitude) as well as add a new IMO or delete|
+|[utt.hdz_to_xyz_conversion](#hdz_to_xyz_conversion)(station, dataframe, files_path)| Check the existence of reported HDZ components and convert to XYZ components |
+|[utt.IMO](#IMO)(self, station, latitude, longitude, ...) |Class representing IMO. Can be used to check IMO informations on MOSFiT database (IMO existence, latitude, longitude, altitude) as well as add a new IMO or delete|
 
 
 # main_functions usage
@@ -368,7 +368,7 @@ SA changes for the occurrence time
 
 Here I describe some functions that let easier the use of the package.
 
-### IMO (class)
+### IMO
 
 Class used to check the IMOs database, IMO coordinates and to delete or add a new IMO in the database.
 
@@ -404,7 +404,7 @@ import utilities_tools as utt
 utt.IMO.check_existence('XXX')
 ``` 
 
-###hdz_to_xyz_conversion
+### hdz_to_xyz_conversion
 
 Sometimes quasi-definitive IAGA-2002 data are submited containing HDZ components (also some data in the past).
 This Function search for periods with HDZ components reported and convert to XYZ.
@@ -416,4 +416,3 @@ import utilities_tools as utt
 utt.hdz_to_xyz_conversion('XXX', dataframe = df_name, files_path = 'path//to//files')
 ```
 
-``` 
