@@ -58,7 +58,7 @@ def load_intermagnet_files(station: str,
     load_intermagnet_files(station = 'VSS',
                            starttime = '2000-01-25',
                            endtime = '2021-12-31',
-                           files_path = files_path)
+                           files_path = 'path//to//files')
     
     ------------------------------------------------------------------------------------------
     
@@ -73,26 +73,20 @@ def load_intermagnet_files(station: str,
             spf.validate(i)
     else:
         if files_path is None:
-            raise ValueError('if starttime and endtime are None, you must inform files_path.')    
+            raise ValueError('if starttime and endtime are None, you must inform files_path.') 
+           
     #checking the existence of the station argument
     
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
+        raise ValueError(f'station must be an observatory IAGA CODE!')
    
     #creating a list to allocate the file paths
     
     files_station = []
-    
-    #if files_path != None:
-    #    if files_path[-1] == '/':
-    #        pass
-    #    else:
-    #        files_path = f'{files_path}/'  
-   
-    #starting reading files
-    
+       
     print(f'Reading files from {station.upper()}...')
     
+    #default path
     if files_path is None:
         years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4]) + 1)
 
@@ -101,8 +95,9 @@ def load_intermagnet_files(station: str,
             files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
 
             files_station.sort()
+    
     else:
-
+    # if user set files_path 
         files_station.extend(glob.glob(os.path.join(f'{files_path}',
                                                     f'{station.lower()}*min*'
                                                     )
@@ -202,16 +197,16 @@ def sv_obs(station: str,
     
     inputs:
         
-    station - 3 letters IAGA code
+    station (str) - 3 letters IAGA code
     
-    starttime - first day of the data (format = 'yyyy-mm-dd)
+    starttime (str) - first day of the data (format = 'yyyy-mm-dd)
     
-    endtime - last day of the data (format = 'yyyy-mm-dd)
+    endtime (str) - last day of the data (format = 'yyyy-mm-dd)
     
-    plot_chaos - boolean (True or False). If the CHAOS model prediction was computed,
+    plot_chaos (boolean) - If the CHAOS model prediction was computed,
                  Will be plotted the comparisons. 
     
-    files_path - path to the IAGA-2002 intermagnet files (str) or None
+    files_path (str) - path to the IAGA-2002 intermagnet files (str) or None
                  if None it will use the default path for the files
     
     -----------------------------------------------
@@ -358,9 +353,6 @@ def sv_obs(station: str,
         else:
 
             print('You must type y or n, try again!')
-        
-
-    
     
     directory = pathlib.Path(os.path.join(working_directory,
                                           'Filtered_data',
@@ -391,7 +383,6 @@ def sv_obs(station: str,
         
         pass    
         
-    
     #option to save txt and plot files
     
     while True: 
@@ -535,8 +526,7 @@ def sv_obs(station: str,
         else:
 
             print(f'You must type y or n.')
-        
-        
+               
     while True:
        
         inp3 = input(f"Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
@@ -1289,7 +1279,8 @@ def plot_samples(station: str,
     """
     Function to plot Hourly, daily, monthly and annual means from  the dataframe.
     
-    Inputs ----------------------------------------------------
+    ----------------------------------------------------
+    Inputs
     
     station: 3 letters IAGA CODE (str)
     
@@ -1300,6 +1291,9 @@ def plot_samples(station: str,
     apply_percentage: option to apply data availability percentage 
                       condition (at least 90%) to resample_the data
                       (bool = True or False, default = False)
+    
+    -------------------------------------------------------
+    Return plots of hourly, daily, monthly and annual means
                       
     """
     
@@ -1308,7 +1302,7 @@ def plot_samples(station: str,
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')    
+        raise ValueError(f'station must be an observatory IAGA CODE!')    
         
     working_directory = project_directory()
     
@@ -1493,7 +1487,7 @@ def plot_samples(station: str,
                          fontsize = 13,
                          y = 0.91
                          )
-            plt.xlabel('Date(Years)', fontsize = 12)
+            plt.xlabel('Date (Years)', fontsize = 12)
                           
             for col, ax, color in zip(df_station.columns, axes.flatten(), colors):
             
@@ -1525,12 +1519,27 @@ def plot_samples(station: str,
                         bbox_inches='tight')
             plt.show()
             
-def plot_tdep_map(time,
-                  deriv = 1,
+def plot_tdep_map(time:str,
+                  deriv:int = 1,
                   plot_changes = False,
                   station = None):
-    '''
-    '''
+    """_summary_
+
+    Args:
+        time (str): _description_
+        deriv (int, optional): _description_. Defaults to 1.
+        plot_changes (bool, optional): _description_. Defaults to False.
+        station (_type_, optional): _description_. Defaults to None.
+    """
+    
+    
+    #validating inputs
+    
+    spf.validate(time)
+    
+    assert deriv in [1, 2], 'deriv must be 1 or 2'
+    
+    assert isinstance(plot_changes, bool), 'plot_changes must be True or False'
     
     fig = plt.figure(figsize=(20, 20))
     
@@ -1735,7 +1744,7 @@ def plot_sv(station: str,
     #checking the existence of the station argument
     
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
+        raise ValueError(f'station must be an observatory IAGA CODE!')
         
     
     if df_station is None:

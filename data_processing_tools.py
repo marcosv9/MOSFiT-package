@@ -58,7 +58,7 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
     
     '''
     
-    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
+    assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pd.DataFrame()'
       
     df = dataframe
     
@@ -139,7 +139,7 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     
     '''
     
-    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas dataframe'
+    assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pd.DataFrame()'
     
     df = dataframe
     
@@ -291,7 +291,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pandas DataFrame'
     
-    assert isinstance(kp, int) or isinstance(kp, float), 'kp must be a number from 0 to 9'
+    assert isinstance(kp, (int, float)), 'kp must be a number from 0 to 9'
     
     assert kp >= 0 and kp <= 9, 'kp must be between 0 and 9'
 
@@ -381,7 +381,7 @@ def chaos_internal_field_prediction(station: str,
         spf.validate(i)
         
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
+        raise ValueError(f'station must be an observatory IAGA CODE!')
     
     working_directory = project_directory()
     
@@ -597,8 +597,7 @@ def chaos_model_prediction(station: str,
         spf.validate(i)
         
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
-    
+        raise ValueError(f'station must be an observatory IAGA CODE!')
             
     working_directory = project_directory()
     
@@ -836,7 +835,7 @@ def external_field_correction_chaos_model(station: str,
     station = station.upper()
     
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')  
+        raise ValueError(f'station must be an observatory IAGA CODE!')  
     
     if df_station is not None:
             
@@ -976,8 +975,11 @@ def night_time_selection(station: str,
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pandas dataframe'
     
+    for i in [h_min, h_max]:
+        assert isinstance(i, int), 'h_min and h_max must be integer'
+    
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!') 
+        raise ValueError(f'station must be an observatory IAGA CODE!') 
         
     station = station.upper()    
 

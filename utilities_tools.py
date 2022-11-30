@@ -136,7 +136,7 @@ def hdz_to_xyz_conversion(station: str,
     
     Inputs:
     
-    station (str) - 3 letters IAGA code for a INTERMAGNET observatory (str).
+    station (str) - 3 letters IAGA code for a INTERMAGNET observatory.
     
     dataframe - a pandas dataframe with geomagnetic data (pd.dataframe).
     
@@ -253,39 +253,7 @@ class IMO(object):
     It is also possible to add, remove an check the existence of an IMO.
     
     '''
-     
-     
-    def __init__(self,
-                 station,
-                 latitude,
-                 longitude,
-                 elevation
-                ):
-        
-        working_directory = project_directory()
-        
-        imos_directory = pathlib.Path(os.path.join(working_directory,
-                                                   'Data',
-                                                   'Imos informations',
-                                                   'IMOS_INTERMAGNET.txt'
-                                                   )
-                                      )
-        
-        df_imos = pd.read_csv(imos_directory,
-                               skiprows = 1,
-                               sep = '\s+',
-                               usecols=[0, 1, 2, 3],
-                               names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
-                               index_col= ['Imos'])
-        
-
-            #self.station = station
-        self.station = df_imos.loc[station].name
-        self.latitude = latitude
-        self.longitude = longitude
-        self.elevation = elevation
-        
-    working_directory = project_directory()
+    working_directory = os.getcwd()
         
     imos_directory = pathlib.Path(os.path.join(working_directory,
                                                'Data',
@@ -294,67 +262,63 @@ class IMO(object):
                                                )
                                   )
     
-    df_imos = pd.read_csv(imos_directory,
-                          skiprows = 1,
-                          sep = '\s+',
-                          usecols=[0, 1, 2, 3],
-                          names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
-                          index_col= ['Imos'])
+    def database():
+        
+        return pd.read_csv(IMO.imos_directory,
+                           skiprows = 1,
+                           sep = '\s+',
+                           usecols=[0, 1, 2, 3],
+                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
+                           index_col= ['Imos'])
     
     def code(station):
-        
+        assert isinstance(station, str), 'station must be a string.'
+        station = station.upper()
         if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
 
-        station = IMO.df_imos.loc[station].name
+        station = IMO.database().loc[station].name
         return station
     
     def latitude(station):
+        station = station.upper()
         if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
             
-        return IMO.df_imos.loc[station]['Latitude']
+        return IMO.database().loc[station]['Latitude']
     
     def longitude(station):
-        
+        station = station.upper()        
         if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
             
-        return IMO.df_imos.loc[station]['Longitude']
+        return IMO.database().loc[station]['Longitude']
     
     def elevation(station: str):
-        
+        station = station.upper()        
         if IMO.check_existence(station) is True:
             pass
         else:
             raise Exception('station not in the IMOS database, check the IAGA code or add the station.')
         
-        return IMO.df_imos.loc[station]['Elevation']
+        return IMO.database().loc[station]['Elevation']
     
     def delete(station: str):
+        station = station.upper() 
         
-        working_directory = project_directory()
+        assert station in IMO.database().index, 'station not in database.'
         
-        imos_directory = pathlib.Path(os.path.join(working_directory,
-                                                   'Data',
-                                                   'Imos informations',
-                                                   'IMOS_INTERMAGNET.txt'
-                                                   )
-                                      )
+        IMO.database().drop(station).to_csv(IMO.imos_directory, sep = '\t')
     
-        IMO.df_imos.drop(station)
-        
-        IMO.df_imos.to_csv(imos_directory, sep = '\t')
-    
-    def check_existence(station):
+    def check_existence(station):        
         station = station.upper()
-        if station not in IMO.df_imos.index:
+        if station not in IMO.database().index:
             return False
         else:
             return True
@@ -364,17 +328,15 @@ class IMO(object):
             longitude: float,
             elevation: float
             ):
+    
+        for i in [latitude, longitude, elevation]:
         
-        working_directory = project_directory()
+            assert isinstance(i, (float, int)), 'station coordinates must be int or float.'
+            
+        assert len(station) == 3, 'station lenght must be 3'
         
-        imos_directory = pathlib.Path(os.path.join(working_directory,
-                                                   'Data',
-                                                   'Imos informations',
-                                                   'IMOS_INTERMAGNET.txt'
-                                                   )
-                                      )
         
-        imo_info = {'Imos': [station],
+        imo_info = {'Imos': [station.upper()],
                     'Latitude': [latitude],
                     'Longitude': [longitude],
                     'Elevation': [elevation]
@@ -383,9 +345,9 @@ class IMO(object):
         df_new_imo = pd.DataFrame(imo_info)
         df_new_imo.set_index('Imos', inplace=True)
         
-        IMO.df_imos = pd.concat([IMO.df_imos, df_new_imo])
+        database = pd.concat([IMO.database(), df_new_imo])
         
-        IMO.df_imos.to_csv(imos_directory, sep = '\t')
+        database.to_csv(IMO.imos_directory, sep = '\t')
         
                 
 def check_duplicate_files(station,

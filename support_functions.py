@@ -332,7 +332,7 @@ def data_type(station: str,
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
     if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
+        raise ValueError(f'station must be an observatory IAGA CODE!')
         
     if not [i for i in (starttime, endtime) if i is None]:
         for i in [starttime, endtime]:
