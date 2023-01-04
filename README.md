@@ -358,15 +358,15 @@ dpt.jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end
 
 Geomagnetic jerk detection 
 
-<img src="figures/jerk_ex.jpg" width=85% height=85%> 
+<img src="figures/jerk_ex.jpg" width=70% height=70%> 
 
 Statistics 
 
-<img src="figures/detection_stats.jpg" width=100% height=120%> 
+<img src="figures/detection_stats.jpg" width=50% height=70%> 
 
 Secular acceleration changes for the jerk occurrence time
 
-<img src="figures/jerk_ex_2.jpg" width=100% height=90%>
+<img src="figures/jerk_ex_2.jpg" width=100% height=100%>
 
 # utilities_tools usage
 
