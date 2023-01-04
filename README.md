@@ -356,11 +356,15 @@ import data_processing_tools as dpt
 dpt.jerk_detection_window(station = 'NGK', window_start = '2012-04',  window_end = '2017-08',  starttime = '2010-01-01',  endtime = '2021-06-30', df_station = None, df_chaos = None, files_path = None, plot_detection = True, chaos_correction = True, plot_chaos_prediction = False, convert_hdz_to_xyz = False, save_plots = False)
 ```
 
-Geomagnetic jerk detection |  Statistics
-:-------------------------:|:-------------------------:
-<img src="figures/jerk_ex.jpg" width=85% height=85%> | <img src="figures/detection_stats.jpg" width=100% height=120%> 
+Geomagnetic jerk detection 
 
-SA changes for the occurrence time
+<img src="figures/jerk_ex.jpg" width=85% height=85%> 
+
+Statistics 
+
+<img src="figures/detection_stats.jpg" width=100% height=120%> 
+
+Secular acceleration changes for the jerk occurrence time
 
 <img src="figures/jerk_ex_2.jpg" width=100% height=90%>
 
