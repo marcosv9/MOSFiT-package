@@ -1,34 +1,21 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import sys
 from glob import glob
-from pandas.tseries.frequencies import to_offset
 import glob
 import os
 import ftplib
 import pathlib
-import matplotlib.gridspec as gridspec
 from datetime import datetime, timedelta
-import pwlf
-import chaosmagpy as cp
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
-import main_functions as mvs
-import data_processing_tools as dpt
 import utilities_tools as utt
-#from SV_project import support_functions as spf
 
 
 def project_directory():
     '''
-    
     Get the project directory 
-    
     '''
     return os.getcwd()
 
-def update_qd_and_dd(data: str):
+def update_qd_and_dd(data:str):
     """
     Update list of quiet and disturbed days.
     
@@ -69,10 +56,6 @@ def update_qd_and_dd(data: str):
         ftp.retrbinary('RETR ' + filename, file.write)
         file.close()
     ftp.quit()
-        
-    
-    #files = glob.glob(f'{path}qd*')
-    #files.sort()
     
     if data == 'DD':
         
@@ -87,8 +70,7 @@ def update_qd_and_dd(data: str):
                                   'DD2', 'DD3', 'DD4', 'DD5'
                                   ]
                          )
-                        
-         
+                          
         columns = ['DD1','DD2',
                    'DD3','DD4',
                    'DD5'

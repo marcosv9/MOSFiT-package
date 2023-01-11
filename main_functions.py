@@ -2,17 +2,14 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
-from pandas.tseries.frequencies import to_offset
 import glob
 import os
 import pathlib
 import matplotlib.gridspec as gridspec
-from datetime import datetime, timedelta
+from datetime import datetime
 import matplotlib.dates as md
-import pwlf
 from dateutil.relativedelta import relativedelta
 import chaosmagpy as cp
-from sklearn.linear_model import LinearRegression
 import utilities_tools as utt
 import data_processing_tools as dpt
 import support_functions as spf
