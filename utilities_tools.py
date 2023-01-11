@@ -1,18 +1,10 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
 from glob import glob
-from pandas.tseries.frequencies import to_offset
 import glob
 import os
 import ftplib
 import pathlib
-import matplotlib.gridspec as gridspec
-from datetime import datetime
-import pwlf
-import chaosmagpy as cp
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
 import main_functions as mvs
 import support_functions as spf
 import data_processing_tools as dpt
@@ -22,10 +14,10 @@ from os.path import exists
 def project_directory():
     return os.getcwd()
             
-def download_data_intermagnet(datatype,
-                              year,
-                              months,
-                              files = None
+def download_data_intermagnet(datatype:str,
+                              years:list,
+                              months:list,
+                              obs:str
                              ):
     
     '''
@@ -34,7 +26,7 @@ def download_data_intermagnet(datatype,
     
     Datatype must be: 'D' for Definitive or 'QD' quasi-definitive
     
-    Year must be informed as '2021', for example.
+    Year must be informed as 2021, for example.
     
     Months must be a list, for example - ['01','02','03']
     
@@ -46,82 +38,50 @@ def download_data_intermagnet(datatype,
     
     assert datatype in ['QD','D'], 'datatype must be QD or D'
     
+    assert isinstance(years, list), 'The input years must be a list'
+    
+    assert isinstance(months, list), 'The input years must be a list'
+    
+    for year in years:
+        assert isinstance(year, int), 'Each year of the list years must be an integer'
+    
+    for month in months:
+        assert isinstance(year, int), 'Each year of the list years must be an integer'
+        
+        assert month > 0 and month < 13, 'Each month of the the list months must be greater than 0 and lower than 13'
+            
+    assert isinstance(obs, str) and len(obs) == 3, 'The input obs must be a string with lenght 3'
+    
+    assert obs in IMO.database(), 'obs must be an INTERMAGNET observatory'
+    
     working_directory = project_directory()
-    imos_directory = pathlib.Path(os.path.join(working_directory, 'Data/Imos informations/IMOS_INTERMAGNET.txt'))
-    
-    df_IMOS = pd.read_csv(imos_directory,
-                           skiprows = 1,
-                           sep = '\s+',
-                           usecols=[0, 1, 2, 3],
-                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
-                           index_col= ['Imos'])
-    
-    List_Months = ['01', '02', '03',
-                   '04', '05', '06',
-                   '07', '08', '09',
-                   '10', '11', '12'
-                   ]
     
     ftp = ftplib.FTP('seismo.nrcan.gc.ca')
     ftp.login('anonymous', 'email@email.com')
     
-    if months == None:
-        months = List_Months
+    for year in years:    
+        for month in months:
         
-    for month in months:
-        for station in df_IMOS.index[0:150]:
-            directory = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{year}\\{month}'
+            directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\{str(month).zfill(2)}'
             print(directory)
             if datatype == 'QD':
-                path = f'intermagnet/minute/quasi-definitive/IAGA2002/{year}/{month}'
+                path = f'intermagnet/minute/quasi-definitive/IAGA2002/{str(year)}/{str(month).zfill(2)}'
                 
             if datatype == 'D':
-                path = f'intermagnet/minute/definitive/IAGA2002/{year}/{month}'
-            
-            if files == None:
-                ftp = ftplib.FTP('seismo.nrcan.gc.ca')
-                ftp.login('anonymous', 'email@email.com')
-                ftp.cwd(path)
-                filenames = ftp.nlst(f'{station.upper()}*') # get filenames within the directory
-                filenames.sort()
-                print('List of files that will be downloaded')
-                for filename in filenames:
-                    print(filename)
-                    
+                path = f'intermagnet/minute/definitive/IAGA2002/{year}/{str(month).zfill(2)}'
+
+            ftp = ftplib.FTP('seismo.nrcan.gc.ca')
+            ftp.login('anonymous', 'email@email.com')
+            ftp.cwd(path)
+            filenames = ftp.nlst(obs.lower() + '*') # get filenames within the directory
+            filenames.sort()
+            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
+            for filename in filenames:    
+                print('File ' + filename  + ' downloaded!')   
+                local_filename = os.path.join(directory, filename)
+                file = open(local_filename, 'wb')
+                ftp.retrbinary('RETR '+ filename, file.write)
                 
-                while input("Do You Want To Continue? [y/n]") == "y":
-                    pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
-                    for filename in filenames:    
-                        print('File ' + filename  + ' downloaded!')   
-                        local_filename = os.path.join(directory, filename)
-                        file = open(local_filename, 'wb')
-                        ftp.retrbinary('RETR '+ filename, file.write)
-                        
-                    ftp.quit()
-                    break
-    
-            if files != None:
-                for file in files:
-                    ftp = ftplib.FTP('seismo.nrcan.gc.ca')
-                    ftp.login('anonymous', 'email@email.com')
-                    ftp.cwd(path)
-                    filenames = ftp.nlst(file.lower() + '*') # get filenames within the directory
-                    filenames.sort()
-                    print('List of files that will be downloaded')
-                    for filename in filenames:
-                        print(filename)
-                    
-                
-                    while input("Do You Want To Continue? [y/n]") == "y":
-                        pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
-                        for filename in filenames:    
-                            print('File ' + filename  + ' downloaded!')   
-                            local_filename = os.path.join(directory, filename)
-                            file = open(local_filename, 'wb')
-                            ftp.retrbinary('RETR '+ filename, file.write)
-                            
-                        
-                        break
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
                    

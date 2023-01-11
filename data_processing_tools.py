@@ -1,5 +1,3 @@
-import sys
-from time import time
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,15 +6,11 @@ from pandas.tseries.frequencies import to_offset
 import h5py
 import glob
 import os
-import ftplib
 import pathlib
-import matplotlib.gridspec as gridspec
 import matplotlib.dates as md
 from datetime import datetime, timedelta
 import pwlf
 import chaosmagpy as cp
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures
 import main_functions as mvs
 import utilities_tools as utt
 import support_functions as spf
@@ -636,8 +630,10 @@ def chaos_model_prediction(station: str,
     Longitude = utt.IMO.longitude(station)
 
     Latitude = 90 - utt.IMO.latitude(station)
-
-    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
+    
+    Elevation, Latitude = cp.coordinate_utils.gg_to_geo(utt.IMO.elevation(station)/1000, Latitude)
+    
+    #Elevation = (utt.IMO.elevation(station)/1000) +R_REF
     #Longitude = df_IMOS.loc[station]['Longitude']
     
 
@@ -653,11 +649,11 @@ def chaos_model_prediction(station: str,
     print(f'Initiating geomagnetic field computation for {station.upper()}.')
     print(f'Computing core field.')
     B_core = model.synth_values_tdep(time = Time,
-                                     radius = Elevation,
-                                     theta = Latitude ,
+                                     radius = round(Elevation, 2),
+                                     theta = round(Latitude, 2) ,
                                      phi = Longitude,
                                      nmax = n_core
-                                    )
+                                     )
 
     print(f'Computing crustal field up to degree 110.')
 
@@ -665,12 +661,12 @@ def chaos_model_prediction(station: str,
                                         theta = Latitude,
                                         phi = Longitude,
                                         nmax = n_crust
-                                       )
+                                        )         
     
     # complete internal contribution
-    B_radius_int = B_core[0] + B_crust[0]
-    B_theta_int = B_core[1] + B_crust[1]
-    B_phi_int = B_core[2] + B_crust[2]
+    B_radius_int = B_core[0].astype('float32') + B_crust[0].astype('float32')
+    B_theta_int = B_core[1].astype('float32') + B_crust[1].astype('float32')
+    B_phi_int = B_core[2].astype('float32') + B_crust[2].astype('float32')
     
     print('Computing field due to external sources, incl. induced field: GSM.')
     B_gsm = model.synth_values_gsm(time = Time,
@@ -729,9 +725,9 @@ def chaos_model_prediction(station: str,
     #    B_sm = [B_sm_x, B_sm_y, B_sm_z]
 
     # complete external field contribution
-    B_radius_ext = B_gsm[0] + B_sm[0]
-    B_theta_ext = B_gsm[1] + B_sm[1]
-    B_phi_ext = B_gsm[2] + B_sm[2]
+    B_radius_ext = B_gsm[0].astype('float32') + B_sm[0].astype('float32')
+    B_theta_ext = B_gsm[1].astype('float32') + B_sm[1].astype('float32')
+    B_phi_ext = B_gsm[2].astype('float32') + B_sm[2].astype('float32')
 
     # complete forward computation
     B_radius = B_radius_int + B_radius_ext
@@ -742,17 +738,17 @@ def chaos_model_prediction(station: str,
     df_station = pd.DataFrame()
     df_station.index = Date
     
-    df_station['X_tot'] = B_theta.round(3)*-1
-    df_station['Y_tot'] = B_phi.round(3)
-    df_station['Z_tot'] = B_radius.round(3)*-1    
+    df_station['X_tot'] = B_theta*-1
+    df_station['Y_tot'] = B_phi
+    df_station['Z_tot'] = B_radius*-1    
     
-    df_station['X_int'] = B_core[1].round(3)*-1
-    df_station['Y_int'] = B_core[2].round(3)
-    df_station['Z_int'] = B_core[0].round(3)*-1
+    df_station['X_int'] = B_core[1]*-1
+    df_station['Y_int'] = B_core[2]
+    df_station['Z_int'] = B_core[0]*-1
     
-    df_station['X_crust'] = B_crust[1].round(3)*-1
-    df_station['Y_crust'] = B_crust[2].round(3)
-    df_station['Z_crust'] = B_crust[0].round(3)*-1
+    df_station['X_crust'] = B_crust[1]*-1
+    df_station['Y_crust'] = B_crust[2]
+    df_station['Z_crust'] = B_crust[0]*-1
     
 
     #df_station['X_ext_gsm'] = B_gsm[1].round(3)*-1
@@ -763,9 +759,9 @@ def chaos_model_prediction(station: str,
     #df_station['Y_ext_sm'] = B_sm[2].round(3)
     #df_station['Z_ext_sm'] = B_sm[0].round(3)*-1
     
-    df_station['X_ext'] = B_theta_ext.round(3)*-1
-    df_station['Y_ext'] = B_phi_ext.round(3)
-    df_station['Z_ext'] = B_radius_ext.round(3)*-1
+    df_station['X_ext'] = B_theta_ext*-1
+    df_station['Y_ext'] = B_phi_ext
+    df_station['Z_ext'] = B_radius_ext*-1
     
     return df_station 
         
@@ -1001,7 +997,7 @@ def night_time_selection(station: str,
     return df_NT
 
 def hampel_filter_denoising(dataframe: pd.DataFrame(),
-                            window_size: int,
+                            window_size: int = 100,
                             n_sigmas=3,
                             plot_figure:bool = False,
                             apply_percentage = False
@@ -1586,6 +1582,7 @@ def jerk_detection_window(station: str,
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5)
+                ax.legend()
             #fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
