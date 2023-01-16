@@ -1373,9 +1373,6 @@ def jerk_detection_window(station: str,
                                           )
                              )
            
-    #directory = f'Filtered_data/{station}_data'
-    
-    df_chaos = df_chaos
     
     # creating directory if it doesn't exist
     
@@ -1403,8 +1400,6 @@ def jerk_detection_window(station: str,
                                                dataframe = df_station,
                                                files_path = files_path
                                                )
-    else: 
-        pass
     
     # conditions to load CHAOS dataframe
     if df_chaos is not None:
@@ -1432,16 +1427,6 @@ def jerk_detection_window(station: str,
                                                                      files_path = None
                                                                      )
     
-    #calculating SV from intermagnet files
-    df_sv = calculate_sv(dataframe = df_station,
-                         method = 'ADMM',
-                         source = None,
-                         apply_percentage = apply_percentage
-                         )
-    
-    #if plot_chaos_prediction is False:
-    #    
-    #    pass
     
     if chaos_correction is True and plot_chaos_prediction is True:
         
@@ -1450,11 +1435,16 @@ def jerk_detection_window(station: str,
                                    source = 'int',
                                    apply_percentage = False
                                    )
-    else:
         
-        pass
     
+    #calculating SV from intermagnet files
     
+    df_sv = calculate_sv(dataframe = df_station,
+                         method = 'ADMM',
+                         source = None,
+                         apply_percentage = apply_percentage
+                         )    
+
     df_jerk_window = pd.DataFrame()
     
     df_jerk_window.index = df_sv.loc[window_start:window_end].index
@@ -1465,10 +1455,6 @@ def jerk_detection_window(station: str,
     #starting with window jerk detection
     
     df_slopes = pd.DataFrame()
-    #rsq = pd.DataFrame()
-    #dfx_rsq = pd.DataFrame()
-
-    #eqn_list = []
     r2 = []
     for column in df_sv.columns:
 
@@ -1484,8 +1470,6 @@ def jerk_detection_window(station: str,
         
         r2.append(myPWLF.r_squared().round(2))
         
-        #se = myPWLF.se
-        #print(se)
         xHat = date_jerk
         yHat = myPWLF.predict(xHat)
         
@@ -1496,11 +1480,7 @@ def jerk_detection_window(station: str,
         print('Jerk amplitute: ' + str(df_slopes[column].diff()[1].round(2)))
         print('R^2: ' + str((myPWLF.r_squared()).round(2)))
         print('\n****************************************************************')
-        #for i in range(myPWLF.n_segments):
-        #    eqn_list.append(get_symbolic_eqn(myPWLF, i + 1))
-        #    #print('Equation number: ',(i + 1) + 'for ' + str(column) + 'component')
-        #    print(eqn_list[-1])
-        #    #f_list.append(lambdify(x, eqn_list[-1]))
+
     if plot_detection is False:
         pass
     else:
@@ -1525,9 +1505,7 @@ def jerk_detection_window(station: str,
                         linewidth = 3,
                         label = 'jerk detection'
                         ) 
-                        #label = 'JOT ' + 
-                        #str(round((df_jerk_window.index[int(z[col][1].round())].year+
-                        #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
+
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
@@ -1546,7 +1524,8 @@ def jerk_detection_window(station: str,
                             dpi = 300, 
                             )
                             
-                plt.show()
+
+            plt.show()
  
             #plotting multiple figure// small xaxis
 
@@ -1592,12 +1571,14 @@ def jerk_detection_window(station: str,
                             dpi = 300,
                             bbox_inches='tight'
                             )
-                plt.show()
+            plt.show()
+
+            if 'ccrs' in globals():
                 
-            mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),
-                              deriv = 2,
-                              plot_changes = True,
-                              station = [station.upper()]) 
+                mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),
+                                  deriv = 2,
+                                  plot_changes = True,
+                                  station = [station.upper()]) 
         
         elif plot_detection is True and plot_chaos_prediction is True and chaos_correction is True:
             
@@ -1630,9 +1611,6 @@ def jerk_detection_window(station: str,
                         linewidth = 3,
                         label = 'jerk detection'
                         ) 
-                        #label = 't0 ' + 
-                        #str(round((df_jerk_window.index[int(z[col][1].round())].year+
-                        #           (df_jerk_window.index[int(z[col][1].round())].dayofyear -1)/365),2)))
                 ax.set_ylabel(f'd{col.upper()}/dt (nT)', fontsize = 12)
                 ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=24)) 
@@ -1650,8 +1628,8 @@ def jerk_detection_window(station: str,
                                          ),
                             dpi= 300,
                             bbox_inches='tight')
-                plt.show()
-            
+            plt.show()
+
             #plotting multiple figure
 
             fig, axes = plt.subplots(1,3,figsize = (17,6))
@@ -1685,15 +1663,7 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5) 
                 ax.legend()
-            #fig.text(0.08,
-            #         0.5,
-            #         f'dY/dt (nT/yr)',
-            #         ha='center',
-            #         va='center',
-            #         rotation='vertical',
-            #         fontsize = 10
-            #         )
-            
+
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
                                          f'{station}_jerk_detection_2.png'
@@ -1701,11 +1671,28 @@ def jerk_detection_window(station: str,
                             dpi= 300,
                             bbox_inches='tight'
                             )
-                plt.show()
+            plt.show()
             
-            mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),
-                              deriv = 2,
-                              plot_changes = True,
-                              station = [station.upper()])
+            if 'ccrs' in globals():
+                mvs.plot_tdep_map(time = str(spf.decimal_year_to_date(breakpoints['Y'][1].round(2))),
+                                  deriv = 2,
+                                  plot_changes = True,
+                                  station = [station.upper()])
         
     return df_jerk_window, df_slopes, breakpoints, r2
+
+if __name__ == '__main__':
+    df_her = mvs.load_intermagnet_files('HER','2005-01-01','2014-12-31')
+    
+    jerk_detection_window(station = 'HER',
+                         window_start= '2007-04',
+                         window_end = '2013-12',
+                         starttime = None,
+                         endtime = None,
+                         df_station= df_her,
+                         df_chaos= None,
+                         plot_detection = True,
+                         chaos_correction = True,
+                         plot_chaos_prediction = True,
+                         convert_hdz_to_xyz = True,
+                         save_plots = False)
