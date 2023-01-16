@@ -14,8 +14,14 @@ import utilities_tools as utt
 import data_processing_tools as dpt
 import support_functions as spf
 import matplotlib.gridspec as gridspec
+import warnings
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-import cartopy.crs as ccrs
+
+try:  # make cartopy optional
+    import cartopy.crs as ccrs
+except ImportError:
+    warnings.warn('Could not import Cartopy package. Jerk detection plots will be incomplete')
+
  
 
 def project_directory():
@@ -241,7 +247,6 @@ def sv_obs(station: str,
     
     # HDZ to XYZ conversion
     
-    
     df_station =  utt.hdz_to_xyz_conversion(station = station,
                                             dataframe = df_station,
                                             files_path = files_path
@@ -379,6 +384,12 @@ def sv_obs(station: str,
     else:
         
         pass    
+    
+    #calculating dataframe with minthly mean
+    df_monthly_mean = dpt.resample_obs_data(df_station,
+                                            sample = 'M',
+                                            apply_percentage = resample_condition
+                                            )
         
     #option to save txt and plot files
     
@@ -399,14 +410,14 @@ def sv_obs(station: str,
                     file = df_station[starttime:endtime].resample(sample).mean().round(3).replace(np.NaN, 99999.0)
                     
                     file.to_csv(pathlib.Path(os.path.join(f'{directory}',
-                     f'{station.upper()}_minute_mean_preliminary.zip')),
-                                header = [f'{station.upper()}X',
-                                          f'{station.upper()}Y',
-                                          f'{station.upper()}Z'
-                                         ],
-                                sep = '\t',
-                                index = True
-                               )
+                                                          f'{station.upper()}_minute_mean_preliminary.zip')),
+                                                                     header = [f'{station.upper()}X',
+                                                                               f'{station.upper()}Y',
+                                                                               f'{station.upper()}Z'
+                                                                              ],
+                                                                     sep = '\t',
+                                                                     index = True
+                                                                    )
             
                 if sample == 'H':
                     
@@ -415,13 +426,13 @@ def sv_obs(station: str,
                                                  apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
 
                     file.to_csv(pathlib.Path(os.path.join(f'{directory}',
-                     f'{station.upper()}_hourly_mean_preliminary.txt')),
-                                header = [f'{station.upper()}X',
-                                          f'{station.upper()}Y',
-                                          f'{station.upper()}Z'
-                                         ],
-                                sep = '\t',
-                                index = True)
+                                                          f'{station.upper()}_hourly_mean_preliminary.txt')),
+                                                                     header = [f'{station.upper()}X',
+                                                                               f'{station.upper()}Y',
+                                                                               f'{station.upper()}Z'
+                                                                              ],
+                                                                     sep = '\t',
+                                                                     index = True)
                 
                     spf.header_sv_obs_files(station = station,
                                             filename = 'hourly_mean',
@@ -436,13 +447,13 @@ def sv_obs(station: str,
                                                  apply_percentage = resample_condition).round(3).replace(np.NaN, 99999.0)
 
                     file.to_csv(pathlib.Path(os.path.join(f'{directory}',
-                     f'{station.upper()}_daily_mean_preliminary.txt')),
-                                header = [f'{station.upper()}X',
-                                          f'{station.upper()}Y',
-                                          f'{station.upper()}Z'
-                                         ],
-                                sep = '\t',
-                                index = True)
+                                                          f'{station.upper()}_daily_mean_preliminary.txt')),
+                                                                     header = [f'{station.upper()}X',
+                                                                               f'{station.upper()}Y',
+                                                                               f'{station.upper()}Z'
+                                                                              ],
+                                                                     sep = '\t',
+                                                                     index = True)
                     
                     spf.header_sv_obs_files(station = station,
                                             filename = 'daily_mean',
@@ -459,7 +470,8 @@ def sv_obs(station: str,
                     file_SV = df_sv.replace(np.NaN, 99999.0)
                     
                     file.to_csv(pathlib.Path(os.path.join(f'{directory}',
-                     f'{station.upper()}_monthly_mean_preliminary.txt')),
+                                                          f'{station.upper()}_monthly_mean_preliminary.txt')
+                                             ),
                                 header = [f'{station.upper()}X',
                                           f'{station.upper()}Y',
                                           f'{station.upper()}Z'
@@ -476,13 +488,14 @@ def sv_obs(station: str,
                                             ) 
                     
                     file_SV.to_csv(pathlib.Path(os.path.join(f'{directory}',
-                     f'{station.upper()}_secular_variation_preliminary.txt')),
-                                   header = [station.upper() + 'SV_X',
-                                             station.upper() + 'SV_Y',
-                                             station.upper() + 'SV_Z'
-                                            ],
-                                   sep = '\t',
-                                   index = True)
+                                                             f'{station.upper()}_secular_variation_preliminary.txt')),
+                                                header = [station.upper() + 'SV_X',
+                                                          station.upper() + 'SV_Y',
+                                                          station.upper() + 'SV_Z'
+                                                         ],
+                                    sep = '\t',
+                                    index = True
+                                    )
                     
                     spf.header_sv_obs_files(station = station,
                                             filename = 'secular_variation',
@@ -523,9 +536,9 @@ def sv_obs(station: str,
         else:
 
             print(f'You must type y or n.')
-               
+              
     while True:
-       
+        
         inp3 = input(f"Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
             directory = pathlib.Path(os.path.join(working_directory,
@@ -537,6 +550,7 @@ def sv_obs(station: str,
             pathlib.Path(directory).mkdir(parents=True, exist_ok=True)
             #plot minute mean
             if input_chaos == 'y' or inp_denoise == 'y':
+                
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
@@ -582,8 +596,8 @@ def sv_obs(station: str,
                             )
                 plt.show()
                 
-            else:
-                
+            if input_chaos == 'n' or inp_denoise == 'n':
+                print(df_station)
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
@@ -641,26 +655,20 @@ def sv_obs(station: str,
             if First_QD_data != []:
             
                 plot_samples(station = station,
-                             dataframe = df_station,
+                             dataframe = df_station.copy(),
                              save_plots = True,
                              plot_data_type = First_QD_data,
                              apply_percentage = resample_condition
                              )
             else:
                 plot_samples(station = station,
-                             dataframe = df_station,
+                             dataframe = df_station.copy(),
                              save_plots = True,
                              plot_data_type = None,
                              apply_percentage = resample_condition
                              )
             
             #plot of secular variation and monthly mean
-            
-            #calculating dataframe with minthly mean
-            df_monthly_mean = dpt.resample_obs_data(df_station,
-                                                    sample = 'M',
-                                                    apply_percentage = resample_condition
-                                                   )
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
@@ -899,7 +907,7 @@ def sv_obs(station: str,
             print(directory)    
             
             break
-
+        
         elif inp3 == 'n':
 
             print('No plots saved!')
@@ -907,6 +915,7 @@ def sv_obs(station: str,
             #plot minute mean
             
             if input_chaos == 'y' or inp_denoise == 'y':
+                
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
@@ -985,26 +994,21 @@ def sv_obs(station: str,
                 plt.show()
                 
             if First_QD_data != []:
-            
+    
                 plot_samples(station = station,
-                             dataframe = df_station,
+                             dataframe = df_station.copy(),
                              save_plots = False,
                              plot_data_type = First_QD_data,
                              apply_percentage = resample_condition)
             else:
+                print(df_station)
                 plot_samples(station = station,
-                             dataframe = df_station,
+                             dataframe = df_station.copy(),
                              save_plots = False,
                              plot_data_type = None, 
                              apply_percentage = resample_condition)
-            
+                print(df_station)
             #plot of secular variation and monthly mean
-            
-            #calculating monthly mean dataframe
-            
-            df_monthly_mean = dpt.resample_obs_data(df_station,
-                                                    sample = 'M',
-                                                    apply_percentage = resample_condition)
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
             
@@ -1026,21 +1030,22 @@ def sv_obs(station: str,
             
             
             ax[0,0].set_title(station.upper() + ' Monthly Mean', fontsize = 14)
-            ax[0,0].plot(df_monthly_mean['X'][starttime:endtime], color  = 'blue')
+            ax[0,0].plot(df_monthly_mean['X'], color  = 'blue')
             ax[0,0].set_xlim(df_station['X'].index[0], df_station['X'].index[-1])
             ax[0,0].set_ylabel('X/nT', fontsize = 14)   
             ax[0,0].grid()
             
-            ax[1,0].plot(df_monthly_mean['Y'][starttime:endtime], color  = 'green')
+            ax[1,0].plot(df_monthly_mean['Y'], color  = 'green')
             ax[1,0].set_xlim(df_station['Y'].index[0], df_station['Y'].index[-1])
             ax[1,0].set_ylabel('Y/nT', fontsize = 14)           
             ax[1,0].grid()
     
     
-            ax[2,0].plot(df_monthly_mean['Z'][starttime:endtime], color  = 'black')
+            ax[2,0].plot(df_monthly_mean['Z'], color  = 'black')
             ax[2,0].set_xlim(df_station['Z'].index[0], df_station['Z'].index[-1])
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             ax[2,0].grid()
+            
             if First_QD_data != []:
                 #computing date for SV
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
@@ -1216,14 +1221,13 @@ def sv_obs(station: str,
                 
                 for i in [str(window_start), str(window_end)]:
                     spf.validate_ym(i)
-
                 if inp3 == 'y':
                     save_plots = True
                 else:
                     save_plots = False    
                     
                 if input_chaos == 'y':
-                
+                    
                     dpt.jerk_detection_window(station = station,
                                               window_start = window_start, 
                                               window_end = window_end, 
@@ -1233,17 +1237,20 @@ def sv_obs(station: str,
                                               df_chaos = df_chaos,
                                               plot_detection = True,
                                               chaos_correction = True,
+                                              files_path = files_path,
                                               plot_chaos_prediction = True,
                                               convert_hdz_to_xyz = False,
                                               save_plots = save_plots
                                               )
                 
                 if input_chaos == 'n':
+                    
                     dpt.jerk_detection_window(station = station,
                                               window_start = window_start, 
                                               window_end = window_end, 
                                               starttime = starttime, 
                                               endtime = endtime,
+                                              files_path = files_path,
                                               df_station = df_station,
                                               df_chaos = None,
                                               plot_detection = True,
@@ -1840,13 +1847,13 @@ if __name__ == '__main__':
     
     #df = load_intermagnet_files('NGK',starttime = '2010-01-01', endtime = '2020-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')
     #print(df)
-    #sv_obs('NGK',starttime = '2010-01-01', endtime = '2021-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
+    sv_obs('NGK',starttime = '2013-01-01', endtime = '2017-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
     
-    plot_sv(station = 'VSS',
-            starttime = '2010-01-01',
-            endtime = '2020-12-31',
-            plot_chaos=True,
-            chaos_correction=True)    
+    #plot_sv(station = 'VSS',
+    #        starttime = '2010-01-01',
+    #        endtime = '2020-12-31',
+    #        plot_chaos=True,
+    #        chaos_correction=True)    
         
         
         

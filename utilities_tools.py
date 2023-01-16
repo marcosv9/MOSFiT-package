@@ -18,7 +18,7 @@ def download_data_intermagnet(datatype:str,
                               years:list,
                               months:list,
                               obs:str
-                             ):
+                              ):
     
     '''
     Download observatory files from Intermagnet FTP server and save in
@@ -52,7 +52,7 @@ def download_data_intermagnet(datatype:str,
             
     assert isinstance(obs, str) and len(obs) == 3, 'The input obs must be a string with lenght 3'
     
-    assert obs in IMO.database(), 'obs must be an INTERMAGNET observatory'
+    assert obs in IMO.database().index, 'obs must be an INTERMAGNET observatory'
     
     working_directory = project_directory()
     
@@ -62,20 +62,26 @@ def download_data_intermagnet(datatype:str,
     for year in years:    
         for month in months:
         
-            directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\{str(month).zfill(2)}'
+            directory = os.path.join(working_directory,
+                                     'obs_data',
+                                     f'{str(year)}',
+                                     f'{str(month).zfill(2)}')
             print(directory)
             if datatype == 'QD':
                 path = f'intermagnet/minute/quasi-definitive/IAGA2002/{str(year)}/{str(month).zfill(2)}'
                 
             if datatype == 'D':
-                path = f'intermagnet/minute/definitive/IAGA2002/{year}/{str(month).zfill(2)}'
+                path = f'intermagnet/minute/definitive/IAGA2002/{str(year)}/{str(month).zfill(2)}'
 
             ftp = ftplib.FTP('seismo.nrcan.gc.ca')
             ftp.login('anonymous', 'email@email.com')
             ftp.cwd(path)
             filenames = ftp.nlst(obs.lower() + '*') # get filenames within the directory
             filenames.sort()
-            pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
+            
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                #pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
             for filename in filenames:    
                 print('File ' + filename  + ' downloaded!')   
                 local_filename = os.path.join(directory, filename)
@@ -484,3 +490,7 @@ def update_hourly_database(starttime,
                     df_chaos_new.round(2)[~df_chaos_new.round(2).index.duplicated(keep='last')].to_csv(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')    
             except:
                 pass    
+            
+if __name__ == '__main__':
+    
+    download_data_intermagnet('QD',[2022],[9],'VSS')
