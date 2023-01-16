@@ -1,21 +1,15 @@
-##  About Me
-I'm a Marcos Vinicius Silva...
 
+# Magnetic Observatories and Stations Filtering Toll (MOSFiT)
 
-# Fast geomagnetic jerk detection 
+MOSFiT is part of my Master's project in geophysics. A python tool developted to investigate the secular variation (SV) of the Earth's geomagnetic field, accelerate the geomagnetic jerk detection and check geomagnetic observatory data quality.
 
-My Master project in geomagnetism.
-
-A python tool to study the secular variation of the geomagnetic field and accelerate the geomagnetic jerk detection.
-
-Actually works for every INTERMAGNET geomagnetic observatory (definitive and quasi-definitive IAGA-2002 data).
-
-There are functions to reduce the external field contribution, calculate the secular variation, detect geomagnetic jerks...
+Actually works for every INTERMAGNET geomagnetic observatory (1-min IAGA-2002 data format).
 
 The package is separetade in modules called data_processing_tools, utility_tools, support_functions and main_functions. 
 
-All the functions have a docstring with the inputs explanation and an usage example.
+There are functions used to reduce the external field contribution (5 options), calculate the SV by different methods, resample data by different means, plot the data and detect geomagnetic jerks.
 
+All functions have a docstring with the documentation, including inputs, outputs and how to use.
 
 # Documentation summary
 
@@ -72,10 +66,11 @@ To use the developed funtions, is necessary to import them. I suggest to use the
 * pandas
 * matplotlib
 * glob2
+* h5py
 * pathlib2
 * pwlf
 * chaosmagpy
-* scikit-learn
+* cartopy (optional)
 
 
 ## Modules functions
