@@ -90,13 +90,7 @@ def update_qd_and_dd(data:str):
                                )
         
         df_dd['DD'] = pd.to_datetime(df_dd['DD'], format= '%Y-%m-%d')
-        
-        
-        #df_dd.set_index('DD', inplace = True)
-        
-        #df_dd = df_dd.sort_index()
-        
-        
+
         #reading the current QD and DD list
         
         pathlib.Path(os.path.join(working_directory,
@@ -113,7 +107,6 @@ def update_qd_and_dd(data:str):
                               )
         
         df_list['DD'] = pd.to_datetime(df_list['DD'], format= '%Y-%m-%d')
-        #df_list.set_index('DD',inplace=True)
     
         df_new = pd.concat([df_list,df_dd], ignore_index=False)
         
@@ -164,11 +157,6 @@ def update_qd_and_dd(data:str):
         
         df_qd['QD'] = pd.to_datetime(df_qd['QD'], infer_datetime_format=True)
         
-        
-        #df_qd.set_index('QD', inplace = True)
-        
-        #df_qd = df_qd.sort_index()
-        
         df_list = pd.read_csv(pathlib.Path(os.path.join(path_local,
                                                         'Quiet_Days_list.txt'
                                                         )
@@ -176,7 +164,6 @@ def update_qd_and_dd(data:str):
                               )
         
         df_list['QD'] = pd.to_datetime(df_list['QD'], format= '%Y-%m-%d')
-        #df_list.set_index('DD',inplace=True)
     
         df_new = pd.concat([df_list,df_qd], ignore_index=False)
         
@@ -238,8 +225,6 @@ def header_sv_obs_files(station: str,
     chaos_options = {'y': 'Yes',
                      'n': 'No'
                     }
-    
-    #pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
     df_station = pd.read_csv(path,
                              sep = '\s+',
@@ -341,7 +326,6 @@ def data_type(station: str,
             
             files_station.sort()
     
-        #d_parser = lambda x: datetime.strptime(x, '%Y-%m-%d %H:%M:%S%.f')
         df_data_type = pd.DataFrame()
         df_data_type = pd.concat((pd.read_csv(file,
                                               sep = '\s+',
@@ -355,12 +339,10 @@ def data_type(station: str,
         data_type = df_data_type.loc[[0], ['Data_Type']]
     
         date = df_data_type.loc[[15], ['Date']]
-        #date.set_index('Date', inplace = True)
     
         data_type.set_index(date['Date'], inplace = True)
         
         data_type.sort_index()
-        #print(df_data_type)
         
         for Date in data_type['Data_Type']: 
             if Date == 'Definitive':
@@ -430,8 +412,6 @@ def header_sv_files(station: str,
     chaos_options = {True: 'Yes',
                     False: 'No'
                     }
-    
-    #pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
     df_station = pd.read_csv(path,
                              sep = '\s+',
@@ -483,7 +463,7 @@ def date_to_decinal_year_converter(date):
     '''
     year_start = datetime(date.year, 1, 1)
     year_end = year_start.replace(year=date.year+1)
-    return date.year + ((date - year_start).total_seconds() /  # seconds so far
+    return date.year + ((date - year_start).total_seconds() / 
         float((year_end - year_start).total_seconds()))
 
 def validate(str_date):

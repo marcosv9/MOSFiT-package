@@ -80,7 +80,7 @@ def download_data_intermagnet(datatype:str,
             
             if not os.path.exists(directory):
                 os.makedirs(directory)
-                #pathlib.Path(directory).mkdir(parents=True, exist_ok=True)               
+             
             for filename in filenames:    
                 print('File ' + filename  + ' downloaded!')   
                 local_filename = os.path.join(directory, filename)
@@ -129,12 +129,6 @@ def hdz_to_xyz_conversion(station: str,
     
     if IMO.check_existence(station) == False:
         print(f'Station must be an observatory IAGA CODE!')  
-          
-    #if files_path != None:
-    #    if files_path[-1] == '/':
-    #        pass
-    #    else:
-    #        files_path = files_path + '/'    
     
     df_station = dataframe
     
@@ -199,8 +193,7 @@ def hdz_to_xyz_conversion(station: str,
     date_hdz = pd.to_datetime(values_list, infer_datetime_format = True)
     
     for date in date_hdz.year.drop_duplicates():
-    #print(date)
-    #Data_HDZ = pd.concat([Data_HDZ,df_HER.loc[str(date)]])
+
         D = np.deg2rad(df_station['Y'].loc[str(date)]/60)
         X = df_station['X'].loc[str(date)]*np.cos(D)
         Y = df_station['X'].loc[str(date)]*np.sin(D)
@@ -313,182 +306,7 @@ class IMO(object):
         database = pd.concat([IMO.database(), df_new_imo])
         
         database.to_csv(IMO.imos_directory, sep = '\t')
-        
-                
-def check_duplicate_files(station,
-                          start_year,
-                          end_year):
-    
-    end_year = str(int(end_year) + 1)
-    
-    
-    if station is not None:
-        station = station.lower()
-    
-    months_list = ['01', '02', '03',
-                   '04', '05', '06',
-                   '07', '08', '09',
-                   '10', '11', '12'
-                   ]
-    
-    year_period = pd.date_range(start_year, end_year, freq = 'Y')
-    
-    working_directory = project_directory()
-        
-    imos_directory = pathlib.Path(os.path.join(working_directory,
-                                               'Data',
-                                               'Imos informations',
-                                               'IMOS_INTERMAGNET.txt'
-                                               )
-                                  )
-    
-    df_imos = pd.read_csv(imos_directory,
-                          skiprows = 1,
-                           sep = '\s+',
-                           usecols=[0, 1, 2, 3],
-                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
-                           index_col= ['Imos'])
-    if station is None:
-        for station in df_imos.index[0:150]:
-            for year in year_period.year:
-                directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
-                files = glob.glob(f'{directory}/{station}*')
-                if len(files) > 366:
-                    print(f'{len(files)} in {year} for {station.upper()}')
-                    for file in files:                        
-                        filename = os.path.basename(file)
-                        filename = filename[0:11]
-                        if len(glob.glob(f'{directory}/{filename}*')) > 1:
-                            
-                            try:
-                                os.remove(glob.glob(os.path.join(f'{directory}',
-                                                                 '{filename}qmin*'
-                                                                 )
-                                                    )[0]
-                                          )
-                            except:
-                                os.remove(glob.glob(os.path.join(f'{directory}',
-                                                                 '{filename}dmin*'
-                                                                 )
-                                                    )[0]
-                                          )
-                                
-                            print(f'file {os.path.basename(file)} removed')
-                        #print(f'{files} in {year} for {station}.')
-    if station is not None:
-        for year in year_period.year:
-            directory = f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS/{year}/*'
-            files = glob.glob(os.path.join(f'{directory}',
-                                           f'{station}*'
-                                           )
-                              )
-            if len(files) > 366:
-                print(f'{len(files)} in {year} for {station.upper()}')
-                for file in files: 
-                    filename = os.path.basename(file)
-                    filename = filename[0:11]
-                    
-                    if len(glob.glob(f'{directory}/{filename}*')) > 1:
-                        
-                        try:
-                            os.remove(glob.glob(os.path.join(f'{directory}',
-                                                             '{filename}qmin*'
-                                                             )
-                                                )[0]
-                                      )
-                        except:
-                            os.remove(glob.glob(os.path.join(f'{directory}',
-                                                             '{filename}dmin*'
-                                                             )
-                                                )[0]
-                                      )
-                        print(f'file {os.path.basename(file)} removed')
-    #return files
-
-def update_hourly_database(starttime,
-                           endtime,
-                           type = 'IMO',
-                           stations = None):
-    '''
-    '''
-    
-    try:
-        type.upper() in ['IMO', 'CHAOS']
-    except ValueError:
-        raise ValueError('Type must be IMO or CHAOS')     
-    
-    for i in [starttime, endtime]:
-        spf.validate(i)
-    
-    working_directory = project_directory()
-        
-    imos_directory = pathlib.Path(os.path.join(working_directory,
-                                               'Data',
-                                               'Imos informations',
-                                               'IMOS_INTERMAGNET.txt'
-                                               )
-                                  ) 
-        
-    df_imos = pd.read_csv(imos_directory,
-                          sep = '\s+',
-                          index_col = [0]
-                          )
-    
-    if stations == None:
-        stations = df_imos.index
-    else:
-        stations = stations
-    #for station in df_imos.index:
-    
-    if type.upper() == 'IMO':
-        for station in stations:
-            try:
-                df = mvs.load_intermagnet_files(station = station,
-                                                starttime = starttime,
-                                                endtime = endtime)
-                #temporary until solve the bug on hdz_to_xyz_conversion for such stations
-
-                if station in ['ESK','VAL','SOD','YKC','BSL','SHU','AIA','NUR','IRT','HRN','DOU','MAB','LVV','VOS','NCK']:
-                    pass
-                else:
-                    df = hdz_to_xyz_conversion(station, df)
-                    
-                df = dpt.resample_obs_data(df, 'H', apply_percentage= False)
-                
-                if exists(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt') is True:
-                    df_base = pd.read_csv(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt', sep = '\t')
-                    df_base.index = pd.to_datetime(df_base['Date'], format= '%Y-%m-%d %H:%M:%S.%f')
-                    df_base.pop('Date')
-                       
-                    df_new_imo = pd.concat([df_base,df])
-                    df_new_imo.round(2)[~df_new_imo.round(2).index.duplicated(keep='last')].to_csv(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt", sep = '\t')
-
-                else:
-                    
-                    df.round(2)[~df.round(2).index.duplicated(keep='last')].to_csv(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_hourly_data.txt", sep = '\t')
-            except:
-                print('No data found for station: {}'.format(station))
-                pass
-            
-    if type.upper() == 'CHAOS':        
-        for station in stations:
-            try:
-                df_chaos_new = dpt.chaos_model_prediction(station = station,
-                                                          starttime = starttime,
-                                                          endtime = endtime)
-                
-                if exists(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data{station.upper()}_chaos_hourly_data.txt") is True:
-                    
-                    df_chaos = pd.read_csv(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station}_chaos_hourly_data.txt', sep = '\t')
-                    df_chaos.index = pd.to_datetime(df_chaos['Unnamed: 0'], format= '%Y-%m-%d %H:%M:%S.%f')
-                    df_chaos.pop('Unnamed: 0')
-        
-                    df_new_c = pd.concat([df_chaos, df_chaos_new])
-                    df_new_c.round(2)[~df_new_c.round(2).index.duplicated(keep='last')].to_csv(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')
-                else:
-                    df_chaos_new.round(2)[~df_chaos_new.round(2).index.duplicated(keep='last')].to_csv(f"C:\\Users\\marco\\Downloads\\Thesis_notebooks\\hourly_data/{station.upper()}_chaos_hourly_data.txt", sep = '\t')    
-            except:
-                pass    
+ 
             
 if __name__ == '__main__':
     

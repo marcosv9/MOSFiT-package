@@ -586,19 +586,16 @@ def sv_obs(station: str,
                 ax[0].set_title(f'{station.upper()} minute mean', fontsize = 14)
                 ax[0].plot(df_station['X'], color  = 'blue')
                 ax[0].set_xlim(df_station['X'].index[0], df_station['X'].index[-1])
-               #ax[0].set_ylim(df_station['X'].min(), df_station['X'].max())
                 ax[0].set_ylabel('X (nT)', fontsize = 12)
                 ax[0].grid()
                 
                 ax[1].plot(df_station['Y'], color  = 'green')
                 ax[1].set_xlim(df_station['Y'].index[0], df_station['Y'].index[-1])
-                #ax[1].set_ylim(df_station['Y'].min(), df_station['Y'].max())
                 ax[1].set_ylabel('Y (nT)', fontsize = 12)
                 ax[1].grid()
                 
                 ax[2].plot(df_station['Z'], color  =  'black')
                 ax[2].set_xlim(df_station['Z'].index[0], df_station['Z'].index[-1])
-                #ax[2].set_ylim(df_station['Z'].min(), df_station['Z'].max())
                 ax[2].set_ylabel('Z (nT)', fontsize = 12)
                 ax[2].grid()
                 
@@ -902,8 +899,7 @@ def sv_obs(station: str,
             print('No plots saved!')
             
             #plot minute mean
-            
-                    #plot minute mean
+
             if input_chaos == 'y' or inp_denoise == 'y':
                 
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
@@ -1334,10 +1330,6 @@ def plot_samples(station: str,
                 ax.plot(df_station[col],'-',color = color)
                 ax.set_ylabel(col.upper() +' (nT)', fontsize = 12)
                 ax.set_xlim(df_station[col].index[0],df_station[col].index[-1])
-                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
-                #ax.xaxis.get_ticklocs(minor=True)
-                #ax.yaxis.set_tick_params(which='minor', bottom=False)
-                #ax.minorticks_on() 
                 ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
                 ax.xaxis.set_tick_params(labelrotation = 30)
                 ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
@@ -1392,10 +1384,6 @@ def plot_samples(station: str,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.xaxis.set_tick_params(labelrotation = 30)
                 ax.minorticks_on() 
-                #ax.xaxis.set_major_locator(md.YearLocator(1))
-                #ax.xaxis.get_ticklocs(minor=True)
-                #ax.yaxis.set_tick_params(which='minor', bottom=False)
-                #ax.minorticks_on() 
                 ax.legend()
                 
             plt.show()
@@ -1440,10 +1428,6 @@ def plot_samples(station: str,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.xaxis.set_tick_params(labelrotation = 30)
                 ax.minorticks_on() 
-                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
-                #ax.xaxis.get_ticklocs(minor=True)
-                #ax.yaxis.set_tick_params(which='minor', bottom=False)
-                #ax.minorticks_on() 
                 ax.grid()
                 
             plt.savefig(os.path.join(directory,
@@ -1504,10 +1488,6 @@ def plot_samples(station: str,
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on()
                 ax.xaxis.set_tick_params(labelrotation = 30) 
-                #ax.xaxis.set_major_locator(md.YearLocator(1)) 
-                #ax.xaxis.get_ticklocs(minor=True)
-                #ax.yaxis.set_tick_params(which='minor', bottom=False)
-                #ax.minorticks_on() 
                 ax.grid()
                 
             plt.savefig(os.path.join(directory,
@@ -1583,7 +1563,6 @@ def plot_tdep_map(time:str,
     theta = np.linspace(1., 179., 181)  # colatitude in degrees
     phi = np.linspace(-180., 180, 361)  # longitude in degrees
     
-    
     # compute radial SV up to degree 16 using CHAOS
 
     B_radius, B_theta, B_phi = model.synth_values_tdep(time, radius, theta, phi,
@@ -1604,7 +1583,6 @@ def plot_tdep_map(time:str,
         B_yp = B_phip
         B_zp = B_radiusp*-1 
         
-        
         #calculating values for next year
         B_radiusn, B_thetan, B_phin = model.synth_values_tdep(next_year, radius, theta, phi,
                                                               nmax=20, deriv=deriv, grid=True)
@@ -1613,7 +1591,6 @@ def plot_tdep_map(time:str,
         B_yn = B_phin
         B_zn = B_radiusn*-1 
         
-        
         #calculating SV or SA changes
         B_x = (B_x - B_xn) - (B_x - B_xp)
         B_y = (B_y - B_yn) - (B_y - B_yp)
@@ -1621,11 +1598,11 @@ def plot_tdep_map(time:str,
         cons = 1
     gs = gridspec.GridSpec(1, 3)
     
-
     axes = [
         plt.subplot(gs[0, 0], projection=ccrs.Robinson()),
         plt.subplot(gs[0, 1], projection=ccrs.Robinson()),
-        plt.subplot(gs[0, 2], projection=ccrs.Robinson())]
+        plt.subplot(gs[0, 2], projection=ccrs.Robinson())
+        ]
     
     for ax, comp, name in zip(axes, [B_x, B_y, B_z], ['X','Y','Z']):
         
@@ -1656,7 +1633,6 @@ def plot_tdep_map(time:str,
                          borderpad=-3.5
                          )
     
-    # use last artist for the colorbar
         clb = plt.colorbar(pc,
                            cax=cax,
                            extend='both',
@@ -1683,8 +1659,7 @@ def plot_tdep_map(time:str,
                         df_imos.loc[imo].name,
                         horizontalalignment='left',
                         transform=ccrs.Geodetic())
-                
-        
+                 
     plt.show()
 
 def plot_sv(station: str,
@@ -1795,7 +1770,6 @@ def plot_sv(station: str,
             ax.minorticks_on()
             ax.yaxis.set_tick_params(which='minor', bottom=False)
             ax.grid(alpha = 0.3)
-        
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv_chaos.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
             ax.legend()
@@ -1811,7 +1785,6 @@ def plot_sv(station: str,
             ax.minorticks_on()
             ax.yaxis.set_tick_params(which='minor', bottom=False)
             ax.grid(alpha = 0.3)
-        
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
     if save_plot is True:
