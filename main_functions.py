@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from glob import glob
 import glob
 import os
 import pathlib
@@ -144,10 +143,8 @@ def load_intermagnet_files(station: str,
                            )
     
     try:
-        #df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
         df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
     except IOError:    
-        #df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
         df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
     except:
         print('Wrong date format in the files')
@@ -597,7 +594,7 @@ def sv_obs(station: str,
                 plt.show()
                 
             if input_chaos == 'n' or inp_denoise == 'n':
-                print(df_station)
+                
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
@@ -1001,17 +998,17 @@ def sv_obs(station: str,
                              plot_data_type = First_QD_data,
                              apply_percentage = resample_condition)
             else:
-                print(df_station)
+
                 plot_samples(station = station,
                              dataframe = df_station.copy(),
                              save_plots = False,
                              plot_data_type = None, 
                              apply_percentage = resample_condition)
-                print(df_station)
+                
             #plot of secular variation and monthly mean
             
             fig, ax = plt.subplots(3,2, figsize = (18,10))    
-            
+        
             ax[0,1].set_title(station.upper() + ' Secular Variation (ADMM)', fontsize = 14)
             ax[0,1].plot(df_sv['X'], 'o', color  = 'blue')
             ax[0,1].set_xlim(df_sv['X'].index[0], df_sv['X'].index[-1])
@@ -1771,6 +1768,7 @@ def plot_sv(station: str,
     if chaos_correction is False and plot_chaos is True and df_chaos is None:
         
         df_chaos = dpt.chaos_model_prediction(station, starttime, endtime)
+        
     # calculating sv
     
     if convert_hdz_to_xyz is True:
@@ -1784,20 +1782,15 @@ def plot_sv(station: str,
         df_sv_chaos = dpt.calculate_sv(df_chaos, source = 'int')
         
     fig, axes = plt.subplots(3,1 ,figsize = (14,10), sharex = True)
+    
     plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
     plt.subplots_adjust(hspace=0.05)
+    
     if plot_chaos is True:
         for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']): 
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
             ax.plot(df_sv[col], 'o', color = 'black')
-        #if First_QD_data != []:
-        #    SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
-        #    ax.plot(df_sv[col].loc[df_sv.index > SV_QD_first_data], 'o', color = 'green', label = 'QD-data')
             ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
-        #if str(df_sv.index[-1]) >= '2021-09-30':
-        #    ax.axvline(x = datetime.strptime('2022-03-30', '%Y-%m-%d') + pd.DateOffset(months=-6),
-        #           color = 'blue', label = 'RC-index limit')
-        
             ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
             ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
             ax.xaxis.set_tick_params(labelrotation = 30, width=2)
@@ -1813,14 +1806,7 @@ def plot_sv(station: str,
     else:
         for ax, col in zip(axes.flatten(), df_sv.columns):
             ax.plot(df_sv[col], 'o', color = 'black')
-        #if First_QD_data != []:
-        #    SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
-        #    ax.plot(df_sv[col].loc[df_sv.index > SV_QD_first_data], 'o', color = 'green', label = 'QD-data')
             ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
-        #if str(df_sv.index[-1]) >= '2021-09-30':
-        #    ax.axvline(x = datetime.strptime('2022-03-30', '%Y-%m-%d') + pd.DateOffset(months=-6),
-        #           color = 'blue', label = 'RC-index limit')
-        
             ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
             ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
             ax.xaxis.set_tick_params(labelrotation = 30, width=2)
@@ -1854,7 +1840,6 @@ if __name__ == '__main__':
     #        endtime = '2020-12-31',
     #        plot_chaos=True,
     #        chaos_correction=True)    
-        
         
         
         

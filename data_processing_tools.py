@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from glob import glob
 from pandas.tseries.frequencies import to_offset
 import h5py
 import glob
@@ -79,16 +78,6 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
                        )
     if df_d.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
         spf.update_qd_and_dd(data = 'DD')
-      
-    #df_d['D-Days'] = pd.to_datetime(df_d['D-Days'], format = '%YYYY-%mm-%dd')
-
-    #df_d.set_index('D-Days', inplace = True)
-    
-    #df_d = df_d.sort_values('D-Days')
-    
-    
-    #first_day = str(df.index[0].year) + '-' + str(df.index[0].month) + '-' + str(df.index[0].day)
-    #last_day = str(df.index[-1].year) + '-' + str(df.index[-1].month) + '-' + str(df.index[-1].day)
     
     df_d = df_d.loc[str(df.index[0].date()):str(df.index[-1].date())]
     
@@ -138,10 +127,6 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     df = dataframe
     
     quiet_index = pd.DataFrame()
-
-    #updating quiet days list
-    
-    #spf.update_qd_and_dd(data = 'QD')
     
     working_directory = project_directory()
     
@@ -164,12 +149,6 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     if df_q.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
         spf.update_qd_and_dd(data = 'QD')
     
-    #df_q['Q-Days'] = pd.to_datetime(df_q['Q-Days'], format = '%YYYY-%mm-%dd')
-    #
-    #df_q = df_q.sort_values('Q-Days')
-    #
-    #df_q.set_index('Q-Days', inplace = True)
-    #
     df_q = df_q.loc[str(df.index[0].date()):str(df.index[-1].date())]
 
     for date in df_q.index.date:
@@ -347,200 +326,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     if sample_rate == 'H':
         df_station = resample_obs_data(df_station, 'H')
     
-    #df_kp = pd.DataFrame()
-    #df_kp['Date'] = KP_[str(df_station.index[0].date()):str(df_station.index[-1].date())].loc[KP_['Kp'] > kp].index.date
-    #df_kp['Date'] = df_kp['Date'].drop_duplicates()
-    #df_kp.index = df_kp['Date']
-    #df_kp = df_kp.dropna()
-    
-    #df_disturbed = pd.DataFrame()
-    #
-    #for i in df_kp.index:
-    #    df_disturbed = pd.concat([df_disturbed, df_station.loc[str(i)]])
-    #    #df_station.drop(df_station.loc[str(i)].index, inplace = True)
-    #df_station.drop(df_disturbed.index, inplace = True)
-    
     return df_station
-
-def chaos_internal_field_prediction(station: str,
-                                    starttime: str,
-                                    endtime: str,
-                                    n_core = 20,
-                                    n_crust = 110
-                                    ):
-    
-    assert len(station) == 3, 'station must be a three letters IAGA Code'
-    
-    for i in [starttime, endtime]:
-        spf.validate(i)
-        
-    if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'station must be an observatory IAGA CODE!')
-    
-    working_directory = project_directory()
-    
-    #loading CHAOS model    
-    chaos_path = glob.glob(os.path.join(working_directory,
-                                        'chaosmagpy_package_*.*',
-                                        'data',
-                                        'CHAOS*'
-                                        )
-                           )
-    model = cp.load_CHAOS_matfile(chaos_path[0])
-    
-    station = station.upper()
-    
-    rc_directory = pathlib.Path(os.path.join(working_directory,
-                                             'Data',
-                                             'chaos rc',
-                                             'newest_RC_file.h5'
-                                             )
-                                )                        
-    rc_data = h5py.File(rc_directory)
-    
-    if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
-        
-        rc_data.close()
-        save_RC_h5file(rc_directory)
-        cp.basicConfig['file.RC_index'] = rc_directory
-    else:
-        rc_data.close()
-        cp.basicConfig['file.RC_index'] = rc_directory    
-    #setting the Earth radius reference
-    R_REF = 6371.2
-
-    #getting coordenates for the stations
-    Longitude = utt.IMO.longitude(station)
-
-    Latitude = 90 - utt.IMO.latitude(station)
-
-    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
-
-    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
-    Time =cp.data_utils.mjd2000(Date)
-    
-    # Internal field
-    print(f'Initiating geomagnetic field computation for {station.upper()}.')
-    print(f'Computing core field.')
-    
-    B_core = model.synth_values_tdep(time = Time,
-                                     radius = Elevation,
-                                     theta = Latitude ,
-                                     phi = Longitude,
-                                     nmax = n_core
-                                    )
-    
-    
-    print(f'Computing crustal field up to degree 110.')
-
-    B_crust = model.synth_values_static(radius = Elevation,
-                                        theta = Latitude,
-                                        phi = Longitude,
-                                        nmax = n_crust
-                                       )   
-     
-    df_station = pd.DataFrame()
-    df_station.index = Date
-    
-    df_station['X_int'] = B_core[1].round(3)*-1
-    df_station['Y_int'] = B_core[2].round(3)
-    df_station['Z_int'] = B_core[0].round(3)*-1
-    
-    df_station['X_crust'] = B_crust[1].round(3)*-1
-    df_station['Y_crust'] = B_crust[2].round(3)
-    df_station['Z_crust'] = B_crust[0].round(3)*-1
-
-    return df_station 
-
-
-def chaos_external_field_prediction(station: str,
-                                    starttime: str,
-                                    endtime: str,
-                                    n_gsm = 2,
-                                    n_sm = 2
-                                    ):
-    
-    assert len(station) == 3, 'station must be a three letters IAGA Code'
-    
-    for i in [starttime, endtime]:
-        spf.validate(i)
-        
-    if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'Station must be an observatory IAGA CODE!')
-    
-    working_directory = project_directory()
-    
-    #loading CHAOS model    
-    chaos_path = glob.glob(os.path.join(working_directory,
-                                        'chaosmagpy_package_*.*',
-                                        'data',
-                                        'CHAOS*'
-                                        )
-                           )
-    model = cp.load_CHAOS_matfile(chaos_path[0])
-    
-    station = station.upper()
-    
-    rc_directory = pathlib.Path(os.path.join(working_directory,
-                                             'Data',
-                                             'chaos rc',
-                                             'newest_RC_file.h5'
-                                             )
-                                )                        
-    rc_data = h5py.File(rc_directory)
-    
-    if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
-        
-        rc_data.close()
-        save_RC_h5file(rc_directory)
-        cp.basicConfig['file.RC_index'] = rc_directory
-    else:
-        rc_data.close()
-        cp.basicConfig['file.RC_index'] = rc_directory    
-    #setting the Earth radius reference
-    R_REF = 6371.2
-
-    #getting coordenates for the stations
-    Longitude = utt.IMO.longitude(station)
-
-    Latitude = 90 - utt.IMO.latitude(station)
-
-    Elevation = (utt.IMO.elevation(station)/1000) +R_REF
-
-    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
-    Time =cp.data_utils.mjd2000(Date)
-    
-    # Internal field
-    print(f'Initiating geomagnetic magnetospheric field computation for {station.upper()}.')
-    print('Computing field due to external sources, incl. induced field: GSM.')
-    B_gsm = model.synth_values_gsm(time = Time,
-                                   radius = Elevation, 
-                                   theta = Latitude,
-                                   phi = Longitude, 
-                                   source='all',
-                                   nmax = n_gsm
-                                   )
-    
-    B_sm = model.synth_values_sm(time = Time,
-                                 radius = Elevation,
-                                 theta = Latitude,
-                                 phi = Longitude,
-                                 source='all',
-                                 nmax = n_sm,
-                                 )
-     
-    df_station = pd.DataFrame()
-    df_station.index = Date
-    
-    df_station['X_gsm'] = B_gsm[1].round(3)*-1
-    df_station['Y_gsm'] = B_gsm[2].round(3)
-    df_station['Z_gsm'] = B_gsm[0].round(3)*-1
-    
-    df_station['X_sm'] = B_sm[1].round(3)*-1
-    df_station['Y_sm'] = B_sm[2].round(3)
-    df_station['Z_sm'] = B_sm[0].round(3)*-1
-
-    return df_station 
 
 def chaos_model_prediction(station: str,
                            starttime: str,
@@ -632,15 +418,6 @@ def chaos_model_prediction(station: str,
     Latitude = 90 - utt.IMO.latitude(station)
     
     Elevation, Latitude = cp.coordinate_utils.gg_to_geo(utt.IMO.elevation(station)/1000, Latitude)
-    
-    #Elevation = (utt.IMO.elevation(station)/1000) +R_REF
-    #Longitude = df_IMOS.loc[station]['Longitude']
-    
-
-    #Latitude = 90 - df_IMOS.loc[station]['Latitude']
- 
-
-    #Elevation = (df_IMOS.loc[station]['Elevation']/1000) + R_REF
 
     Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
     Time =cp.data_utils.mjd2000(Date)
@@ -685,45 +462,6 @@ def chaos_model_prediction(station: str,
                                  nmax = n_sm,
                                  )
 
-    #if endtime <= '2022-02-28':
-    #    
-    #    print('Computing field due to external sources, incl. induced field: SM.')
-    #    B_sm = model.synth_values_sm(time = Time,
-    #                             radius = Elevation,
-    #                             theta = Latitude,
-    #                             phi = Longitude,
-    #                             source='all',
-    #                             nmax = 2,
-    #                             )
-    #else:
-    #    Date_RC = pd.date_range(starttime, '2022-02-28' + ' 23:00:00', freq = 'H')
-    #    Date_NO_RC = pd.date_range('2022-03-01', endtime + ' 23:00:00', freq = 'H')
-    #    Time =cp.data_utils.mjd2000(Date_RC)
-    #    Time_sm =cp.data_utils.mjd2000(Date_NO_RC)
-    #    
-    #    print('Computing field due to external sources, incl. induced field: SM.')
-    #    B_sm_with_rc = model.synth_values_sm(time = Time,
-    #                             radius = Elevation,
-    #                             theta = Latitude,
-    #                             phi = Longitude,
-    #                             source='all'
-    #                             )
-    #    
-    #    B_sm_without_rc = model.synth_values_sm(time = Time_sm,
-    #                             radius = Elevation,
-    #                             theta = Latitude,
-    #                             phi = Longitude,
-    #                             source='all',
-    #                             rc_e = False,
-    #                             rc_i = False
-    #                             )
-    #    
-    #    B_sm = []
-    #    B_sm_x = np.append(B_sm_with_rc[0], B_sm_without_rc[0])
-    #    B_sm_y = np.append(B_sm_with_rc[1], B_sm_without_rc[1])
-    #    B_sm_z = np.append(B_sm_with_rc[2], B_sm_without_rc[2])
-    #    B_sm = [B_sm_x, B_sm_y, B_sm_z]
-
     # complete external field contribution
     B_radius_ext = B_gsm[0].astype('float32') + B_sm[0].astype('float32')
     B_theta_ext = B_gsm[1].astype('float32') + B_sm[1].astype('float32')
@@ -749,15 +487,6 @@ def chaos_model_prediction(station: str,
     df_station['X_crust'] = B_crust[1]*-1
     df_station['Y_crust'] = B_crust[2]
     df_station['Z_crust'] = B_crust[0]*-1
-    
-
-    #df_station['X_ext_gsm'] = B_gsm[1].round(3)*-1
-    #df_station['Y_ext_gsm'] = B_gsm[2].round(3)
-    #df_station['Z_ext_gsm'] = B_gsm[0].round(3)*-1
-    #
-    #df_station['X_ext_sm'] = B_sm[1].round(3)*-1
-    #df_station['Y_ext_sm'] = B_sm[2].round(3)
-    #df_station['Z_ext_sm'] = B_sm[0].round(3)*-1
     
     df_station['X_ext'] = B_theta_ext*-1
     df_station['Y_ext'] = B_phi_ext
@@ -865,13 +594,6 @@ def external_field_correction_chaos_model(station: str,
                                           n_gsm = n_gsm,
                                           n_sm = n_sm  
                                          )
-        
-    #df_chaos.index = df_chaos.index + to_offset('30min')
-        
-        
-    #df_chaos['X_ext'] = df_chaos['X_ext_gsm'] + df_chaos['X_ext_sm']
-    #df_chaos['Y_ext'] = df_chaos['Y_ext_gsm'] + df_chaos['Y_ext_sm']
-    #df_chaos['Z_ext'] = df_chaos['Z_ext_gsm'] + df_chaos['Z_ext_sm']
     
     df_station = df_station.resample('H').mean()
         
@@ -924,17 +646,11 @@ def rms(predictions: pd.DataFrame(),
         y = calculate_sv(observed_data, apply_percentage=True)
         ypred = calculate_sv(predictions, source = 'int')
         
-        #y = (observed_data[cols].resample('M').mean().diff(6) - observed_data[cols].resample('M').mean().diff(-6)).dropna()
-        #print(y)
-        #ypred = (predictions[col].resample('M').mean().diff(6) - predictions[col].resample('M').mean().diff(-6)).dropna()
         ypred = ypred.reindex(y.index)
         
         rms = np.sqrt(((ypred[col] - y[cols]) ** 2).mean()).round(3)
-        #rms2 = mean_squared_error(y[cols].values, ypred[col].values, squared = False)
         
         x.append(rms)
-        #x2.append(rms2)
-        #print('the rmse for ' + str(cols) + ' component is ' + str(rms) + '.')
     return x
 
 def night_time_selection(station: str,
@@ -1139,10 +855,9 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         tmp = df_station.groupby(pd.Grouper(freq='H')).agg(['mean','count']).swaplevel(0,1,axis=1)
             
         if sample_rate == 'hourly':
-        # if any(tmp['count'].median()) <= 1 is True:
             
             df_station = df_station
-            #df_station = tmp['mean'].where(tmp['count']>=1*0.9)
+
         else:
             df_station = tmp['mean'].where(tmp['count']>=60*0.9)
             
@@ -1160,9 +875,6 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         tmp = df_station.groupby(pd.Grouper(freq='D')).agg(['mean','count']).swaplevel(0,1,axis=1)
         
         if sample_rate == 'hourly':
-        #if any(tmp['count'].median() <= 30) is True:
-            
-            #df_station = df_station.resample('H').mean()
             
             df_station = tmp['mean'].where(tmp['count']>=24*0.9)
             
@@ -1186,30 +898,22 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         tmp = df_station.groupby(pd.Grouper(freq='M')).agg(['mean','count']).swaplevel(0,1,axis=1)
         
         if sample_rate == 'hourly':
-        # if any(tmp['count'].median() <= 800) is True:
-            
-            #df_station = df_station.resample('H').mean()
 
             tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24
             
         else:
         
             tmp['full day'] = df_station.resample('M').mean().index.days_in_month*24*60
-        #print(tmp['count'].median())    
-        #print(tmp['full day'])    
+
         X = tmp['mean','X'].loc[tmp['count','X'] >= tmp['full day']*0.9]
         Y = tmp['mean','Y'].loc[tmp['count','Y'] >= tmp['full day']*0.9]
-        Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.9]
-        
-            
+        Z = tmp['mean','Z'].loc[tmp['count','Z'] >= tmp['full day']*0.9]          
             
         df_station = df_station.resample('M').mean()
-        #print(df_station_resampled)
         df_station['X'] = X
         df_station['Y'] = Y
         df_station['Z'] = Z
         
-        #df_station = df_station_resampled
         df_station = df_station.resample('M').mean()
         idx1 = df_station.loc[df_station.index.month == 2].index + to_offset('-1M') + to_offset('14D')
         idx2 = df_station.loc[df_station.index.month != 2].index + to_offset('-1M') + to_offset('15D')
@@ -1239,7 +943,6 @@ def resample_obs_data(dataframe: pd.DataFrame(),
         tmp['Days'] = Days['Days'].resample('Y').sum()
         
         if sample_rate == 'hourly':
-        # if tmp['count'].median().any() <= 8784:
             
             df_station = df_station.resample('H').mean()
             
@@ -1372,7 +1075,6 @@ def jerk_detection_window(station: str,
                                           f'{station}_data'
                                           )
                              )
-           
     
     # creating directory if it doesn't exist
     
@@ -1562,7 +1264,7 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on()
                 ax.grid(alpha = 0.5)
                 ax.legend()
-            #fig.text(0.08, 0.5, f'dY/dt (nT/yr)', ha='center', va='center', rotation='vertical',fontsize = 10) 
+
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
                                          f'{station}_jerk_detection_2.png',
