@@ -1217,10 +1217,11 @@ def jerk_detection_window(station: str,
                 ax.minorticks_on() 
                 ax.grid(alpha = 0.5)
                 ax.legend()
+                
             if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection.png'
+                                         f'{station}_jerk_detection.jpeg'
                                          ),
                             bbox_inches='tight',
                             dpi = 300, 
@@ -1267,7 +1268,7 @@ def jerk_detection_window(station: str,
 
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection_2.png',
+                                         f'{station}_jerk_detection_2.jpeg',
                                          dpi = 300
                                          ), 
                             dpi = 300,
@@ -1326,7 +1327,7 @@ def jerk_detection_window(station: str,
             if save_plots is True:
                 
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection.png'
+                                         f'{station}_jerk_detection.jpeg'
                                          ),
                             dpi= 300,
                             bbox_inches='tight')
@@ -1368,7 +1369,7 @@ def jerk_detection_window(station: str,
 
             if save_plots is True:
                 plt.savefig(os.path.join(directory,
-                                         f'{station}_jerk_detection_2.png'
+                                         f'{station}_jerk_detection_2.jpeg'
                                          ),
                             dpi= 300,
                             bbox_inches='tight'

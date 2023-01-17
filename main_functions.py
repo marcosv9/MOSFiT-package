@@ -254,7 +254,7 @@ def sv_obs(station: str,
     # Hampel filter interaction
     
     while True: 
-        inp_denoise = input("Do You Want To denoise the data based on median absolute deviation? [y/n]: ")
+        inp_denoise = input("Do you want to denoise the data based on median absolute deviation (hampel filter)? [y/n]: ")
         if inp_denoise == 'y':
             
             df_station = dpt.hampel_filter_denoising(dataframe = df_station,
@@ -392,7 +392,7 @@ def sv_obs(station: str,
     
     while True: 
         
-        inp2 = input(f"Do You Want To Save a File With the Variation? [y/n]: ")
+        inp2 = input(f"Do you want to save files of the different samples for {station}? [y/n]: ")
 
         if inp2 == 'y':
 
@@ -536,7 +536,7 @@ def sv_obs(station: str,
               
     while True:
         
-        inp3 = input(f"Do You Want To Save Plots of the Variation and SV for X, Y and Z? [y/n]: ")
+        inp3 = input(f"Do you want to save plots of the different samples and SV of {station} for X, Y and Z? [y/n]: ")
         if inp3 == 'y':
             directory = pathlib.Path(os.path.join(working_directory,
                                                   'Filtered_data',
@@ -577,21 +577,6 @@ def sv_obs(station: str,
                     ax[1].legend()
                     ax[2].legend()
 
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.set_tick_params(labelrotation = 30)
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.minorticks_on() 
-                
-                plt.savefig(os.path.join(directory,
-                                         f'{station}_minute_mean.jpeg'
-                                         ),
-                            dpi = 300,
-                            bbox_inches='tight'
-                            )
-                plt.show()
                 
             if input_chaos == 'n' or inp_denoise == 'n':
                 
@@ -632,21 +617,21 @@ def sv_obs(station: str,
                     ax[1].legend()
                     ax[2].legend()
                 
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12))
-                    ax.xaxis.set_tick_params(labelrotation = 30) 
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.minorticks_on() 
-
-                plt.savefig(os.path.join(directory,
-                                         f'{station}_minute_mean.jpeg'
-                                         ),
-                            dpi = 300,
-                            bbox_inches='tight'
-                            )
-                plt.show()
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.set_tick_params(labelrotation = 30)
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
+            
+            plt.savefig(os.path.join(directory,
+                                     f'{station}_minute_mean.jpeg'
+                                     ),
+                        dpi = 300,
+                        bbox_inches='tight'
+                        )
+            plt.show()
                     
             
             if First_QD_data != []:
@@ -730,7 +715,13 @@ def sv_obs(station: str,
                 ax[0,1].legend()
                 ax[1,1].legend()
                 ax[2,1].legend()
-
+                
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
 
             plt.savefig(os.path.join(directory,
                                      f'{station}_Var_SV.jpeg'
@@ -740,7 +731,7 @@ def sv_obs(station: str,
                         )
             plt.show()      
             
-             #plot of SV alone     
+            #plot of SV alone     
                   
             fig, ax = plt.subplots(3, 1, figsize = (13,8), sharex = True)
             plt.subplots_adjust(hspace = 0.05)
@@ -787,13 +778,14 @@ def sv_obs(station: str,
                 ax[0].legend()
                 ax[1].legend()
                 ax[2].legend()
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.set_tick_params(labelrotation = 30)
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.minorticks_on() 
+                
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.set_tick_params(labelrotation = 30)
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
 
             plt.savefig(os.path.join(directory, f'{station}_SV.jpeg'),
                                      dpi = 300,
@@ -911,14 +903,14 @@ def sv_obs(station: str,
             
             #plot minute mean
             
+                    #plot minute mean
             if input_chaos == 'y' or inp_denoise == 'y':
                 
                 fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
-                ax[0].set_title(station.upper() + ' minute mean', fontsize = 14)
-                ax[0].plot(df_station2['X'], color  = 'blue')
-  
+                ax[0].set_title(f'{station.upper()} minute mean', fontsize = 14)
+                ax[0].plot(df_station2['X'],  color  = 'blue')
                 ax[0].set_xlim(df_station2['X'].index[0], df_station2['X'].index[-1])
                 ax[0].set_ylabel('X(nT)', fontsize = 12)
                 ax[0].grid()
@@ -930,80 +922,80 @@ def sv_obs(station: str,
                 
                 ax[2].plot(df_station2['Z'], color  =  'black')
                 ax[2].set_xlim(df_station2['Z'].index[0], df_station2['Z'].index[-1])
-                ax[2].set_ylim(df_station2['Z'].min() - 3, df_station2['Z'].max() + 3)
                 ax[2].set_ylabel('Z(nT)', fontsize = 12)
                 ax[2].grid()
-                                
+
+                
                 if First_QD_data != []:
-                    ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], '-', color = 'red', label = 'Quasi-definitive data')
-                    ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], '-', color = 'red', label = 'Quasi-definitive data')
-                    ax[2].plot(df_station2.loc[df_station2.index > First_QD_data]['Z'], '-', color = 'red', label = 'Quasi-definitive data')
+
+                    ax[0].plot(df_station2.loc[df_station2.index > First_QD_data]['X'], color = 'red', label = 'Quasi-definitive data')
+                    ax[1].plot(df_station2.loc[df_station2.index > First_QD_data]['Y'], color = 'red', label = 'Quasi-definitive data')
+                    ax[2].plot(df_station2.loc[df_station2.index > First_QD_data]['Z'], color = 'red', label = 'Quasi-definitive data')
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
-  
-  
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
-                    ax.xaxis.set_tick_params(labelrotation = 30)
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.get_ticklocs(minor = True)
-                    ax.yaxis.set_tick_params(which = 'minor', bottom=False)
-                    ax.minorticks_on() 
                 plt.show()
+         
+            if input_chaos == 'n' or inp_denoise == 'n':
                 
-            else:
-                
-                fig, ax = plt.subplots(3, 1, figsize = (13, 8), sharex = True)
+                fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
                 plt.subplots_adjust(hspace = 0.05)
                 
-                ax[0].set_title(station.upper() + ' minute mean', fontsize = 14)
+                ax[0].set_title(f'{station.upper()} minute mean', fontsize = 14)
                 ax[0].plot(df_station['X'], color  = 'blue')
                 ax[0].set_xlim(df_station['X'].index[0], df_station['X'].index[-1])
-                ax[0].set_ylabel('dX/dT(nT/yr)', fontsize = 12)
+                ax[0].set_ylabel('X (nT)', fontsize = 12)
                 ax[0].grid()
                 
                 ax[1].plot(df_station['Y'], color  = 'green')
                 ax[1].set_xlim(df_station['Y'].index[0], df_station['Y'].index[-1])
-                ax[1].set_ylabel('dY/dT(nT/yr)', fontsize = 12)
+                ax[1].set_ylabel('Y (nT)', fontsize = 12)
                 ax[1].grid()
                 
                 ax[2].plot(df_station['Z'], color  =  'black')
                 ax[2].set_xlim(df_station['Z'].index[0], df_station['Z'].index[-1])
-                ax[2].set_ylabel('dZ/dT(nT/yr)', fontsize = 12)
+                ax[2].set_ylabel('Z (nT)', fontsize = 12)
                 ax[2].grid()
                 
                 if First_QD_data != []:
-                    ax[0].plot(df_station.loc[df_station.index > First_QD_data]['X'], '-', color = 'red', label = 'Quasi-definitive data')
-                    ax[1].plot(df_station.loc[df_station.index > First_QD_data]['Y'], '-', color = 'red', label = 'Quasi-definitive data')
-                    ax[2].plot(df_station.loc[df_station.index > First_QD_data]['Z'], '-', color = 'red', label = 'Quasi-definitive data')
+                    ax[0].plot(df_station.loc[df_station.index > First_QD_data]['X'],
+                               color = 'red',
+                               label = 'Quasi-definitive data')
+                    
+                    ax[1].plot(df_station.loc[df_station.index > First_QD_data]['Y'],
+                               color = 'red',
+                               label = 'Quasi-definitive data')
+                    ax[2].plot(df_station.loc[df_station.index > First_QD_data]['Z'],
+                               color = 'red',
+                               label = 'Quasi-definitive data')
                     ax[0].legend()
                     ax[1].legend()
                     ax[2].legend()
-                    
-                for ax in ax.flatten():
-                    ax.xaxis.set_major_locator(md.MonthLocator(interval=12))
-                    ax.xaxis.set_tick_params(labelrotation = 30) 
-                    ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-                    ax.xaxis.get_ticklocs(minor=True)
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.minorticks_on() 
-                plt.show()
                 
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.set_tick_params(labelrotation = 30)
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
+            plt.show()
+                              
             if First_QD_data != []:
-    
+            
                 plot_samples(station = station,
                              dataframe = df_station.copy(),
-                             save_plots = False,
+                             save_plots = True,
                              plot_data_type = First_QD_data,
-                             apply_percentage = resample_condition)
+                             apply_percentage = resample_condition
+                             )
             else:
-
                 plot_samples(station = station,
                              dataframe = df_station.copy(),
-                             save_plots = False,
-                             plot_data_type = None, 
-                             apply_percentage = resample_condition)
+                             save_plots = True,
+                             plot_data_type = None,
+                             apply_percentage = resample_condition
+                             )
                 
             #plot of secular variation and monthly mean
             
@@ -1043,6 +1035,13 @@ def sv_obs(station: str,
             ax[2,0].set_ylabel('Z/nT', fontsize = 14)
             ax[2,0].grid()
             
+            for ax in ax.flatten():
+                ax.xaxis.set_major_locator(md.MonthLocator(interval = 12)) 
+                ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+                ax.xaxis.get_ticklocs(minor=True)
+                ax.yaxis.set_tick_params(which='minor', bottom=False)
+                ax.minorticks_on() 
+            
             if First_QD_data != []:
                 #computing date for SV
                 SV_QD_first_data = datetime.strptime(First_QD_data, '%Y-%m-%d') + pd.DateOffset(months=-6)
@@ -1058,10 +1057,10 @@ def sv_obs(station: str,
                 ax[0,1].legend()
                 ax[1,1].legend()
                 ax[2,1].legend()
-
-            plt.show()      
             
-             #plot of SV alone     
+            plt.show()         
+            
+            #plot of SV alone     
                   
             fig, ax = plt.subplots(3,1, figsize = (13,8), sharex = True)
             
@@ -1110,7 +1109,6 @@ def sv_obs(station: str,
                 ax.xaxis.get_ticklocs(minor=True)
                 ax.yaxis.set_tick_params(which='minor', bottom=False)
                 ax.minorticks_on()  
-
 
             plt.show()
             
@@ -1202,8 +1200,7 @@ def sv_obs(station: str,
                 plt.show()
          
             break
-
-                   
+           
         else:
             print(f'You must type y or n!')
     
@@ -1818,7 +1815,7 @@ def plot_sv(station: str,
             ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
             ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
     if save_plot is True:
-        plt.savefig(f'{station}_sv.jpeg', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(f'{station}_worldmap_sv.jpeg', dpi = 300, bbox_inches = 'tight')
     plt.show()
     
     
@@ -1833,7 +1830,7 @@ if __name__ == '__main__':
     
     #df = load_intermagnet_files('NGK',starttime = '2010-01-01', endtime = '2020-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')
     #print(df)
-    sv_obs('NGK',starttime = '2013-01-01', endtime = '2017-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')      
+    sv_obs('NGK',starttime = '2013-01-01', endtime = '2017-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data', plot_chaos=True)      
     
     #plot_sv(station = 'VSS',
     #        starttime = '2010-01-01',
