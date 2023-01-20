@@ -1798,21 +1798,3 @@ def plot_sv(station: str,
         return df_sv
         
         
-        
-if __name__ == '__main__':
-    
-    #df = load_intermagnet_files('NGK',starttime = '2010-01-01', endtime = '2020-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data')
-    #print(df)
-    sv_obs('NGK',starttime = '2013-01-01', endtime = '2017-12-31', files_path = 'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\ngk_data', plot_chaos=True)      
-    
-    #plot_sv(station = 'VSS',
-    #        starttime = '2010-01-01',
-    #        endtime = '2020-12-31',
-    #        plot_chaos=True,
-    #        chaos_correction=True)    
-        
-        
-        
-        
-        
-        

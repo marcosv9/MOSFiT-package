@@ -307,7 +307,5 @@ class IMO(object):
         
         database.to_csv(IMO.imos_directory, sep = '\t')
  
-            
-if __name__ == '__main__':
     
-    download_data_intermagnet('QD',[2022],[9],'VSS')
+    
