@@ -14,4 +14,6 @@ trash_files/
 *.jpeg
 *.png
 *.txt
+__pycache__/
+.vscode/
 not_in_use.py
