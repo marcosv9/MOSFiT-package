@@ -1383,19 +1383,3 @@ def jerk_detection_window(station: str,
                                   station = [station.upper()])
         
     return df_jerk_window, df_slopes, breakpoints, r2
-
-if __name__ == '__main__':
-    df_her = mvs.load_intermagnet_files('HER','2005-01-01','2014-12-31')
-    
-    jerk_detection_window(station = 'HER',
-                         window_start= '2007-04',
-                         window_end = '2013-12',
-                         starttime = None,
-                         endtime = None,
-                         df_station= df_her,
-                         df_chaos= None,
-                         plot_detection = True,
-                         chaos_correction = True,
-                         plot_chaos_prediction = True,
-                         convert_hdz_to_xyz = True,
-                         save_plots = False)
