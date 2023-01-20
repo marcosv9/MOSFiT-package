@@ -1,5 +1,5 @@
 
-# Magnetic Observatories and Stations Filtering Toll (MOSFiT)
+# Magnetic Observatories and Stations Filtering Tool (MOSFiT)
 
 MOSFiT is part of my Master's project in geophysics. A python tool developted to investigate the secular variation (SV) of the Earth's geomagnetic field, accelerate the geomagnetic jerk detection and check geomagnetic observatory data quality.
 
