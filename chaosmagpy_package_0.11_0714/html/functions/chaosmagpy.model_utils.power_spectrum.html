@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.model_utils.power_spectrum &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.model_utils.degree_correlation" href="chaosmagpy.model_utils.degree_correlation.html" />
+    <link rel="prev" title="chaosmagpy.model_utils.legendre_poly" href="chaosmagpy.model_utils.legendre_poly.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.degree_correlation.html" title="chaosmagpy.model_utils.degree_correlation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.legendre_poly.html" title="chaosmagpy.model_utils.legendre_poly"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.power_spectrum</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-model-utils-power-spectrum">
+<h1>chaosmagpy.model_utils.power_spectrum<a class="headerlink" href="#chaosmagpy-model-utils-power-spectrum" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chaosmagpy.model_utils.power_spectrum">
+<span class="sig-prename descclassname"><span class="pre">chaosmagpy.model_utils.</span></span><span class="sig-name descname"><span class="pre">power_spectrum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coeffs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/model_utils.html#power_spectrum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.model_utils.power_spectrum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the spatial power spectrum.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coeffs</strong><span class="classifier">ndarray, shape (…, N*(N+2))</span></dt><dd><p>Spherical harmonic coefficients for degree <cite>N</cite>.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">float, optional</span></dt><dd><p>Radius in kilometers (defaults to mean Earth’s surface radius).
+It has no effect for <code class="docutils literal notranslate"><span class="pre">source='toroidal'</span></code>.</p>
+</dd>
+<dt><strong>nmax</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum spherical degree (defaults to <cite>N</cite>).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘internal’, ‘external’, ‘toroidal’}</span></dt><dd><p>Source of the field model (defaults to internal).</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">int, optional</span></dt><dd><p>Axis of <code class="docutils literal notranslate"><span class="pre">coeffs</span></code> along which to compute the spatial power spectrum
+(defaults to -1, last dimension of <code class="docutils literal notranslate"><span class="pre">coeffs</span></code>).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt><strong>W_n</strong><span class="classifier">ndarray, shape (…, <code class="docutils literal notranslate"><span class="pre">nmax</span></code>)</span></dt><dd><p>Power spectrum for degrees up to degree <code class="docutils literal notranslate"><span class="pre">nmax</span></code></p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The spatial power spectrum for a potential field is defined as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}W_n(r) &amp;= \langle|\mathbf{B}|^2\rangle
+     = \frac{1}{4\pi}\iint_\Omega |\mathbf{B}|^2 \mathrm{d}
+       \Omega \\
+     &amp;= W_n^\mathrm{i}(r) + W_n^\mathrm{e}(r) + W_n^\mathrm{T}\end{split}\]</div>
+<p>where the internal <span class="math notranslate nohighlight">\(W_n^\mathrm{i}\)</span>, external
+<span class="math notranslate nohighlight">\(W_n^\mathrm{e}\)</span> and the non-potential toroidal
+<span class="math notranslate nohighlight">\(W_n^\mathrm{T}\)</span> spatial power spectra are</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}W_n^\mathrm{i}(r) &amp;= (n+1)\left(\frac{a}{r}\right)^{2n+4}
+                      \sum_{m=0}^n [(g_n^m)^2 + (h_n^m)^2] \\
+W_n^\mathrm{e}(r) &amp;= n\left(\frac{r}{a}\right)^{2n-2}\sum_{m=0}^n
+                      [(q_n^m)^2 + (s_n^m)^2] \\
+W_n^\mathrm{T}    &amp;= \frac{n(n+1)}{2n+1}\sum_{m=0}^n
+                      [(T_n^{m,c})^2 + (T_n^{m,s})^2]\end{split}\]</div>
+<p class="rubric">References</p>
+<p>Sabaka, T. J.; Hulot, G. &amp; Olsen, N.,
+“Mathematical properties relevant to geomagnetic field modeling”,
+Handbook of geomathematics, Springer, 2010, 503-538</p>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.model_utils.legendre_poly.html"
+                        title="previous chapter">chaosmagpy.model_utils.legendre_poly</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chaosmagpy.model_utils.degree_correlation.html"
+                        title="next chapter">chaosmagpy.model_utils.degree_correlation</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/chaosmagpy.model_utils.power_spectrum.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.degree_correlation.html" title="chaosmagpy.model_utils.degree_correlation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.legendre_poly.html" title="chaosmagpy.model_utils.legendre_poly"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.power_spectrum</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

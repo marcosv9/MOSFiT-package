@@ -1,0 +1,185 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Configuration &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API References" href="references.html" />
+    <link rel="prev" title="Create a Global Map and Polar Views" href="gallery/plot_global_polar.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="references.html" title="API References"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="gallery/plot_global_polar.html" title="Create a Global Map and Polar Views"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Configuration</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>ChaosMagPy internally uses a number of parameters and coefficient/data files,
+whose numerical values and filepaths are stored in a dictionary-like container,
+called <code class="docutils literal notranslate"><span class="pre">basicConfig</span></code>. Usually, the content of it need not be changed.
+However, if for example one wishes to compute a time series of the
+external field beyond the limit of the builtin RC-index file, then ChaosMagPy
+can be configured to use an updates RC-index file.</p>
+<p>To view the parameters in <code class="docutils literal notranslate"><span class="pre">basicConfig</span></code>, do the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This will print a list of the parameters than can in principle be changed.
+For example, it contains Earth’s surface radius <code class="docutils literal notranslate"><span class="pre">params.r_surf</span></code>, which is
+used as reference radius for the spherical harmonic representation of the
+magnetic potential field. For a complete list, see
+<a class="reference internal" href="references.html#sec-configuration-utilities"><span class="std std-ref">Configuration Utilities</span></a>.</p>
+<section id="change-rc-index-file">
+<h2>Change RC index file<a class="headerlink" href="#change-rc-index-file" title="Permalink to this headline">¶</a></h2>
+<p>Download a new RC-index file either directly as txt-file from
+<a class="reference external" href="http://www.spacecenter.dk/files/magnetic-models/RC/current/">spacecenter.dk</a>
+or by using the function <a class="reference internal" href="functions/chaosmagpy.data_utils.save_RC_h5file.html#chaosmagpy.data_utils.save_RC_h5file" title="chaosmagpy.data_utils.save_RC_h5file"><code class="xref py py-func docutils literal notranslate"><span class="pre">save_RC_h5file()</span></code></a> (saves as
+h5-file):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">chaosmagpy.data_utils</span> <span class="kn">import</span> <span class="n">save_RC_h5file</span>
+
+<span class="n">save_RC_h5file</span><span class="p">(</span><span class="s1">&#39;my_RC_file.h5&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>There is no significant difference in speed when using txt-file or h5-file
+formats in this case. After importing ChaosMagPy, provide the path to the new
+RC-index file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">[</span><span class="s1">&#39;file.RC_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;./my_RC_file.h5&#39;</span>
+</pre></div>
+</div>
+<p>This should be done at the top of the script after the import statements,
+otherwise ChaosMagPy uses the builtin RC-index file.</p>
+</section>
+<section id="save-and-load-custom-configuration">
+<h2>Save and load custom configuration<a class="headerlink" href="#save-and-load-custom-configuration" title="Permalink to this headline">¶</a></h2>
+<p>The configuration values can also be read from and written to a simple text
+file in json format.</p>
+<p>For the correct format, it is best to change the configuration parameters
+during a python session and then save them to a file. For example, the
+following code sets the Earth’s surface radius to 6371 km (there is no reason
+to do this except for the sake of this example):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">[</span><span class="s1">&#39;params.r_surf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6371</span>
+</pre></div>
+</div>
+<p>Then save the configuration dictionary to a file:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s1">&#39;myconfig.json&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>To load this configuration file, use the following at the start of the script:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;myconfig.json&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">Gallery</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#change-rc-index-file">Change RC index file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#save-and-load-custom-configuration">Save and load custom configuration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="gallery/plot_global_polar.html"
+                        title="previous chapter">Create a Global Map and Polar Views</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="references.html"
+                        title="next chapter">API References</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="references.html" title="API References"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="gallery/plot_global_polar.html" title="Create a Global Map and Polar Views"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Configuration</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

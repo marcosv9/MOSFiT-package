@@ -1,0 +1,583 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Changelog &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="License" href="license.html" />
+    <link rel="prev" title="chaosmagpy.config_utils.BasicConfig" href="classes/chaosmagpy.config_utils.BasicConfig.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="classes/chaosmagpy.config_utils.BasicConfig.html" title="chaosmagpy.config_utils.BasicConfig"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changelog</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Permalink to this headline">¶</a></h1>
+<section id="version-0-11">
+<h2>Version 0.11<a class="headerlink" href="#version-0-11" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> September 29, 2022</div>
+<div class="line"><strong>Release:</strong> v0.11</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.12 (0712)</div>
+</div>
+<section id="features">
+<h3>Features<a class="headerlink" href="#features" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2022_Sept_v3.dat</p></li>
+<li><p>Improved time conversion paragraph in the usage section.</p></li>
+<li><p>Added option to <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.sh_analysis.html#chaosmagpy.coordinate_utils.sh_analysis" title="chaosmagpy.coordinate_utils.sh_analysis"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.sh_analysis()</span></code></a> to increase
+the grid size for the numerical integration.</p></li>
+<li><p>Made time conversion functions (<a class="reference internal" href="functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000" title="chaosmagpy.data_utils.mjd2000"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd2000()</span></code></a>,
+<a class="reference internal" href="functions/chaosmagpy.data_utils.timestamp.html#chaosmagpy.data_utils.timestamp" title="chaosmagpy.data_utils.timestamp"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.timestamp()</span></code></a>,
+<a class="reference internal" href="functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd" title="chaosmagpy.data_utils.dyear_to_mjd"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.dyear_to_mjd()</span></code></a>,
+<a class="reference internal" href="functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear" title="chaosmagpy.data_utils.mjd_to_dyear"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd_to_dyear()</span></code></a>) directly available upon import.</p></li>
+<li><p>Extended <a class="reference internal" href="functions/chaosmagpy.model_utils.power_spectrum.html#chaosmagpy.model_utils.power_spectrum" title="chaosmagpy.model_utils.power_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.power_spectrum()</span></code></a> to accept NumPy style
+<code class="docutils literal notranslate"><span class="pre">axis</span></code> keyword argument, and added new tests for this function.</p></li>
+<li><p>Added more detailed error message when requesting near-magnetospheric
+coefficients outside the domain covered by the RC-index file.</p></li>
+<li><p>Added input parameters <code class="docutils literal notranslate"><span class="pre">rc_e</span></code> and <code class="docutils literal notranslate"><span class="pre">rc_i</span></code> to the model call method.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-10">
+<h2>Version 0.10<a class="headerlink" href="#version-0-10" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> July 1, 2022</div>
+<div class="line"><strong>Release:</strong> v0.10</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.11 (0711)</div>
+</div>
+<section id="id1">
+<h3>Features<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2022_June_v3.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-9">
+<h2>Version 0.9<a class="headerlink" href="#version-0-9" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> April 1, 2022</div>
+<div class="line"><strong>Release:</strong> v0.9</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.10 (0710)</div>
+</div>
+<section id="id2">
+<h3>Features<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2022_Feb_v3.</p></li>
+<li><p>Changed the default leap year setting when loading/saving shc-files using
+the model classes to <code class="docutils literal notranslate"><span class="pre">leap_year=False</span></code>.</p></li>
+<li><p>Added function <a class="reference internal" href="functions/chaosmagpy.chaos.load_CALS7K_txtfile.html#chaosmagpy.chaos.load_CALS7K_txtfile" title="chaosmagpy.chaos.load_CALS7K_txtfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.chaos.load_CALS7K_txtfile()</span></code></a> to read the
+CALS7K coefficients file.</p></li>
+<li><p>Function <a class="reference internal" href="functions/chaosmagpy.model_utils.design_gauss.html#chaosmagpy.model_utils.design_gauss" title="chaosmagpy.model_utils.design_gauss"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.design_gauss()</span></code></a> now accepts
+multidimensional shapes of input grids and preserves them in the output.</p></li>
+<li><p>Added new method <a class="reference internal" href="classes/chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base.to_ppdict" title="chaosmagpy.chaos.Base.to_ppdict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.Base.to_ppdict()</span></code></a>, which returns a
+dictionary of the pp-form compatible with MATLAB.</p></li>
+<li><p>Added support for calibration parameters.</p></li>
+<li><p>Renamed “params.version” in basicConfig to “params.CHAOS_version”.</p></li>
+</ul>
+</section>
+<section id="bugfixes">
+<h3>Bugfixes<a class="headerlink" href="#bugfixes" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Functions <a class="reference internal" href="functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd" title="chaosmagpy.data_utils.dyear_to_mjd"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.dyear_to_mjd()</span></code></a> and
+<a class="reference internal" href="functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear" title="chaosmagpy.data_utils.mjd_to_dyear"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd_to_dyear()</span></code></a> now correctly convert
+negative decimal years and negative modified Julian dates (erroneous offset
+of 1 day due to rounding to integer values).</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-8">
+<h2>Version 0.8<a class="headerlink" href="#version-0-8" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> December 9, 2021</div>
+<div class="line"><strong>Release:</strong> v0.8</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.9 (0709)</div>
+</div>
+<section id="id3">
+<h3>Features<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2021_November_v3.</p></li>
+<li><p>Added ability to compute field components at the geographic poles.</p></li>
+<li><p>Removed cdot from SV, SA units in <a class="reference internal" href="functions/chaosmagpy.data_utils.gauss_units.html#chaosmagpy.data_utils.gauss_units" title="chaosmagpy.data_utils.gauss_units"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.gauss_units()</span></code></a>.</p></li>
+<li><p>Added <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.sh_analysis.html#chaosmagpy.coordinate_utils.sh_analysis" title="chaosmagpy.coordinate_utils.sh_analysis"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.sh_analysis()</span></code></a>, which performs a
+spherical harmonic expansion on a callable.</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Bugfixes<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Removed Euler pre-rotation, which was not correctly implemented, and added
+a warning.</p></li>
+<li><p>Fixed shc-file loader to correctly exclude extrapolation sites.</p></li>
+<li><p>Fixed numpy broadcasting error in <a class="reference internal" href="functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000" title="chaosmagpy.data_utils.mjd2000"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd2000()</span></code></a>.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-7-1">
+<h2>Version 0.7.1<a class="headerlink" href="#version-0-7-1" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> August 05, 2021</div>
+<div class="line"><strong>Release:</strong> v0.7.1</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.8 (0708)</div>
+</div>
+<section id="id5">
+<h3>Bugfixes<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed CHAOS shc-file loader.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-7">
+<h2>Version 0.7<a class="headerlink" href="#version-0-7" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> August 05, 2021</div>
+<div class="line"><strong>Release:</strong> v0.7</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.8 (0708)</div>
+</div>
+<section id="id6">
+<h3>Features<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Added matplotlib’s plot_directive for sphinx and added more examples to a
+new gallery section in the documentation.</p></li>
+<li><p>Added <a class="reference internal" href="functions/chaosmagpy.model_utils.pp_from_bspline.html#chaosmagpy.model_utils.pp_from_bspline" title="chaosmagpy.model_utils.pp_from_bspline"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.pp_from_bspline()</span></code></a> to convert the spline
+coefficients from B-spline to PP format.</p></li>
+<li><p>Changed the way piecewise polynomials are produced from the coefficients in
+shc-files. A B-spline representation is now created in an intermediate step
+to ensure coefficient time series that are smooth.</p></li>
+<li><p>Changed the number format to <code class="docutils literal notranslate"><span class="pre">'16.8f'</span></code> when writing shc-files to increase
+precision.</p></li>
+<li><p>Configuration parameters in <code class="docutils literal notranslate"><span class="pre">chaosmagpy.basicConfig</span></code> are now saved to and
+loaded from a json-formatted txt-file.</p></li>
+<li><p>Added keyword arguments to <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_coeffs_sm" title="chaosmagpy.chaos.CHAOS.synth_coeffs_sm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_coeffs_sm()</span></code></a>
+and <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_values_sm" title="chaosmagpy.chaos.CHAOS.synth_values_sm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_values_sm()</span></code></a> to provide the RC-index
+values directly instead of using the built-in RC-index file.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-6">
+<h2>Version 0.6<a class="headerlink" href="#version-0-6" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> March 22, 2021</div>
+<div class="line"><strong>Release:</strong> v0.6</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.6 (0706), CHAOS-7.7 (0707)</div>
+</div>
+<section id="news">
+<h3>News<a class="headerlink" href="#news" title="Permalink to this headline">¶</a></h3>
+<p>The latest version of CHAOS (CHAOS-7.7) corrects an error in the distributed
+CHAOS-7.6 model files. The mat-file and shc-file for CHAOS-7.6 were due to a
+bug identical to CHAOS-7.5, i.e. not correctly updated. The distributed spline
+coefficient file for CHAOS-7.6 was correct. The CHAOS-7.7 release corrects the
+errors and all CHAOS-7.7 files use updated data to March 2021.</p>
+<p>ChaosMagPy v0.6 also works with CHAOS-7.7 and does not need to be
+updated (2021-06-15).</p>
+</section>
+<section id="id7">
+<h3>Features<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Added new usage sections to the documentation</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Bugfixes<a class="headerlink" href="#id8" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed broken link to RC-index file (GitHub issue #5).</p></li>
+<li><p>Added lxml to installation instructions
+(needed for webpage requests, optional).</p></li>
+<li><p>Require hdf5storage version 0.1.17 (fixed read/write intent)</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-5">
+<h2>Version 0.5<a class="headerlink" href="#version-0-5" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> December 23, 2020</div>
+<div class="line"><strong>Release:</strong> v0.5</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.5 (0705)</div>
+</div>
+<section id="id9">
+<h3>Features<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Modified “nio” colormap to be white-centered.</p></li>
+<li><p>Added spatial power spectrum of toroidal sources
+(<a class="reference internal" href="functions/chaosmagpy.model_utils.power_spectrum.html#chaosmagpy.model_utils.power_spectrum" title="chaosmagpy.model_utils.power_spectrum"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.power_spectrum()</span></code></a>)</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-4">
+<h2>Version 0.4<a class="headerlink" href="#version-0-4" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> September 10, 2020</div>
+<div class="line"><strong>Release:</strong> v0.4</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.3 (0703), CHAOS-7.4 (0704)</div>
+</div>
+<section id="id10">
+<h3>Features<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2020_Aug_v4.dat.</p></li>
+<li><p>Model name defaults to the filename it was loaded from.</p></li>
+<li><p>Added function to read the COV-OBS.x2 model
+(<a class="reference internal" href="functions/chaosmagpy.chaos.load_CovObs_txtfile.html#chaosmagpy.chaos.load_CovObs_txtfile" title="chaosmagpy.chaos.load_CovObs_txtfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.chaos.load_CovObs_txtfile()</span></code></a>) from a text file.</p></li>
+<li><p>Added function to read the gufm1 model
+(<a class="reference internal" href="functions/chaosmagpy.chaos.load_gufm1_txtfile.html#chaosmagpy.chaos.load_gufm1_txtfile" title="chaosmagpy.chaos.load_gufm1_txtfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.chaos.load_gufm1_txtfile()</span></code></a>) from a text file.</p></li>
+<li><p>Added class method to initialize <a class="reference internal" href="classes/chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel" title="chaosmagpy.chaos.BaseModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.BaseModel</span></code></a> from a
+B-spline representation.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-3">
+<h2>Version 0.3<a class="headerlink" href="#version-0-3" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> April 20, 2020</div>
+<div class="line"><strong>Release:</strong> v0.3</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.2 (0702)</div>
+</div>
+<section id="id11">
+<h3>News<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h3>
+<p>The version identifier of the CHAOS model using <code class="docutils literal notranslate"><span class="pre">x</span></code>, which stands for an
+extension of the model, has been replaced in favor of a simple version
+numbering. For example, <code class="docutils literal notranslate"><span class="pre">CHAOS-6.x9</span></code> is the 9th extension of the CHAOS-6
+series. But starting with the release of the CHAOS-7 series, the format
+<code class="docutils literal notranslate"><span class="pre">CHAOS-7.1</span></code> has been adopted to indicate the first release of the series,
+<code class="docutils literal notranslate"><span class="pre">CHAOS-7.2</span></code> the second release (formerly the first extension) and so on.</p>
+</section>
+<section id="id12">
+<h3>Features<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to RC_1997-2020_Feb_v4.dat.</p></li>
+<li><p>Removed version keyword of <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS</span></code></a> to avoid
+confusion.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">verbose</span></code> keyword to the <code class="docutils literal notranslate"><span class="pre">call</span></code> method of
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS</span></code></a> class to avoid printing messages.</p></li>
+<li><p>Added <a class="reference internal" href="functions/chaosmagpy.data_utils.timestamp.html#chaosmagpy.data_utils.timestamp" title="chaosmagpy.data_utils.timestamp"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.timestamp()</span></code></a> function to convert modified
+Julian date to NumPy’s datetime format.</p></li>
+<li><p>Added more examples to the <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS</span></code></a> methods.</p></li>
+<li><p>Added optional <code class="docutils literal notranslate"><span class="pre">nmin</span></code> and <code class="docutils literal notranslate"><span class="pre">mmax</span></code> to
+<a class="reference internal" href="functions/chaosmagpy.model_utils.design_gauss.html#chaosmagpy.model_utils.design_gauss" title="chaosmagpy.model_utils.design_gauss"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.design_gauss()</span></code></a> and
+<a class="reference internal" href="functions/chaosmagpy.model_utils.synth_values.html#chaosmagpy.model_utils.synth_values" title="chaosmagpy.model_utils.synth_values"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.synth_values()</span></code></a> (nmin has been redefined).</p></li>
+<li><p>Added optional derivative to <a class="reference internal" href="functions/chaosmagpy.model_utils.colloc_matrix.html#chaosmagpy.model_utils.colloc_matrix" title="chaosmagpy.model_utils.colloc_matrix"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.colloc_matrix()</span></code></a>
+of the B-Spline collocation.
+New implementation does not have the missing endpoint problem.</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">satellite</span></code> keyword to change default satellite names when loading
+CHAOS mat-file.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-2-1">
+<h2>Version 0.2.1<a class="headerlink" href="#version-0-2-1" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> November 20, 2019</div>
+<div class="line"><strong>Release:</strong> v0.2.1</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.1 (0701)</div>
+</div>
+<section id="id13">
+<h3>Bugfixes<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Corrected function <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.zenith_angle.html#chaosmagpy.coordinate_utils.zenith_angle" title="chaosmagpy.coordinate_utils.zenith_angle"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.zenith_angle()</span></code></a> which was
+computing the solar zenith angle from <code class="docutils literal notranslate"><span class="pre">phi</span></code> defined as the hour angle and
+NOT the geographic longitude. The hour angle is measure positive towards West
+and negative towards East.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-2">
+<h2>Version 0.2<a class="headerlink" href="#version-0-2" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> October 3, 2019</div>
+<div class="line"><strong>Release:</strong> v0.2</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-7.1 (0701)</div>
+</div>
+<section id="id14">
+<h3>Features<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Updated RC-index file to recent version (August 2019, v6)</p></li>
+<li><p>Added option <code class="docutils literal notranslate"><span class="pre">nmin</span></code> to <a class="reference internal" href="functions/chaosmagpy.model_utils.synth_values.html#chaosmagpy.model_utils.synth_values" title="chaosmagpy.model_utils.synth_values"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.synth_values()</span></code></a>.</p></li>
+<li><p>Vectorized <a class="reference internal" href="functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000" title="chaosmagpy.data_utils.mjd2000"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd2000()</span></code></a>,
+<a class="reference internal" href="functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear" title="chaosmagpy.data_utils.mjd_to_dyear"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd_to_dyear()</span></code></a> and
+<a class="reference internal" href="functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd" title="chaosmagpy.data_utils.dyear_to_mjd"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.dyear_to_mjd()</span></code></a>.</p></li>
+<li><p>New function <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.local_time.html#chaosmagpy.coordinate_utils.local_time" title="chaosmagpy.coordinate_utils.local_time"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.local_time()</span></code></a> for a simple
+computation of the local time.</p></li>
+<li><p>New function <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.zenith_angle.html#chaosmagpy.coordinate_utils.zenith_angle" title="chaosmagpy.coordinate_utils.zenith_angle"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.zenith_angle()</span></code></a> for computing
+the solar zenith angle.</p></li>
+<li><p>New function <a class="reference internal" href="functions/chaosmagpy.coordinate_utils.gg_to_geo.html#chaosmagpy.coordinate_utils.gg_to_geo" title="chaosmagpy.coordinate_utils.gg_to_geo"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.gg_to_geo()</span></code></a> and
+<a class="reference internal" href="functions/chaosmagpy.coordinate_utils.geo_to_gg.html#chaosmagpy.coordinate_utils.geo_to_gg" title="chaosmagpy.coordinate_utils.geo_to_gg"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.geo_to_gg()</span></code></a> for transforming geodetic and
+geocentric coordinates.</p></li>
+<li><p>Added keyword <code class="docutils literal notranslate"><span class="pre">start_date</span></code> to
+<a class="reference internal" href="functions/chaosmagpy.coordinate_utils.rotate_gauss_fft.html#chaosmagpy.coordinate_utils.rotate_gauss_fft" title="chaosmagpy.coordinate_utils.rotate_gauss_fft"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.coordinate_utils.rotate_gauss_fft()</span></code></a></p></li>
+<li><p>Improved performance of <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_coeffs_sm" title="chaosmagpy.chaos.CHAOS.synth_coeffs_sm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_coeffs_sm()</span></code></a> and
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_coeffs_gsm" title="chaosmagpy.chaos.CHAOS.synth_coeffs_gsm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_coeffs_gsm()</span></code></a>.</p></li>
+<li><p>Automatically import <a class="reference internal" href="functions/chaosmagpy.model_utils.synth_values.html#chaosmagpy.model_utils.synth_values" title="chaosmagpy.model_utils.synth_values"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.synth_values()</span></code></a>.</p></li>
+</ul>
+</section>
+<section id="deprecations">
+<h3>Deprecations<a class="headerlink" href="#deprecations" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Rewrote <a class="reference internal" href="functions/chaosmagpy.data_utils.load_matfile.html#chaosmagpy.data_utils.load_matfile" title="chaosmagpy.data_utils.load_matfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.load_matfile()</span></code></a>: now traverses matfile
+and outputs dictionary.</p></li>
+<li><p>Removed <code class="docutils literal notranslate"><span class="pre">breaks_euler</span></code> and <code class="docutils literal notranslate"><span class="pre">coeffs_euler</span></code> from
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS</span></code></a> class
+attributes. Euler angles are now handled as <a class="reference internal" href="classes/chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-class docutils literal notranslate"><span class="pre">chaosmagpy.chaos.Base</span></code></a>
+class instance.</p></li>
+</ul>
+</section>
+<section id="id15">
+<h3>Bugfixes<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed collocation matrix for unordered collocation sites. Endpoint now
+correctly taken into account.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-1">
+<h2>Version 0.1<a class="headerlink" href="#version-0-1" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> May 10, 2019</div>
+<div class="line"><strong>Release:</strong> v0.1</div>
+<div class="line"><strong>Version of CHAOS:</strong> CHAOS-6-x9</div>
+</div>
+<section id="id16">
+<h3>Features<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>New CHAOS class method <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_euler_angles" title="chaosmagpy.chaos.CHAOS.synth_euler_angles"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_euler_angles()</span></code></a> to
+compute Euler angles for the satellites from the CHAOS model (used to rotate
+vectors from magnetometer frame to the satellite frame).</p></li>
+<li><p>Added CHAOS class methods <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_values_tdep" title="chaosmagpy.chaos.CHAOS.synth_values_tdep"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_values_tdep()</span></code></a>,
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_values_static" title="chaosmagpy.chaos.CHAOS.synth_values_static"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_values_static()</span></code></a>,
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_values_gsm" title="chaosmagpy.chaos.CHAOS.synth_values_gsm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_values_gsm()</span></code></a> and
+<a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.synth_values_sm" title="chaosmagpy.chaos.CHAOS.synth_values_sm"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.synth_values_sm()</span></code></a> for field value computation.</p></li>
+<li><p>RC index file now stored in HDF5 format.</p></li>
+<li><p>Filepaths and other parameters are now handled by a configuration dictionary
+called <code class="docutils literal notranslate"><span class="pre">chaosmagpy.basicConfig</span></code>.</p></li>
+<li><p>Added extrapolation keyword to the BaseModel class
+<a class="reference internal" href="classes/chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base.synth_coeffs" title="chaosmagpy.chaos.Base.synth_coeffs"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.Base.synth_coeffs()</span></code></a>, linear by default.</p></li>
+<li><p><a class="reference internal" href="functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000" title="chaosmagpy.data_utils.mjd2000"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd2000()</span></code></a> now also accepts datetime class
+instances.</p></li>
+<li><p><a class="reference internal" href="functions/chaosmagpy.data_utils.load_RC_datfile.html#chaosmagpy.data_utils.load_RC_datfile" title="chaosmagpy.data_utils.load_RC_datfile"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.load_RC_datfile()</span></code></a> downloads latest RC-index file
+from the website if no file is given.</p></li>
+</ul>
+</section>
+<section id="id17">
+<h3>Bugfixes<a class="headerlink" href="#id17" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Resolved issue in <a class="reference internal" href="functions/chaosmagpy.model_utils.degree_correlation.html#chaosmagpy.model_utils.degree_correlation" title="chaosmagpy.model_utils.degree_correlation"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.model_utils.degree_correlation()</span></code></a>.</p></li>
+<li><p>Changed the date conversion to include hours and seconds not just the day
+when plotting the timeseries.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-1a3">
+<h2>Version 0.1a3<a class="headerlink" href="#version-0-1a3" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> February 19, 2019</div>
+<div class="line"><strong>Release:</strong> v0.1a3</div>
+</div>
+<section id="id18">
+<h3>Features<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>New CHAOS class method <a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS.save_matfile" title="chaosmagpy.chaos.CHAOS.save_matfile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">chaosmagpy.chaos.CHAOS.save_matfile()</span></code></a> to output
+MATLAB compatible files of the CHAOS model (using the <code class="docutils literal notranslate"><span class="pre">hdf5storage</span></code>
+package).</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">epoch</span></code> keyword to basevector input arguments of GSM, SM and MAG
+coordinate systems.</p></li>
+</ul>
+</section>
+<section id="id19">
+<h3>Bugfixes<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed problem of the setup configuration for <code class="docutils literal notranslate"><span class="pre">pip</span></code> which caused importing
+the package to fail although installation was indicated as successful.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-1a2">
+<h2>Version 0.1a2<a class="headerlink" href="#version-0-1a2" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> January 26, 2019</div>
+<div class="line"><strong>Release:</strong> v0.1a2</div>
+</div>
+<section id="id20">
+<h3>Features<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p><a class="reference internal" href="functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear" title="chaosmagpy.data_utils.mjd_to_dyear"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.mjd_to_dyear()</span></code></a> and
+<a class="reference internal" href="functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd" title="chaosmagpy.data_utils.dyear_to_mjd"><code class="xref py py-func docutils literal notranslate"><span class="pre">chaosmagpy.data_utils.dyear_to_mjd()</span></code></a> convert time with microseconds
+precision to prevent round-off errors in seconds.</p></li>
+<li><p>Time conversion now uses built-in <code class="docutils literal notranslate"><span class="pre">calendar</span></code> module to identify leap year.</p></li>
+</ul>
+</section>
+<section id="id21">
+<h3>Bugfixes<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Fixed wrong package requirement that caused the installation of
+ChaosMagPy v0.1a1 to fail with <code class="docutils literal notranslate"><span class="pre">pip</span></code>. If installation of v0.1a1 is needed,
+use <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--no-deps</span> <span class="pre">chaosmagpy==0.1a1</span></code> to ignore faulty
+requirements.</p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-1a1">
+<h2>Version 0.1a1<a class="headerlink" href="#version-0-1a1" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> January 5, 2019</div>
+<div class="line"><strong>Release:</strong> v0.1a1</div>
+</div>
+<section id="id22">
+<h3>Features<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Package now supports Matplotlib v3 and Cartopy v0.17.</p></li>
+<li><p>Loading shc-file now converts decimal year to <code class="docutils literal notranslate"><span class="pre">mjd2000</span></code> taking leap years
+into account by default.</p></li>
+<li><p>Moved <code class="docutils literal notranslate"><span class="pre">mjd2000</span></code> from <code class="docutils literal notranslate"><span class="pre">coordinate_utils</span></code> to <code class="docutils literal notranslate"><span class="pre">data_utils</span></code>.</p></li>
+<li><p>Added function to compute degree correlation.</p></li>
+<li><p>Added functions to compute and plot the power spectrum.</p></li>
+<li><p>Added flexibility to the function synth_values: now supports NumPy
+broadcasting rules.</p></li>
+<li><p>Fixed CHAOS class method synth_coeffs_sm default source parameter: now
+defaults to <code class="docutils literal notranslate"><span class="pre">'external'</span></code>.</p></li>
+</ul>
+</section>
+<section id="id23">
+<h3>Deprecations<a class="headerlink" href="#id23" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Optional argument <code class="docutils literal notranslate"><span class="pre">source</span></code> when saving shc-file has been renamed to
+<code class="docutils literal notranslate"><span class="pre">model</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_external_map</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">plot_maps_external</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synth_sm_field</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">synth_coeffs_sm</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synth_gsm_field</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">synth_coeffs_gsm</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_static_map</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">plot_maps_static</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synth_static_field</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">synth_coeffs_static</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">plot_tdep_maps</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">plot_maps_tdep</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">synth_tdep_field</span></code> has been renamed to <code class="docutils literal notranslate"><span class="pre">synth_coeffs_tdep</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="version-0-1a0">
+<h2>Version 0.1a0<a class="headerlink" href="#version-0-1a0" title="Permalink to this headline">¶</a></h2>
+<div class="line-block">
+<div class="line"><strong>Date:</strong> October 13, 2018</div>
+<div class="line"><strong>Release:</strong> v0.1a0</div>
+</div>
+<p>Initial release to the users for testing.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">API References</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-11">Version 0.11</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-10">Version 0.10</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-9">Version 0.9</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-8">Version 0.8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7-1">Version 0.7.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-7">Version 0.7</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-6">Version 0.6</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-5">Version 0.5</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-4">Version 0.4</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-3">Version 0.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2-1">Version 0.2.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-2">Version 0.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1">Version 0.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1a3">Version 0.1a3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1a2">Version 0.1a2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1a1">Version 0.1a1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#version-0-1a0">Version 0.1a0</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="classes/chaosmagpy.config_utils.BasicConfig.html"
+                        title="previous chapter">chaosmagpy.config_utils.BasicConfig</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="license.html"
+                        title="next chapter">License</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/changelog.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="license.html" title="License"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="classes/chaosmagpy.config_utils.BasicConfig.html" title="chaosmagpy.config_utils.BasicConfig"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changelog</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

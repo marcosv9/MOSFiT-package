@@ -1,0 +1,774 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>chaosmagpy.data_utils &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/gallery-rendered-html.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.data_utils</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for chaosmagpy.data_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The module provides functions for loading and writing data and models. It also</span>
+<span class="sd">offers functions to do simple time conversions.</span>
+
+<span class="sd">.. autosummary::</span>
+<span class="sd">    :toctree: functions</span>
+
+<span class="sd">    load_matfile</span>
+<span class="sd">    load_RC_datfile</span>
+<span class="sd">    save_RC_h5file</span>
+<span class="sd">    load_shcfile</span>
+<span class="sd">    save_shcfile</span>
+<span class="sd">    mjd2000</span>
+<span class="sd">    timestamp</span>
+<span class="sd">    is_leap_year</span>
+<span class="sd">    dyear_to_mjd</span>
+<span class="sd">    mjd_to_dyear</span>
+<span class="sd">    memory_usage</span>
+<span class="sd">    gauss_units</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">hdf5storage</span> <span class="k">as</span> <span class="nn">hdf</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+<span class="kn">import</span> <span class="nn">textwrap</span>
+
+
+<div class="viewcode-block" id="load_matfile"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.load_matfile.html#chaosmagpy.data_utils.load_matfile">[docs]</a><span class="k">def</span> <span class="nf">load_matfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">variable_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load mat-file and return dictionary.</span>
+
+<span class="sd">    Function loads mat-file by traversing the structure converting data into</span>
+<span class="sd">    low-level numpy arrays of different types. There is no guarantee that any</span>
+<span class="sd">    kind of data is read in correctly. The data dtype can also vary depending</span>
+<span class="sd">    on the mat-file (v7.3 returns floats instead of integers). But it should</span>
+<span class="sd">    work identically for v7.3 and prior mat-files. Arrays are squeezed if</span>
+<span class="sd">    possible. Relies on the :mod:`hdf5storage` package.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Filepath and name of mat-file.</span>
+<span class="sd">    variable_names : list of strings</span>
+<span class="sd">        Top-level variables to be loaded.</span>
+<span class="sd">    **kwargs : keywords</span>
+<span class="sd">        Additional keyword arguments are passed to :func:`hdf5storage.loadmat`.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    data : dict</span>
+<span class="sd">        Dictionary containing the data as dictionaries or numpy arrays.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># define a recursively called function to traverse structure</span>
+    <span class="k">def</span> <span class="nf">traverse_struct</span><span class="p">(</span><span class="n">struct</span><span class="p">):</span>
+
+        <span class="c1"># for dictionaries, iterate through keys</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">struct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">traverse_struct</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">out</span>
+
+        <span class="c1"># for ndarray, iterate through dtype names</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">struct</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+
+            <span class="c1"># collect dtype names if available</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span>
+
+            <span class="c1"># if no fields in array</span>
+            <span class="k">if</span> <span class="n">names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">struct</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="s1">&#39;O&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">struct</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">traverse_struct</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">struct</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># if there are fields, iterate through fields</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">traverse_struct</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">struct</span>
+
+    <span class="n">output</span> <span class="o">=</span> <span class="n">hdf</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">variable_names</span><span class="o">=</span><span class="n">variable_names</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="c1"># loadmat returns dictionary, go through keys and call traverse_struct</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;__&#39;</span><span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">traverse_struct</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">output</span></div>
+
+
+<div class="viewcode-block" id="load_RC_datfile"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.load_RC_datfile.html#chaosmagpy.data_utils.load_RC_datfile">[docs]</a><span class="k">def</span> <span class="nf">load_RC_datfile</span><span class="p">(</span><span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load RC-index data file into pandas data frame.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str, optional</span>
+<span class="sd">        Filepath to RC index ``*.dat``. If ``None``, the RC</span>
+<span class="sd">        index will be fetched from `spacecenter.dk &lt;http://www.spacecenter.dk/\</span>
+<span class="sd">        files/magnetic-models/RC/current/&gt;`_.</span>
+<span class="sd">    parse_dates : bool, optional</span>
+<span class="sd">        Replace index with datetime object for time-series manipulations.</span>
+<span class="sd">        Default is ``False``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    df : dataframe</span>
+<span class="sd">        Pandas dataframe with names {&#39;time&#39;, &#39;RC&#39;, &#39;RC_e&#39;, &#39;RC_i&#39;, &#39;flag&#39;},</span>
+<span class="sd">        where ``&#39;time&#39;`` is given in modified Julian dates.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">lxml</span> <span class="kn">import</span> <span class="n">html</span>
+        <span class="kn">import</span> <span class="nn">requests</span>
+
+        <span class="n">link</span> <span class="o">=</span> <span class="s2">&quot;http://www.spacecenter.dk/files/magnetic-models/RC/current/&quot;</span>
+
+        <span class="n">page</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Accessing </span><span class="si">{</span><span class="n">page</span><span class="o">.</span><span class="n">url</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+        <span class="n">tree</span> <span class="o">=</span> <span class="n">html</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//tr[5]//td[2]//a/@href&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get name from list</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">xpath</span><span class="p">(</span><span class="s1">&#39;//tr[5]//td[3]/text()&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Downloading RC-index file &quot;</span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s1">&quot; &#39;</span>
+              <span class="sa">f</span><span class="s1">&#39;(last modified on </span><span class="si">{</span><span class="n">date</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s1">).&#39;</span><span class="p">)</span>
+
+        <span class="n">filepath</span> <span class="o">=</span> <span class="n">link</span> <span class="o">+</span> <span class="n">file</span>
+
+    <span class="n">column_names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">,</span> <span class="s1">&#39;RC&#39;</span><span class="p">,</span> <span class="s1">&#39;RC_e&#39;</span><span class="p">,</span> <span class="s1">&#39;RC_i&#39;</span><span class="p">,</span> <span class="s1">&#39;flag&#39;</span><span class="p">]</span>
+    <span class="n">column_types</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;time&#39;</span><span class="p">:</span> <span class="s1">&#39;float64&#39;</span><span class="p">,</span> <span class="s1">&#39;RC&#39;</span><span class="p">:</span> <span class="s1">&#39;float64&#39;</span><span class="p">,</span> <span class="s1">&#39;RC_e&#39;</span><span class="p">:</span> <span class="s1">&#39;float64&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;RC_i&#39;</span><span class="p">:</span> <span class="s1">&#39;float64&#39;</span><span class="p">,</span> <span class="s1">&#39;flag&#39;</span><span class="p">:</span> <span class="s1">&#39;category&#39;</span><span class="p">}</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span>  <span class="n">delim_whitespace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">,</span>
+                     <span class="n">dtype</span><span class="o">=</span><span class="n">column_types</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="n">column_names</span><span class="p">)</span>
+
+    <span class="n">parse_dates</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">parse_dates</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">parse_dates</span>
+
+    <span class="c1"># set datetime as index</span>
+    <span class="k">if</span> <span class="n">parse_dates</span><span class="p">:</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+            <span class="n">df</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;D&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">(</span><span class="s1">&#39;2000-1-1&#39;</span><span class="p">))</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">([</span><span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># delete redundant time column</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+<div class="viewcode-block" id="save_RC_h5file"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.save_RC_h5file.html#chaosmagpy.data_utils.save_RC_h5file">[docs]</a><span class="k">def</span> <span class="nf">save_RC_h5file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">read_from</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return hdf-file of the RC index.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        Filepath and name of ``*.h5`` output file.</span>
+<span class="sd">    read_from : str, optional</span>
+<span class="sd">        Filepath of RC index ``*.dat``. If ``None``, the RC</span>
+<span class="sd">        index will be fetched from `spacecenter.dk &lt;http://www.spacecenter.dk/\</span>
+<span class="sd">        files/magnetic-models/RC/current/&gt;`_.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Saves an h5-file of the RC index with keywords</span>
+<span class="sd">    [&#39;time&#39;, &#39;RC&#39;, &#39;RC_e&#39;, &#39;RC_i&#39;, &#39;flag&#39;]. Time is given in modified Julian</span>
+<span class="sd">    dates 2000.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Save RC-index txt-file (``RC_1997-2020_Aug_v4.dat``) as file in hdf format</span>
+<span class="sd">    (``RC_index.h5``).</span>
+
+<span class="sd">    &gt;&gt;&gt; save_RC_h5file(&#39;RC_index.h5&#39;, read_from=&#39;RC_1997-2020_Aug_v4.dat&#39;)</span>
+<span class="sd">    Successfully saved to RC_index.h5.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df_rc</span> <span class="o">=</span> <span class="n">load_RC_datfile</span><span class="p">(</span><span class="n">read_from</span><span class="p">,</span> <span class="n">parse_dates</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+            <span class="k">for</span> <span class="n">column</span> <span class="ow">in</span> <span class="n">df_rc</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">variable</span> <span class="o">=</span> <span class="n">df_rc</span><span class="p">[</span><span class="n">column</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                <span class="k">if</span> <span class="n">column</span> <span class="o">==</span> <span class="s1">&#39;flag&#39;</span><span class="p">:</span>
+                    <span class="n">dset</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">variable</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;S1&quot;</span><span class="p">)</span>
+                    <span class="n">dset</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;bytes&#39;</span><span class="p">)</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">column</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">variable</span><span class="p">)</span>  <span class="c1"># just save floats</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Successfully saved to </span><span class="si">{</span><span class="n">f</span><span class="o">.</span><span class="n">filename</span><span class="si">}</span><span class="s1">.&#39;</span><span class="p">)</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Can&#39;t save new RC index. Raised exception: &#39;</span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="load_shcfile"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.load_shcfile.html#chaosmagpy.data_utils.load_shcfile">[docs]</a><span class="k">def</span> <span class="nf">load_shcfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">leap_year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load shc-file and return coefficient arrays.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filepath : str</span>
+<span class="sd">        File path to spherical harmonic coefficient shc-file.</span>
+<span class="sd">    leap_year : {True, False}, optional</span>
+<span class="sd">        Take leap year in time conversion into account (default). Otherwise,</span>
+<span class="sd">        use conversion factor of 365.25 days per year.</span>
+<span class="sd">    comment : str, optional</span>
+<span class="sd">        Character at the start of a line to indicate a comment</span>
+<span class="sd">        (defaults to ``#``). This can also be a tuple of characters.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    time : ndarray, shape (N,)</span>
+<span class="sd">        Array containing `N` times for each model snapshot in modified</span>
+<span class="sd">        Julian dates with origin January 1, 2000 0:00 UTC.</span>
+<span class="sd">    coeffs : ndarray, shape (nmax(nmax+2), N)</span>
+<span class="sd">        Coefficients of model snapshots. Each column is a snapshot up to</span>
+<span class="sd">        spherical degree and order `nmax`.</span>
+<span class="sd">    parameters : dict, {&#39;SHC&#39;, &#39;nmin&#39;, &#39;nmax&#39;, &#39;N&#39;, &#39;order&#39;, &#39;step&#39;}</span>
+<span class="sd">        Dictionary containing parameters of the model snapshots and the</span>
+<span class="sd">        following keys: ``&#39;SHC&#39;`` shc-file name, ``&#39;nmin&#39;`` minimum degree,</span>
+<span class="sd">        ``&#39;nmax&#39;`` maximum degree, ``&#39;N&#39;`` number of snapshot models,</span>
+<span class="sd">        ``&#39;order&#39;`` piecewise polynomial order and ``&#39;step&#39;`` number of</span>
+<span class="sd">        snapshots until next break point. Extract break points of the</span>
+<span class="sd">        piecewise polynomial with ``breaks = time[::step]``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">leap_year</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">leap_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">leap_year</span>
+    <span class="n">comment</span> <span class="o">=</span> <span class="s1">&#39;#&#39;</span> <span class="k">if</span> <span class="n">comment</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">comment</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">comment</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">read_line</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">read_line</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">filepath</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># file name string</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">+</span> <span class="n">read_line</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">read_line</span><span class="p">)</span>
+
+        <span class="c1"># unpack parameter line</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SHC&#39;</span><span class="p">,</span> <span class="s1">&#39;nmin&#39;</span><span class="p">,</span> <span class="s1">&#39;nmax&#39;</span><span class="p">,</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;order&#39;</span><span class="p">,</span> <span class="s1">&#39;step&#39;</span><span class="p">]</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">values</span><span class="p">))</span>
+
+        <span class="n">time</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]]</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]:]</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">parameters</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span><span class="o">+</span><span class="mi">2</span><span class="p">))</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">coeffs</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:])</span>  <span class="c1"># discard columns with n and m</span>
+
+        <span class="n">mjd</span> <span class="o">=</span> <span class="n">dyear_to_mjd</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">leap_year</span><span class="o">=</span><span class="n">leap_year</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mjd</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">parameters</span></div>
+
+
+<div class="viewcode-block" id="save_shcfile"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.save_shcfile.html#chaosmagpy.data_utils.save_shcfile">[docs]</a><span class="k">def</span> <span class="nf">save_shcfile</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">coeffs</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">filepath</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">leap_year</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save Gauss coefficients as shc-file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : float, list, ndarray, shape (n,)</span>
+<span class="sd">        Time of model coeffcients in modified Julian date.</span>
+<span class="sd">    coeffs : ndarray, shape (N,) or (n, N)</span>
+<span class="sd">        Gauss coefficients as vector or array. The first dimension of the array</span>
+<span class="sd">        must be equal to the length `n` of the given ``time``.</span>
+<span class="sd">    order : int, optional (defaults to 1)</span>
+<span class="sd">        Order of the piecewise polynomial with which the coefficients are</span>
+<span class="sd">        parameterized in time (breaks are given by ``time[::order]``).</span>
+<span class="sd">    filepath : str, optional</span>
+<span class="sd">        Filepath and name of the output file. Defaults to the current working</span>
+<span class="sd">        directory and filename `model.shc`.</span>
+<span class="sd">    nmin : int, optional</span>
+<span class="sd">        Minimum spherical harmonic degree (defaults to 1). This will remove</span>
+<span class="sd">        first values from coeffs if greater than 1.</span>
+<span class="sd">    nmax : int, optional</span>
+<span class="sd">        Maximum spherical harmonic degree (defaults to degree compatible with</span>
+<span class="sd">        number of coeffcients, otherwise coeffcients are truncated).</span>
+<span class="sd">    leap_year : {True, False}, optional</span>
+<span class="sd">        Take leap years for decimal year conversion into account</span>
+<span class="sd">        (defaults to ``True``).</span>
+<span class="sd">    header : str, optional</span>
+<span class="sd">        Optional header at beginning of file. Defaults to an empty string.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">time</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">order</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">order</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
+
+    <span class="n">nmin</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">nmin</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">nmin</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">nmax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">coeffs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nmax</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nmax</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="p">(</span><span class="n">nmin</span> <span class="o">&lt;=</span> <span class="n">nmax</span><span class="p">),</span> \
+        <span class="s1">&#39;``nmin`` must be smaller than or equal to ``nmax``.&#39;</span>
+
+    <span class="n">filepath</span> <span class="o">=</span> <span class="s1">&#39;model.shc&#39;</span> <span class="k">if</span> <span class="n">filepath</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">filepath</span>
+
+    <span class="n">header</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="n">header</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">header</span>
+
+    <span class="n">leap_year</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">leap_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">leap_year</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">coeffs</span> <span class="o">=</span> <span class="n">coeffs</span><span class="p">[:,</span> <span class="p">(</span><span class="n">nmin</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">):((</span><span class="n">nmax</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span>
+
+    <span class="c1"># compute all possible degree and orders</span>
+    <span class="n">deg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="nb">ord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nmin</span><span class="p">,</span> <span class="n">nmax</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">deg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">ord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">ord</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+            <span class="nb">ord</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">ord</span><span class="p">,</span> <span class="p">[</span><span class="n">m</span><span class="p">,</span> <span class="o">-</span><span class="n">m</span><span class="p">])</span>
+
+    <span class="n">comment</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="se">\</span>
+<span class="s2">        # Created on </span><span class="si">{</span><span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="si">}</span><span class="s2"> UTC.</span>
+<span class="s2">        # Leap years are accounted for in decimal years format (</span><span class="si">{</span><span class="n">leap_year</span><span class="si">}</span><span class="s2">).</span>
+<span class="s2">        </span><span class="si">{</span><span class="n">nmin</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">nmax</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">order</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">order</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">        &quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="c1"># write comment line</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;  &#39;</span><span class="p">)</span>  <span class="c1"># to represent two missing values</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">time</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">{:16.8f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mjd_to_dyear</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">leap_year</span><span class="o">=</span><span class="n">leap_year</span><span class="p">)))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="c1"># write coefficient table to 8 significants</span>
+        <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">deg</span><span class="p">,</span> <span class="nb">ord</span><span class="p">)):</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:}</span><span class="s1"> </span><span class="si">{:}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
+
+            <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">coeffs</span><span class="p">[:,</span> <span class="n">row</span><span class="p">]:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39; </span><span class="si">{:16.8f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Coefficients saved to </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="n">filepath</span><span class="p">)))</span></div>
+
+
+<div class="viewcode-block" id="mjd2000"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000">[docs]</a><span class="k">def</span> <span class="nf">mjd2000</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">day</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">hour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">minute</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the modified Julian date as floating point number (epoch 2000).</span>
+
+<span class="sd">    It assigns 0 to 0h00 January 1, 2000. Leap seconds are not accounted for.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : :class:`datetime.datetime`, ndarray, shape (...)</span>
+<span class="sd">        Datetime class instance, `OR ...`</span>
+<span class="sd">    year : int, ndarray, shape (...)</span>
+<span class="sd">    month : int, ndarray, shape (...), optional</span>
+<span class="sd">        Month of the year `[1, 12]` (defaults to 1).</span>
+<span class="sd">    day : int, ndarray, shape (...), optional</span>
+<span class="sd">        Day of the corresponding month (defaults to 1).</span>
+<span class="sd">    hour : int , ndarray, shape (...), optional</span>
+<span class="sd">        Hour of the day (default is 0).</span>
+<span class="sd">    minute : int, ndarray, shape (...), optional</span>
+<span class="sd">        Minutes (default is 0).</span>
+<span class="sd">    second : int, ndarray, shape (...), optional</span>
+<span class="sd">        Seconds (default is 0).</span>
+<span class="sd">    microsecond : int, ndarray, shape (...), optional</span>
+<span class="sd">        Microseconds (default is 0).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    time : ndarray, shape (...)</span>
+<span class="sd">        Modified Julian date (units of days).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; a = np.array([datetime.datetime(2000, 1, 1), \</span>
+<span class="sd">datetime.datetime(2002, 3, 4)])</span>
+<span class="sd">    &gt;&gt;&gt; mjd2000(a)</span>
+<span class="sd">        array([  0., 793.])</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd2000(2003, 5, 3, 13, 52, 15)  # May 3, 2003, 13:52:15 (hh:mm:ss)</span>
+<span class="sd">        1218.5779513888888</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd2000(np.arange(2000, 2005))  # January 1 in each year</span>
+<span class="sd">        array([   0.,  366.,  731., 1096., 1461.])</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd2000(np.arange(2000, 2005), 2, 1)  # February 1 in each year</span>
+<span class="sd">        array([  31.,  397.,  762., 1127., 1492.])</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd2000(np.arange(2000, 2005), 2, np.arange(1, 6))</span>
+<span class="sd">        array([  31.,  398.,  764., 1130., 1496.])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">year</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">datetime</span><span class="p">)</span><span class="o">.</span><span class="n">type</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">year</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">)):</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">year</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[us]&#39;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># build iso datetime string with unicode</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">unicode_</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">month</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">unicode_</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">day</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">day</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">unicode_</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">year_month</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">month</span><span class="p">)</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">char</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">year_month</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">),</span> <span class="n">day</span><span class="p">)</span>
+
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[us]&#39;</span><span class="p">)</span>
+
+        <span class="c1"># not use inplace add here because it doesn&#39;t broadcast arrays</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hour</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;timedelta64[h]&#39;</span><span class="p">)</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">minute</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;timedelta64[m]&#39;</span><span class="p">)</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">second</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;timedelta64[s]&#39;</span><span class="p">)</span>
+        <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">microsecond</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;timedelta64[us]&#39;</span><span class="p">)</span>
+
+    <span class="n">microseconds</span> <span class="o">=</span> <span class="n">datetime</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;us&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">microseconds</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span>  <span class="c1"># fraction of days</span></div>
+
+
+<div class="viewcode-block" id="timestamp"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.timestamp.html#chaosmagpy.data_utils.timestamp">[docs]</a><span class="k">def</span> <span class="nf">timestamp</span><span class="p">(</span><span class="n">time</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert modified Julian date to NumPy&#39;s datetime format.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : ndarray, shape (...)</span>
+<span class="sd">        Modified Julian date (units of days).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    time : ndarray, shape (...)</span>
+<span class="sd">        Array of ``numpy.datetime64[us]``.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; timestamp(0.53245)</span>
+<span class="sd">        numpy.datetime64(&#39;2000-01-01T12:46:43.680000&#39;)</span>
+
+<span class="sd">    &gt;&gt;&gt; timestamp(np.linspace(0., 1.5, 2))</span>
+<span class="sd">        array([&#39;2000-01-01T00:00:00.000000&#39;, &#39;2000-01-02T12:00:00.000000&#39;], \</span>
+<span class="sd">dtype=&#39;datetime64[us]&#39;)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># convert mjd2000 to timedelta64[us]</span>
+    <span class="n">us</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">*</span> <span class="mf">86400e6</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;us&#39;</span><span class="p">)</span>
+
+    <span class="c1"># add datetime offset</span>
+    <span class="k">return</span> <span class="n">us</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2000-01-01&#39;</span><span class="p">,</span> <span class="s1">&#39;us&#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="is_leap_year"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.is_leap_year.html#chaosmagpy.data_utils.is_leap_year">[docs]</a><span class="k">def</span> <span class="nf">is_leap_year</span><span class="p">(</span><span class="n">year</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Determine if input year is a leap year.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    year : int, ndarray, shape (...)</span>
+<span class="sd">        Years to test for leap year.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    leap_year : ndarray of bools, shape (...)</span>
+<span class="sd">        ``True`` for leap year in array.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; is_leap_year([2000, 2001, 2004])</span>
+<span class="sd">        array([ True, False,  True])</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    TypeError if ``year`` is not of type integer.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">year</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Expected integer values as the input year. Use &#39;</span>
+                        <span class="s1">&#39;numpy.floor to extract the integer year &#39;</span>
+                        <span class="s1">&#39;from decimal years.&#39;</span><span class="p">)</span>
+
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">,</span>
+                                        <span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">400</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="dyear_to_mjd"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd">[docs]</a><span class="k">def</span> <span class="nf">dyear_to_mjd</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">leap_year</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert time from decimal years to modified Julian date 2000.</span>
+
+<span class="sd">    Leap years are accounted for by default.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : float, ndarray, shape (...)</span>
+<span class="sd">        Time in decimal years.</span>
+<span class="sd">    leap_year : {True, False}, optional</span>
+<span class="sd">        Take leap years into account by using a conversion factor of 365 or 366</span>
+<span class="sd">        days in a year (leap year, used by default). If ``False`` a conversion</span>
+<span class="sd">        factor of 365.25 days in a year is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    time : ndarray, shape (...)</span>
+<span class="sd">        Time in modified Julian date 2000.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; dyear_to_mjd([2000.5, 2001.5])  # account for leap years</span>
+<span class="sd">        array([183. , 548.5])</span>
+
+<span class="sd">    &gt;&gt;&gt; dyear_to_mjd([2000.5, 2001.5], leap_year=False)</span>
+<span class="sd">        array([182.625, 547.875])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">leap_year</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">leap_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">leap_year</span>
+
+    <span class="k">if</span> <span class="n">leap_year</span><span class="p">:</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>  <span class="c1"># note: -0.1 is year -1</span>
+        <span class="n">frac_of_year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">remainder</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+
+        <span class="n">isleap</span> <span class="o">=</span> <span class="n">is_leap_year</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>  <span class="c1"># do provide integer years</span>
+        <span class="n">days_per_year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">isleap</span><span class="p">,</span> <span class="mf">366.</span><span class="p">,</span> <span class="mf">365.</span><span class="p">)</span>
+
+        <span class="n">days</span> <span class="o">=</span> <span class="n">frac_of_year</span> <span class="o">*</span> <span class="n">days_per_year</span>
+
+        <span class="n">mjd</span> <span class="o">=</span> <span class="n">mjd2000</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">days</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">leap_year</span><span class="p">:</span>
+        <span class="n">days_per_year</span> <span class="o">=</span> <span class="mf">365.25</span>
+
+        <span class="n">mjd</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">-</span> <span class="mf">2000.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">days_per_year</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown leap year option: use either True or False&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">mjd</span></div>
+
+
+<div class="viewcode-block" id="mjd_to_dyear"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear">[docs]</a><span class="k">def</span> <span class="nf">mjd_to_dyear</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">leap_year</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert time from modified Julian date 2000 to decimal years.</span>
+
+<span class="sd">    Leap years are accounted for by default.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    time : float, ndarray, shape (...)</span>
+<span class="sd">        Time in modified Julian date 2000.</span>
+<span class="sd">    leap_year : {True, False}, optional</span>
+<span class="sd">        Take leap years into account by using a conversion factor of 365 or 366</span>
+<span class="sd">        days in a year (leap year, used by default). If ``False`` a conversion</span>
+<span class="sd">        factor of 365.25 days in a year is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    time : ndarray, shape (...)</span>
+<span class="sd">        Time in decimal years.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; mjd_to_dyear([183. , 548.5])  # account for leap years</span>
+<span class="sd">        array([2000.5, 2001.5])</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd_to_dyear([0. , -1., 365.])</span>
+<span class="sd">        array([2000., 1999.99726027, 2000.99726776])</span>
+
+<span class="sd">    &gt;&gt;&gt; mjd_to_dyear([182.625, 547.875], leap_year=False)</span>
+<span class="sd">        array([2000.5, 2001.5])</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">leap_year</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">leap_year</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">leap_year</span>
+
+    <span class="k">if</span> <span class="n">leap_year</span><span class="p">:</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">time</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;D&#39;</span><span class="p">)</span>
+                <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">(</span><span class="s1">&#39;2000-01-01&#39;</span><span class="p">))</span>  <span class="c1"># only precise to date</span>
+
+        <span class="n">year</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;datetime64[Y]&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1970</span>
+        <span class="n">days</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">-</span> <span class="n">mjd2000</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># days of that year</span>
+
+        <span class="n">isleap</span> <span class="o">=</span> <span class="n">is_leap_year</span><span class="p">(</span><span class="n">year</span><span class="p">)</span>
+        <span class="n">days_per_year</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">isleap</span><span class="p">,</span> <span class="mf">366.</span><span class="p">,</span> <span class="mf">365.</span><span class="p">)</span>
+
+        <span class="n">dyear</span> <span class="o">=</span> <span class="n">year</span> <span class="o">+</span> <span class="n">days</span> <span class="o">/</span> <span class="n">days_per_year</span>
+
+    <span class="k">elif</span> <span class="ow">not</span> <span class="n">leap_year</span><span class="p">:</span>
+        <span class="n">dyear</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">time</span><span class="p">)</span> <span class="o">/</span> <span class="mf">365.25</span> <span class="o">+</span> <span class="mf">2000.</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown leap year option: use either True or False&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dyear</span></div>
+
+
+<div class="viewcode-block" id="memory_usage"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.memory_usage.html#chaosmagpy.data_utils.memory_usage">[docs]</a><span class="k">def</span> <span class="nf">memory_usage</span><span class="p">(</span><span class="n">pandas_obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute memory usage of pandas object.</span>
+
+<span class="sd">    For full report, use: ``df.info(memory_usage=&#39;deep&#39;)``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pandas_obj</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">usage_b</span> <span class="o">=</span> <span class="n">pandas_obj</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># we assume if not a df it&#39;s a series</span>
+        <span class="n">usage_b</span> <span class="o">=</span> <span class="n">pandas_obj</span><span class="o">.</span><span class="n">memory_usage</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">usage_mb</span> <span class="o">=</span> <span class="n">usage_b</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># convert bytes to megabytes</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{:03.2f}</span><span class="s2"> MB&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">usage_mb</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="gauss_units"><a class="viewcode-back" href="../../functions/chaosmagpy.data_utils.gauss_units.html#chaosmagpy.data_utils.gauss_units">[docs]</a><span class="k">def</span> <span class="nf">gauss_units</span><span class="p">(</span><span class="n">deriv</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return string of the magnetic field units given the derivative with time.</span>
+
+<span class="sd">    String is meant to be used in plot labels.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    deriv : int, optional</span>
+<span class="sd">        Derivative (defaults to 0).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    units : str</span>
+<span class="sd">        Tex-style unit string.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; gauss_units()</span>
+<span class="sd">        &#39;nT&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; gauss_units(1)</span>
+<span class="sd">        &#39;$\\\\mathrm{nT}\\\\mathrm{yr}^{-1}$&#39;</span>
+
+<span class="sd">    &gt;&gt;&gt; gauss_units(2)</span>
+<span class="sd">        &#39;$\\\\mathrm{nT}\\\\mathrm{yr}^{-2}$&#39;</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">deriv</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">deriv</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">deriv</span>
+
+    <span class="k">if</span> <span class="n">deriv</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;nT&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;$</span><span class="se">\\</span><span class="s1">mathrm{{nT}}</span><span class="se">\\</span><span class="s1">mathrm{{yr}}^{{</span><span class="si">{:}</span><span class="s1">}}$&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">-</span><span class="n">deriv</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">units</span></div>
+</pre></div>
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../../index.html">Table of Contents</a></h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../references.html">API References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../license.html">License</a></li>
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.data_utils</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

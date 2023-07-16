@@ -1,0 +1,540 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>API References &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/gallery-rendered-html.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="chaosmagpy.chaos.Base" href="classes/chaosmagpy.chaos.Base.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="classes/chaosmagpy.chaos.Base.html" title="chaosmagpy.chaos.Base"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API References</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="api-references">
+<h1>API References<a class="headerlink" href="#api-references" title="Permalink to this headline">¶</a></h1>
+<section id="core-functionality">
+<h2>Core Functionality<a class="headerlink" href="#core-functionality" title="Permalink to this headline">¶</a></h2>
+<p>Classes and functions to read the CHAOS model and other geomagnetic field
+models.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="classes/chaosmagpy.chaos.Base.html#chaosmagpy.chaos.Base" title="chaosmagpy.chaos.Base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Base</span></code></a>(name[, breaks, order, coeffs, meta])</p></td>
+<td><p>Piecewise polynomial base class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="classes/chaosmagpy.chaos.BaseModel.html#chaosmagpy.chaos.BaseModel" title="chaosmagpy.chaos.BaseModel"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BaseModel</span></code></a>(name[, breaks, order, coeffs, …])</p></td>
+<td><p>Class for piecewise polynomial spherical harmonic models.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="classes/chaosmagpy.chaos.CHAOS.html#chaosmagpy.chaos.CHAOS" title="chaosmagpy.chaos.CHAOS"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CHAOS</span></code></a>(breaks[, order, coeffs_tdep, …])</p></td>
+<td><p>Class for the time-dependent geomagnetic field model CHAOS.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.chaos.load_CHAOS_matfile.html#chaosmagpy.chaos.load_CHAOS_matfile" title="chaosmagpy.chaos.load_CHAOS_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CHAOS_matfile</span></code></a>(filepath[, name, satellites])</p></td>
+<td><p>Load CHAOS model from mat-file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.chaos.load_CHAOS_shcfile.html#chaosmagpy.chaos.load_CHAOS_shcfile" title="chaosmagpy.chaos.load_CHAOS_shcfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CHAOS_shcfile</span></code></a>(filepath[, name, leap_year])</p></td>
+<td><p>Load CHAOS model from shc-file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.chaos.load_CovObs_txtfile.html#chaosmagpy.chaos.load_CovObs_txtfile" title="chaosmagpy.chaos.load_CovObs_txtfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CovObs_txtfile</span></code></a>(filepath[, name])</p></td>
+<td><p>Load the ensemble mean of the internal model from the COV-OBS txt-file in spline format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.chaos.load_gufm1_txtfile.html#chaosmagpy.chaos.load_gufm1_txtfile" title="chaosmagpy.chaos.load_gufm1_txtfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_gufm1_txtfile</span></code></a>(filepath[, name])</p></td>
+<td><p>Load model parameter file of the gufm1 model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.chaos.load_CALS7K_txtfile.html#chaosmagpy.chaos.load_CALS7K_txtfile" title="chaosmagpy.chaos.load_CALS7K_txtfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_CALS7K_txtfile</span></code></a>(filepath[, name])</p></td>
+<td><p>Load the model parameter file of the CALS7K model.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="coordinate-transformations">
+<h2>Coordinate Transformations<a class="headerlink" href="#coordinate-transformations" title="Permalink to this headline">¶</a></h2>
+<p>This module provides functions related to coordinate transformations. Typical
+coordinate reference frames and corresponding abbbreviations are listed in the
+following.</p>
+<p><strong>Abbreviations</strong></p>
+<dl class="simple">
+<dt>GEO<span class="classifier">Geographic coordinate system (orthogonal)</span></dt><dd><p>Geocentric coordinate system with the z-axis along Earth’s rotation axis,
+x-axis pointing to Greenwich and y-axis completing the right-handed system.
+This is also referred to as the ECEF (Earth-centered Earth-fixed)
+coordinate system.</p>
+</dd>
+<dt>GG<span class="classifier">Geodetic coordinate system (orthogonal).</span></dt><dd><p>Earth is approximated by a spheroid (ellipsoid of revolution) with
+equatorial radius <cite>a</cite> and polar radius <cite>b</cite>, <cite>b &lt; a</cite>. The numerical values
+of these radii are defined by the World Geodetic System 1984 (WGS84).</p>
+</dd>
+<dt>USE<span class="classifier">Cartesian coordinate system on spherical surface.</span></dt><dd><p>Axes directions are defined as Up-South-East at a point of interest on the
+spherical surface (e.g. B_radius, B_theta, B_phi in spherical geocentric
+coordinates).</p>
+</dd>
+<dt>GSM<span class="classifier">Geocentric Solar Magnetic coordinate system (orthogonal).</span></dt><dd><p>With x-axis pointing towards the sun, y-axis perpendicular to plane spanned
+by Eart-Sun line and dipole axis and z-axis completing right-handed system.</p>
+</dd>
+<dt>SM<span class="classifier">Solar Magnetic coordinate system (orthogonal)</span></dt><dd><p>With z-axis along dipole axis pointing to the geomagnetic north pole,
+y-axis perpendicular to plane containing the dipole axis and the Earth-Sun
+line, and x-axis completing the right-handed system.</p>
+</dd>
+<dt>MAG<span class="classifier">Magnetic coordinate system (centered dipole, orthogonal)</span></dt><dd><p>With z-axis pointing to the geomagnetic north pole, x-axis in the plane
+spanned by the dipole axis and Earth’s rotation axis, and y-axis completing
+the right-handed system.</p>
+</dd>
+</dl>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.igrf_dipole.html#chaosmagpy.coordinate_utils.igrf_dipole" title="chaosmagpy.coordinate_utils.igrf_dipole"><code class="xref py py-obj docutils literal notranslate"><span class="pre">igrf_dipole</span></code></a>([epoch])</p></td>
+<td><p>Compute unit vector that is anti-parallel to the IGRF dipole.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.synth_rotate_gauss.html#chaosmagpy.coordinate_utils.synth_rotate_gauss" title="chaosmagpy.coordinate_utils.synth_rotate_gauss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_rotate_gauss</span></code></a>(time, frequency, spectrum)</p></td>
+<td><p>Compute time-dependent matrices that transform spherical harmonic expansion from the given Fourier coefficients.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.rotate_gauss_fft.html#chaosmagpy.coordinate_utils.rotate_gauss_fft" title="chaosmagpy.coordinate_utils.rotate_gauss_fft"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_gauss_fft</span></code></a>(nmax, kmax, *[, qfunc, …])</p></td>
+<td><p>Compute Fourier coefficients of the timeseries of matrices that transform spherical harmonic expansions (degree <code class="docutils literal notranslate"><span class="pre">kmax</span></code>) from a time-dependent reference system (GSM, SM) to GEO (degree <code class="docutils literal notranslate"><span class="pre">nmax</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.rotate_gauss.html#chaosmagpy.coordinate_utils.rotate_gauss" title="chaosmagpy.coordinate_utils.rotate_gauss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rotate_gauss</span></code></a>(nmax, kmax, base_1, base_2, base_3)</p></td>
+<td><p>Compute matrices for the coordinate transformation of spherical harmonic expansions.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.sh_analysis.html#chaosmagpy.coordinate_utils.sh_analysis" title="chaosmagpy.coordinate_utils.sh_analysis"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sh_analysis</span></code></a>(func, nmax[, kmax])</p></td>
+<td><p>Perform a spherical harmonic expansion of a function defined on a spherical surface.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.sun_position.html#chaosmagpy.coordinate_utils.sun_position" title="chaosmagpy.coordinate_utils.sun_position"><code class="xref py py-obj docutils literal notranslate"><span class="pre">sun_position</span></code></a>(time)</p></td>
+<td><p>Computes the sun’s position in longitude and colatitude at a given time (mjd2000).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.zenith_angle.html#chaosmagpy.coordinate_utils.zenith_angle" title="chaosmagpy.coordinate_utils.zenith_angle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">zenith_angle</span></code></a>(time, theta, phi)</p></td>
+<td><p>Compute the solar zenith angle.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.spherical_to_cartesian.html#chaosmagpy.coordinate_utils.spherical_to_cartesian" title="chaosmagpy.coordinate_utils.spherical_to_cartesian"><code class="xref py py-obj docutils literal notranslate"><span class="pre">spherical_to_cartesian</span></code></a>(radius, theta, phi)</p></td>
+<td><p>Convert spherical to cartesian coordinates.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.cartesian_to_spherical.html#chaosmagpy.coordinate_utils.cartesian_to_spherical" title="chaosmagpy.coordinate_utils.cartesian_to_spherical"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cartesian_to_spherical</span></code></a>(x, y, z)</p></td>
+<td><p>Convert geocentric cartesian to spherical coordinates.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.basevectors_gsm.html#chaosmagpy.coordinate_utils.basevectors_gsm" title="chaosmagpy.coordinate_utils.basevectors_gsm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">basevectors_gsm</span></code></a>(time[, dipole])</p></td>
+<td><p>Compute the unit base vectors of the GSM coordinate system with respect to the standard geographic coordinate system (GEO).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.basevectors_sm.html#chaosmagpy.coordinate_utils.basevectors_sm" title="chaosmagpy.coordinate_utils.basevectors_sm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">basevectors_sm</span></code></a>(time[, dipole])</p></td>
+<td><p>Computes the unit base vectors of the SM coordinate system with respect to the standard geographic coordinate system (GEO).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.basevectors_use.html#chaosmagpy.coordinate_utils.basevectors_use" title="chaosmagpy.coordinate_utils.basevectors_use"><code class="xref py py-obj docutils literal notranslate"><span class="pre">basevectors_use</span></code></a>(theta, phi)</p></td>
+<td><p>Computes the unit base vectors of local orthogonal coordinate system USE (Up-South-East) on the spherical surface (theta, phi) with respect to the standard geographic coordinate system (GEO).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.basevectors_mag.html#chaosmagpy.coordinate_utils.basevectors_mag" title="chaosmagpy.coordinate_utils.basevectors_mag"><code class="xref py py-obj docutils literal notranslate"><span class="pre">basevectors_mag</span></code></a>([dipole])</p></td>
+<td><p>Computes the unit base vectors of the central-dipole coordinate system (sometimes referred to as MAG) with respect to the standard geographic coordinate system (GEO).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.geo_to_gg.html#chaosmagpy.coordinate_utils.geo_to_gg" title="chaosmagpy.coordinate_utils.geo_to_gg"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geo_to_gg</span></code></a>(radius, theta)</p></td>
+<td><p>Compute geodetic colatitude and vertical height above the ellipsoid as defined by the World Geodetic System 1984 (WGS84) from geocentric radius and colatitude.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.gg_to_geo.html#chaosmagpy.coordinate_utils.gg_to_geo" title="chaosmagpy.coordinate_utils.gg_to_geo"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gg_to_geo</span></code></a>(height, beta)</p></td>
+<td><p>Compute geocentric colatitude and radius from geodetic colatitude and vertical height above the ellipsoid as defined by the World Geodetic System 1984 (WGS84).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.geo_to_base.html#chaosmagpy.coordinate_utils.geo_to_base" title="chaosmagpy.coordinate_utils.geo_to_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geo_to_base</span></code></a>(theta, phi, base_1, base_2, base_3)</p></td>
+<td><p>Transform spherical geographic coordinates into spherical coordinates of a rotated geocentric coordinate system as given by three base vectors.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.matrix_geo_to_base.html#chaosmagpy.coordinate_utils.matrix_geo_to_base" title="chaosmagpy.coordinate_utils.matrix_geo_to_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">matrix_geo_to_base</span></code></a>(theta, phi, base_1, …)</p></td>
+<td><p>Compute matrices to trasnform vector components from USE frame at given spherical geographic coordinates into components with respect to a rotated geocentric coordinate system.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.transform_points.html#chaosmagpy.coordinate_utils.transform_points" title="chaosmagpy.coordinate_utils.transform_points"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_points</span></code></a>(theta, phi[, time, …])</p></td>
+<td><p>Transform spherical geographic coordinates (GEO) into spherical coordinates of a rotated geocentric coordinate system.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.transform_vectors.html#chaosmagpy.coordinate_utils.transform_vectors" title="chaosmagpy.coordinate_utils.transform_vectors"><code class="xref py py-obj docutils literal notranslate"><span class="pre">transform_vectors</span></code></a>(theta, phi, B_theta, B_phi)</p></td>
+<td><p>Transform vectors resolved into components in USE (Up-South-East) at given spherical geographic coordinates (GEO) to components in USE into components with respect to a rotated geocentric coordinate system.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.center_azimuth.html#chaosmagpy.coordinate_utils.center_azimuth" title="chaosmagpy.coordinate_utils.center_azimuth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">center_azimuth</span></code></a>(phi)</p></td>
+<td><p>Project azimuth angles in degrees to the semi-open interval <span class="math notranslate nohighlight">\((-180^\circ, 180^\circ]\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.local_time.html#chaosmagpy.coordinate_utils.local_time" title="chaosmagpy.coordinate_utils.local_time"><code class="xref py py-obj docutils literal notranslate"><span class="pre">local_time</span></code></a>(time, phi)</p></td>
+<td><p>Compute local time from the azimuthal distance to prime meridian.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.q_response.html#chaosmagpy.coordinate_utils.q_response" title="chaosmagpy.coordinate_utils.q_response"><code class="xref py py-obj docutils literal notranslate"><span class="pre">q_response</span></code></a>(frequency, nmax)</p></td>
+<td><p>Compute the Q-response for a given conductivity model of Earth.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.coordinate_utils.q_response_1D.html#chaosmagpy.coordinate_utils.q_response_1D" title="chaosmagpy.coordinate_utils.q_response_1D"><code class="xref py py-obj docutils literal notranslate"><span class="pre">q_response_1D</span></code></a>(periods, sigma, radius, n[, kind])</p></td>
+<td><p>Compute the response for a spherically layered conductor in an inducing external field of a single spherical harmonic degree.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="model-utilities">
+<h2>Model Utilities<a class="headerlink" href="#model-utilities" title="Permalink to this headline">¶</a></h2>
+<p>This module provide functions for building the CHAOS model and geomagnetic
+field models in general.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.design_matrix.html#chaosmagpy.model_utils.design_matrix" title="chaosmagpy.model_utils.design_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">design_matrix</span></code></a>(knots, order, n_tdep, time, …)</p></td>
+<td><p>Returns matrices that connect radial, colatitude and azimuthal field components on a grid with <cite>radius</cite>, <cite>theta</cite> (colatitude) and <cite>phi</cite> to the spherical harmonics expansion of a potential.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.design_gauss.html#chaosmagpy.model_utils.design_gauss" title="chaosmagpy.model_utils.design_gauss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">design_gauss</span></code></a>(radius, theta, phi, nmax, *[, …])</p></td>
+<td><p>Computes matrices to connect the radial, colatitude and azimuthal field components to the magnetic potential field in terms of spherical harmonic coefficients (Schmidt quasi-normalized).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.colloc_matrix.html#chaosmagpy.model_utils.colloc_matrix" title="chaosmagpy.model_utils.colloc_matrix"><code class="xref py py-obj docutils literal notranslate"><span class="pre">colloc_matrix</span></code></a>(x, knots, order[, deriv])</p></td>
+<td><p>Create collocation matrix of a univariate function on <cite>x</cite> in terms  of a B-spline representation of order <cite>k</cite>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.augment_breaks.html#chaosmagpy.model_utils.augment_breaks" title="chaosmagpy.model_utils.augment_breaks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">augment_breaks</span></code></a>(breaks, order)</p></td>
+<td><p>Augment a vector of break points and return the knot vector for a B-spline representation of order <cite>k</cite>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.pp_from_bspline.html#chaosmagpy.model_utils.pp_from_bspline" title="chaosmagpy.model_utils.pp_from_bspline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">pp_from_bspline</span></code></a>(coeffs, knots, order)</p></td>
+<td><p>Return a piecewise polynomial from a BSpline representation.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.synth_from_pp.html#chaosmagpy.model_utils.synth_from_pp" title="chaosmagpy.model_utils.synth_from_pp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_from_pp</span></code></a>(breaks, order, coeffs, time, …)</p></td>
+<td><p>Compute radial, colatitude and azimuthal field components from the magnetic potential in terms of a spherical harmonic expansion in form of a piecewise polynomial.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.synth_values.html#chaosmagpy.model_utils.synth_values" title="chaosmagpy.model_utils.synth_values"><code class="xref py py-obj docutils literal notranslate"><span class="pre">synth_values</span></code></a>(coeffs, radius, theta, phi, *)</p></td>
+<td><p>Computes radial, colatitude and azimuthal field components from the magnetic potential field in terms of spherical harmonic coefficients.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.legendre_poly.html#chaosmagpy.model_utils.legendre_poly" title="chaosmagpy.model_utils.legendre_poly"><code class="xref py py-obj docutils literal notranslate"><span class="pre">legendre_poly</span></code></a>(nmax, theta)</p></td>
+<td><p>Returns associated Legendre polynomials <span class="math notranslate nohighlight">\(P_n^m(\cos\theta)\)</span> (Schmidt quasi-normalized) and the derivative <span class="math notranslate nohighlight">\(dP_n^m(\cos\theta)/d\theta\)</span> evaluated at <span class="math notranslate nohighlight">\(\theta\)</span>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.power_spectrum.html#chaosmagpy.model_utils.power_spectrum" title="chaosmagpy.model_utils.power_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">power_spectrum</span></code></a>(coeffs[, radius, nmax, …])</p></td>
+<td><p>Compute the spatial power spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.model_utils.degree_correlation.html#chaosmagpy.model_utils.degree_correlation" title="chaosmagpy.model_utils.degree_correlation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">degree_correlation</span></code></a>(coeffs_1, coeffs_2)</p></td>
+<td><p>Correlation per spherical harmonic degree between two models 1 and 2.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="plotting-utilities">
+<h2>Plotting Utilities<a class="headerlink" href="#plotting-utilities" title="Permalink to this headline">¶</a></h2>
+<p>This module provides functions for plotting model outputs.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.plot_utils.plot_timeseries.html#chaosmagpy.plot_utils.plot_timeseries" title="chaosmagpy.plot_utils.plot_timeseries"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_timeseries</span></code></a>(time, *args, **kwargs)</p></td>
+<td><p>Returns a line plot showing the timeseries of the input arguments.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.plot_utils.plot_maps.html#chaosmagpy.plot_utils.plot_maps" title="chaosmagpy.plot_utils.plot_maps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_maps</span></code></a>(theta_grid, phi_grid, *args, **kwargs)</p></td>
+<td><p>Returns a global map showing the input arguments.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.plot_utils.plot_power_spectrum.html#chaosmagpy.plot_utils.plot_power_spectrum" title="chaosmagpy.plot_utils.plot_power_spectrum"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_power_spectrum</span></code></a>(spectrum, **kwargs)</p></td>
+<td><p>Plot spherical harmonic spectrum.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.plot_utils.nio_colormap.html#chaosmagpy.plot_utils.nio_colormap" title="chaosmagpy.plot_utils.nio_colormap"><code class="xref py py-obj docutils literal notranslate"><span class="pre">nio_colormap</span></code></a>()</p></td>
+<td><p>Define custom-built colormap ‘nio’ and register.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="data-utilities">
+<h2>Data Utilities<a class="headerlink" href="#data-utilities" title="Permalink to this headline">¶</a></h2>
+<p>The module provides functions for loading and writing data and models. It also
+offers functions to do simple time conversions.</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.load_matfile.html#chaosmagpy.data_utils.load_matfile" title="chaosmagpy.data_utils.load_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_matfile</span></code></a>(filepath[, variable_names])</p></td>
+<td><p>Load mat-file and return dictionary.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.load_RC_datfile.html#chaosmagpy.data_utils.load_RC_datfile" title="chaosmagpy.data_utils.load_RC_datfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_RC_datfile</span></code></a>([filepath, parse_dates])</p></td>
+<td><p>Load RC-index data file into pandas data frame.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.save_RC_h5file.html#chaosmagpy.data_utils.save_RC_h5file" title="chaosmagpy.data_utils.save_RC_h5file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_RC_h5file</span></code></a>(filepath[, read_from])</p></td>
+<td><p>Return hdf-file of the RC index.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.load_shcfile.html#chaosmagpy.data_utils.load_shcfile" title="chaosmagpy.data_utils.load_shcfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_shcfile</span></code></a>(filepath[, leap_year, comment])</p></td>
+<td><p>Load shc-file and return coefficient arrays.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.save_shcfile.html#chaosmagpy.data_utils.save_shcfile" title="chaosmagpy.data_utils.save_shcfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_shcfile</span></code></a>(time, coeffs[, order, …])</p></td>
+<td><p>Save Gauss coefficients as shc-file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.mjd2000.html#chaosmagpy.data_utils.mjd2000" title="chaosmagpy.data_utils.mjd2000"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mjd2000</span></code></a>(year[, month, day, hour, minute, …])</p></td>
+<td><p>Computes the modified Julian date as floating point number (epoch 2000).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.timestamp.html#chaosmagpy.data_utils.timestamp" title="chaosmagpy.data_utils.timestamp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">timestamp</span></code></a>(time)</p></td>
+<td><p>Convert modified Julian date to NumPy’s datetime format.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.is_leap_year.html#chaosmagpy.data_utils.is_leap_year" title="chaosmagpy.data_utils.is_leap_year"><code class="xref py py-obj docutils literal notranslate"><span class="pre">is_leap_year</span></code></a>(year)</p></td>
+<td><p>Determine if input year is a leap year.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.dyear_to_mjd.html#chaosmagpy.data_utils.dyear_to_mjd" title="chaosmagpy.data_utils.dyear_to_mjd"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dyear_to_mjd</span></code></a>(time[, leap_year])</p></td>
+<td><p>Convert time from decimal years to modified Julian date 2000.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.mjd_to_dyear.html#chaosmagpy.data_utils.mjd_to_dyear" title="chaosmagpy.data_utils.mjd_to_dyear"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mjd_to_dyear</span></code></a>(time[, leap_year])</p></td>
+<td><p>Convert time from modified Julian date 2000 to decimal years.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.memory_usage.html#chaosmagpy.data_utils.memory_usage" title="chaosmagpy.data_utils.memory_usage"><code class="xref py py-obj docutils literal notranslate"><span class="pre">memory_usage</span></code></a>(pandas_obj)</p></td>
+<td><p>Compute memory usage of pandas object.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="functions/chaosmagpy.data_utils.gauss_units.html#chaosmagpy.data_utils.gauss_units" title="chaosmagpy.data_utils.gauss_units"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gauss_units</span></code></a>([deriv])</p></td>
+<td><p>Return string of the magnetic field units given the derivative with time.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="configuration-utilities">
+<span id="sec-configuration-utilities"></span><h2>Configuration Utilities<a class="headerlink" href="#configuration-utilities" title="Permalink to this headline">¶</a></h2>
+<p>Parameters and options in ChaosMagPy are stored in a dictionary and can be
+modified as desired. The following list gives an overview of the possible
+keywords. The keywords can be accessed after importing chaosmagpy through:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">chaosmagpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">cp</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">[</span><span class="s1">&#39;params.r_surf&#39;</span><span class="p">]</span>  <span class="c1"># get Earth&#39;s mean radius in km</span>
+<span class="go">    6371.2</span>
+</pre></div>
+</div>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 30%" />
+<col style="width: 18%" />
+<col style="width: 53%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>‘params.r_surf’</p></td>
+<td><p><cite>float</cite></p></td>
+<td><p>Reference radius in kilometers
+(defaults to Earth’s surface radius of
+6371.2 km).</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘params.r_cmb’</p></td>
+<td><p><cite>float</cite></p></td>
+<td><p>Core-mantle boundary radius in
+kilometers (defaults to 3485.0 km).</p></td>
+</tr>
+<tr class="row-even"><td><p>‘params.dipole’</p></td>
+<td><p><cite>list</cite>,
+<cite>ndarray</cite>,
+<cite>shape (3,)</cite></p></td>
+<td><p>Coefficients of the dipole (used for
+GSM/SM coordinate transformations) in
+units of nanotesla.</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘params.ellipsoid’</p></td>
+<td><p><cite>list</cite>,
+<cite>ndarray</cite>
+<cite>shape (2,)</cite></p></td>
+<td><p>Equatorial (index 0) and polar radius
+(index 1) of the spheroid describing
+Earth (WGS84) in units of kilometers.</p></td>
+</tr>
+<tr class="row-even"><td><p>‘params.CHAOS_version’</p></td>
+<td><p><cite>str</cite></p></td>
+<td><p>Current version of the CHAOS model,
+e.g. <code class="docutils literal notranslate"><span class="pre">'7.1'</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘params.cdf_to_mjd’</p></td>
+<td><p><cite>int</cite></p></td>
+<td><p>Number of days on Jan 01, 2000 since
+Jan 01, 0000 (CDF start epoch)</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Files</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 15%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>‘files.RC_index’</p></td>
+<td><p><cite>h5-file</cite>,
+<cite>txt-file</cite></p></td>
+<td><p>RC-index file (used for external
+field computation). See also
+<code class="xref py py-func docutils literal notranslate"><span class="pre">data_utils.save_RC_h5file()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘files.GSM_spectrum’</p></td>
+<td><p><cite>npz-file</cite></p></td>
+<td><p>GSM transformation coefficients. See
+also <code class="xref py py-func docutils literal notranslate"><span class="pre">coordinate_utils.rotate_gauss_fft()</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>‘files.SM_spectrum’</p></td>
+<td><p><cite>npz-file</cite></p></td>
+<td><p>SM transformation coefficients. See
+also <code class="xref py py-func docutils literal notranslate"><span class="pre">coordinate_utils.rotate_gauss_fft()</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>‘files.Earth_conductivity’</p></td>
+<td><p><cite>txt-file</cite></p></td>
+<td><p>Conductivity model of a layered Earth
+(used for induced fields).</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<p><strong>Plots</strong></p>
+<blockquote>
+<div><table class="docutils align-default">
+<colgroup>
+<col style="width: 35%" />
+<col style="width: 15%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Value</p></th>
+<th class="head"><p>Type</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>‘plots.figure_width’</p></td>
+<td><p><cite>float</cite></p></td>
+<td><p>Plot width in inches (defaults to 6.3
+or equiv. 16cm)</p></td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="classes/chaosmagpy.config_utils.BasicConfig.html#chaosmagpy.config_utils.BasicConfig" title="chaosmagpy.config_utils.BasicConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">BasicConfig</span></code></a>(*args, **kwargs)</p></td>
+<td><p>Class for creating CHAOS configuration dictionary.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API References</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="previous chapter">Configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="classes/chaosmagpy.chaos.Base.html"
+                        title="next chapter">chaosmagpy.chaos.Base</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/references.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="classes/chaosmagpy.chaos.Base.html" title="chaosmagpy.chaos.Base"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">API References</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>

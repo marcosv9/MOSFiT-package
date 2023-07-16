@@ -1,0 +1,189 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>chaosmagpy.model_utils.design_matrix &#8212; ChaosMagPy 0.11 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/plot_directive.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-binder.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-dataframe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/gallery-rendered-html.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="chaosmagpy.model_utils.design_gauss" href="chaosmagpy.model_utils.design_gauss.html" />
+    <link rel="prev" title="chaosmagpy.coordinate_utils.q_response_1D" href="chaosmagpy.coordinate_utils.q_response_1D.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.design_gauss.html" title="chaosmagpy.model_utils.design_gauss"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.coordinate_utils.q_response_1D.html" title="chaosmagpy.coordinate_utils.q_response_1D"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" accesskey="U">API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.design_matrix</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="chaosmagpy-model-utils-design-matrix">
+<h1>chaosmagpy.model_utils.design_matrix<a class="headerlink" href="#chaosmagpy-model-utils-design-matrix" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="chaosmagpy.model_utils.design_matrix">
+<span class="sig-prename descclassname"><span class="pre">chaosmagpy.model_utils.</span></span><span class="sig-name descname"><span class="pre">design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">knots</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_tdep</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">theta</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phi</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_static</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/chaosmagpy/model_utils.html#design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#chaosmagpy.model_utils.design_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns matrices that connect radial, colatitude and azimuthal field
+components on a grid with <cite>radius</cite>, <cite>theta</cite> (colatitude) and <cite>phi</cite>
+to the spherical harmonics expansion of a potential.</p>
+<p>The potential is time-dependent on large length-scales (<cite>n</cite> &lt;= <cite>n_tdep</cite>)
+and static on small length-scales (<cite>n_tdep</cite> &lt; <cite>n</cite> &lt;= <cite>n_static</cite>). The
+time-dependent part uses a B-spline representation of order <cite>k</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>knots</strong><span class="classifier">ndarray, shape &gt;= (k+1,)</span></dt><dd><p>Knot vector with adequate endpoint multiplicity.</p>
+</dd>
+<dt><strong>order</strong><span class="classifier">int, positive</span></dt><dd><p>Order <cite>k</cite> of B-spline basis functions (4 = cubic).</p>
+</dd>
+<dt><strong>n_tdep</strong><span class="classifier">int, positive</span></dt><dd><p>Maximum degree of the time-dependent field.</p>
+</dd>
+<dt><strong>time</strong><span class="classifier">ndarray, shape (N,)</span></dt><dd><p>Time vector of the <cite>N</cite> data points in days.</p>
+</dd>
+<dt><strong>radius</strong><span class="classifier">ndarray, shape (N,)</span></dt><dd><p>Radius vector of the <cite>N</cite> data points in kilometers.</p>
+</dd>
+<dt><strong>theta</strong><span class="classifier">ndarray, shape (N,)</span></dt><dd><p>Data colatitude vector in degrees <span class="math notranslate nohighlight">\([0^\circ,180^\circ]\)</span>.</p>
+</dd>
+<dt><strong>phi</strong><span class="classifier">ndarray, shape (N,)</span></dt><dd><p>Data longitude vector in degrees.</p>
+</dd>
+<dt><strong>n_static</strong><span class="classifier">int, positive, optional</span></dt><dd><p>Maximum degree of static field (default is <code class="docutils literal notranslate"><span class="pre">None</span></code>,
+<cite>n_static</cite> &gt; <cite>n_tdep</cite>).</p>
+</dd>
+<dt><strong>source</strong><span class="classifier">{‘internal’, ‘external’}, optional</span></dt><dd><p>Magnetic field source (default is internal).</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>G_radius, G_theta, G_phi</strong><span class="classifier">ndarray, shape (N, …)</span></dt><dd><p>Forward matrix for <span class="math notranslate nohighlight">\(B_r\)</span>, <span class="math notranslate nohighlight">\(B_{\theta}\)</span> and
+<span class="math notranslate nohighlight">\(B_{\phi}\)</span>.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><p>If degree of static field is smaller than the degree of the time-dep.
+field. In order to exclude the static field and obtain a purely
+time-dependent potential, use optional argument <code class="docutils literal notranslate"><span class="pre">n_static=None</span></code> or
+leave out completely.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="chaosmagpy.model_utils.design_gauss.html#chaosmagpy.model_utils.design_gauss" title="chaosmagpy.model_utils.design_gauss"><code class="xref py py-obj docutils literal notranslate"><span class="pre">design_gauss</span></code></a></dt><dd></dd>
+</dl>
+</div>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h3><a href="../index.html">Table of Contents</a></h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../readme.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gallery/index.html">Gallery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../references.html">API References</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../references.html#core-functionality">Core Functionality</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#coordinate-transformations">Coordinate Transformations</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../references.html#model-utilities">Model Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#plotting-utilities">Plotting Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#data-utilities">Data Utilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../references.html#configuration-utilities">Configuration Utilities</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../license.html">License</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="chaosmagpy.coordinate_utils.q_response_1D.html"
+                        title="previous chapter">chaosmagpy.coordinate_utils.q_response_1D</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="chaosmagpy.model_utils.design_gauss.html"
+                        title="next chapter">chaosmagpy.model_utils.design_gauss</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/chaosmagpy.model_utils.design_matrix.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="chaosmagpy.model_utils.design_gauss.html" title="chaosmagpy.model_utils.design_gauss"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="chaosmagpy.coordinate_utils.q_response_1D.html" title="chaosmagpy.coordinate_utils.q_response_1D"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">ChaosMagPy 0.11 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../references.html" >API References</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">chaosmagpy.model_utils.design_matrix</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2021, Clemens Kloss.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.1.2.
+    </div>
+  </body>
+</html>
