@@ -1,0 +1,21 @@
+directory:
+  qd_dd: ./Data/Disturbed and Quiet Days
+  filtered_data: ./Filtered_data
+  imos_database: ./Data/Imos informations
+  kp_index: ./Data/Kp index
+  chaos_model: ./chaosmagpy_package
+  rc_index: ./Data/chaos rc
+
+url:
+  chaos_model: http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+  kp_index: https://kp.gfz-potsdam.de/app/files/Kp_ap_since_1932.txt
+ 
+filenames:
+  rc_index: newest_RC_file.h5
+  disturbed_days: Disturbed_Days_list.txt
+  quiet_days: Quiet_Days_list.txt
+  kp_index: kp_index_since_1932.txt
+  recent_qd: qdrecent.txt
+  quiet_days: Quiet_Days_list.txt
+  header_file: header_file.txt
+  imos_database: IMOS_INTERMAGNET.txt
