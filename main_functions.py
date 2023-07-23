@@ -4,6 +4,7 @@ import numpy as np
 import glob
 import os
 import pathlib
+from datetime import timedelta
 import matplotlib.gridspec as gridspec
 from datetime import datetime
 import matplotlib.dates as md
@@ -121,7 +122,10 @@ def load_intermagnet_files(station: str,
             if end_index is []:
                 files_station = files_station[start_index:]
             else:
-                files_station = files_station[start_index:end_index]
+                try:
+                    files_station = files_station[start_index:end_index]
+                except:
+                    files_station = files_station
     #detecting the correct number of skiprows for each file
     
     skip_values = spf.skiprows_detection(files_station)    
@@ -158,6 +162,122 @@ def load_intermagnet_files(station: str,
     df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
 
     df_station = df_station.sort_index().loc[starttime:endtime]
+    
+    try:
+        df_station.pop('date')
+        df_station.pop('Time')
+    except:
+        pass
+    
+    return df_station
+
+
+def load_intermagnet_files_v2(station: str,
+                              starttime: str = None,
+                              endtime: str = None,
+                              files_path: str = None
+                              ) -> pd.DataFrame():
+
+    '''
+    
+    Function to read and concat observatory data.
+        Works with every INTERMAGNET Observatory.
+    ----------------------------------------------------------
+    Data types:
+    
+    Quasi-definitive and definitive data.
+    ----------------------------------------------------------
+    Inputs:
+    
+    station (str) - 3 letters IAGA code
+    
+    starttime (str, None) - first day of the data (format = 'yyyy-mm-dd', str) or None
+    
+    endtime (str, None) - last day of the data (format = 'yyyy-mm-dd', str) or None
+    
+    files_path - path to the IAGA-2002 intermagnet files (str) or None
+                 if None it will use the default path for the files
+    
+    if starttime and endtime are None, all the files will be readed.
+    ----------------------------------------------------------
+    Example of use:
+    
+    load_intermagnet_files(station = 'VSS',
+                           starttime = '2000-01-25',
+                           endtime = '2021-12-31',
+                           files_path = 'path//to//files')
+    
+    ------------------------------------------------------------------------------------------
+    
+    Return a pandas DataFrame of all readed data with X, Y and Z components.
+    
+    '''
+    #Validating the inputs
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.') 
+           
+    #checking the existence of the station argument
+    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
+   
+    #creating a list to allocate the file paths
+    
+       
+    print(f'Reading files from {station.upper()}...')
+    
+    starttime = datetime.strptime(starttime, '%Y-%m-%d')
+    endtime = datetime.strptime(endtime, '%Y-%m-%d')
+    
+    df_station = pd.DataFrame()
+    
+    while starttime <= endtime:
+        
+        file_path = glob.glob(os.path.join(files_path,
+                                           f"{station.lower()}{starttime.strftime('%Y%m%d')}*.min"))[0] 
+    
+        if os.path.isfile(file_path) is True:
+        
+            skiprows = spf.skiprows_detection_v2(file_path)    
+
+            #reading and concatenating the files
+
+
+            df =   pd.read_csv(file_path,
+                                sep='\s+',
+                                usecols = [0, 1, 3, 4, 5], 
+                                header = None,
+                                skiprows = skiprows, 
+                                parse_dates = {'Date': ['date', 'Time']},
+                                names = ['date', 'Time', 'X', 'Y', 'Z']
+                                )
+            
+            df_station = pd.concat([df_station, df], ignore_index=True)
+            
+        starttime += timedelta(days = 1)
+
+    
+    df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
+    #except IOError:    
+    #    df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
+    #except:
+    #    print('Wrong date format in the files')
+              
+    df_station.set_index('Date', inplace = True)
+
+    # replacing 99999.0 values
+    
+    df_station.loc[df_station['X'] >= 99999.0, 'X'] = np.nan
+    df_station.loc[df_station['Y'] >= 99999.0, 'Y'] = np.nan
+    df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
+
+    #df_station = df_station.sort_index().loc[starttime:endtime]
     
     try:
         df_station.pop('date')
@@ -1728,7 +1848,19 @@ def plot_sv(station: str,
                                             files_path)
         
         
-    if chaos_correction is True:    
+    # calculating sv
+    
+    if convert_hdz_to_xyz is True:
+        
+        df_station = utt.hdz_to_xyz_conversion(station, df_station, files_path)
+        
+    if chaos_correction is True:
+        df_station_raw = df_station.copy()
+    
+    
+    if chaos_correction is True:
+        
+         
         
         df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
                                                                         starttime,
@@ -1737,17 +1869,15 @@ def plot_sv(station: str,
                                                                         files_path = files_path,
                                                                         df_chaos = df_chaos
                                                                         )
+        
     if chaos_correction is False and plot_chaos is True and df_chaos is None:
         
         df_chaos = dpt.chaos_model_prediction(station, starttime, endtime)
-        
-    # calculating sv
-    
-    if convert_hdz_to_xyz is True:
-        
-        df_station = utt.hdz_to_xyz_conversion(station, df_station, files_path)
     
     df_sv = dpt.calculate_sv(df_station, apply_percentage = apply_percentage)
+    
+    df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
+    
         
     if plot_chaos is True:
         
@@ -1761,32 +1891,33 @@ def plot_sv(station: str,
     if plot_chaos is True:
         for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']): 
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
-            ax.plot(df_sv[col], 'o', color = 'black')
-            ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
-            ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
-            ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-            ax.xaxis.set_tick_params(labelrotation = 30, width=2)
-            ax.xaxis.get_ticklocs(minor=True)
-            ax.minorticks_on()
-            ax.yaxis.set_tick_params(which='minor', bottom=False)
-            ax.grid(alpha = 0.3)
-            ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
-            ax.set_xticks(list(df_sv_chaos.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+            ax.plot(df_sv[col], 'o', color = 'black', label = "Corrected SV")
             ax.legend()
+
         
     else:
         for ax, col in zip(axes.flatten(), df_sv.columns):
             ax.plot(df_sv[col], 'o', color = 'black')
-            ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
-            ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
-            ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
-            ax.xaxis.set_tick_params(labelrotation = 30, width=2)
-            ax.xaxis.get_ticklocs(minor=True)
-            ax.minorticks_on()
-            ax.yaxis.set_tick_params(which='minor', bottom=False)
-            ax.grid(alpha = 0.3)
-            ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
-            ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+            
+    if chaos_correction is True:
+        for ax, col in zip(axes.flatten(), df_sv_raw.columns):
+            ax.plot(df_sv_raw[col], 'ob', label = "Measured SV")
+            ax.legend()
+
+    for ax, col in zip(axes.flatten(), df_sv.columns):
+        ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
+        ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+        ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
+        ax.xaxis.set_tick_params(labelrotation = 30, width=2)
+        ax.xaxis.get_ticklocs(minor=True)
+        ax.minorticks_on()
+        ax.yaxis.set_tick_params(which='minor', bottom=False)
+        ax.grid(alpha = 0.3)
+        ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
+        ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+        ax.legend()
+
+    #axes[0].set_title(f"{station.upper()} Secular Variation")
     if save_plot is True:
         plt.savefig(f'{station}_worldmap_sv.jpeg', dpi = 300, bbox_inches = 'tight')
     plt.show()
@@ -1796,5 +1927,13 @@ def plot_sv(station: str,
         return df_sv, df_sv_chaos
     else:
         return df_sv
-        
+    
+
+if __name__ == '__main__':
+    plot_sv("NGK", "2008-01-01", "2010-05-30", "C://Users//marcos//Documents//obs data//NGK",
+            plot_chaos=True,
+            chaos_correction=True,
+            save_plot=True,
+            convert_hdz_to_xyz = True)
+    #print(load_intermagnet_files_v2("SHE","2023-01-01", "2023-05-30", "C://Users//marcos//Documents//MOSFiT-package//SHE"))  
         

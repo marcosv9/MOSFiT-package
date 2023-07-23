@@ -53,16 +53,16 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
     
     assert isinstance(dataframe, pd.DataFrame), 'dataframe must be a pd.DataFrame()'
       
+    config = spf.get_config()  
+      
     df = dataframe
     
     disturbed_index = pd.DataFrame()
     
     working_directory = project_directory()
     
-    dd_list_directory = pathlib.Path(os.path.join(working_directory,
-                                                  'Data',
-                                                  'Disturbed and Quiet Days',
-                                                  'Disturbed_Days_list.txt'
+    dd_list_directory = pathlib.Path(os.path.join(config.directory.qd_dd,
+                                                  config.filenames.disturbed_days
                                                   )
                                      )
     
@@ -124,16 +124,16 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     
     assert isinstance(dataframe,pd.DataFrame), 'dataframe must be a pd.DataFrame()'
     
+    config = spf.get_config() 
+    
     df = dataframe
     
     quiet_index = pd.DataFrame()
     
     working_directory = project_directory()
     
-    qd_list_directory = pathlib.Path(os.path.join(working_directory,
-                                                  'Data',
-                                                  'Disturbed and Quiet Days',
-                                                  'Quiet_Days_list.txt'
+    qd_list_directory = pathlib.Path(os.path.join(config.directory.qd_dd,
+                                                  config.filenames.quiet_days
                                                   )
                                      )
 
@@ -278,10 +278,10 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     
     working_directory = project_directory()
     
-    kp_directory = pathlib.Path(os.path.join(working_directory,
-                                             'Data',
-                                             'Kp index',
-                                             'kp_index_since_1932.txt'
+    config = spf.get_config()
+    
+    kp_directory = pathlib.Path(os.path.join(config.directory.kp_index,
+                                             config.filenames.kp_index
                                              )
                                 )
     
@@ -296,7 +296,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
         print('Updating the index')
     
     #updating the Kp_index for the most recent data
-        KP_ = pd.read_csv('https://www-app3.gfz-potsdam.de/kp_index/Kp_ap_since_1932.txt',
+        KP_ = pd.read_csv(config.url.kp_index,
                           skiprows = 30,
                           header = None,
                           sep = '\s+', 
@@ -381,9 +381,12 @@ def chaos_model_prediction(station: str,
             
     working_directory = project_directory()
     
+    config = spf.get_config()
+    
+    spf.check_chaos_local_version()
+    
     #loading CHAOS model    
-    chaos_path = glob.glob(os.path.join(working_directory,
-                                        'chaosmagpy_package_*.*',
+    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
                                         'data',
                                         'CHAOS*'
                                         )
@@ -393,10 +396,8 @@ def chaos_model_prediction(station: str,
     
     station = station.upper()
     
-    rc_directory = pathlib.Path(os.path.join(working_directory,
-                                             'Data',
-                                             'chaos rc',
-                                             'newest_RC_file.h5'
+    rc_directory = pathlib.Path(os.path.join(config.directory.rc_index,
+                                             config.filenames.rc_index
                                              )
                                 )                        
     rc_data = h5py.File(rc_directory)
@@ -493,6 +494,28 @@ def chaos_model_prediction(station: str,
     df_station['Z_ext'] = B_radius_ext*-1
     
     return df_station 
+
+def nighttime_selection_sz(station:str, df_station:pd.DataFrame):
+    """_summary_
+
+    Args:
+        station (str): _description_
+        df_station (pd.DataFrame): _description_
+    """
+    
+    starttime = df_station.index[0]
+    endtime = df_station.index[-1]
+
+    sz = utt.get_solar_zenith(station, starttime, endtime)
+    df_sz = pd.DataFrame(index=df_station.index, columns={"sz":sz} )
+    
+    
+    df_station['sun_p'] = df_sz['sz']
+    df_station['sz'] = np.nan
+    df_station.loc[(df_station['sun_p'] >=100),'sz'] = 1
+    df_station.loc[(df_station['sun_p'] <100),'sz'] = 0
+    df_station.pop('sun_p')
+    return df_station
         
 def external_field_correction_chaos_model(station: str,
                                           starttime: str = None,
@@ -1070,8 +1093,9 @@ def jerk_detection_window(station: str,
     
     working_directory = project_directory()
     
-    directory = pathlib.Path(os.path.join(working_directory,
-                                          'Filtered_data',
+    config = spf.get_config()
+    
+    directory = pathlib.Path(os.path.join(config.directory.filtered_data,
                                           f'{station}_data'
                                           )
                              )
