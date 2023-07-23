@@ -8,6 +8,8 @@ import main_functions as mvs
 import support_functions as spf
 import data_processing_tools as dpt
 from os.path import exists
+import chaosmagpy as cp
+import re
 
 
 def project_directory():
@@ -89,6 +91,27 @@ def download_data_intermagnet(datatype:str,
                 
     ftp.quit()
     print('Disconnected from INTERMAGNET Ftp server!') 
+    
+    
+def get_solar_zenith(station:str, starttime:str, endtime:str):
+    """_summary_
+
+    Args:
+        station (str): _description_
+        starttime (str): _description_
+        endtime (str): _description_
+    """
+    
+    longitude = IMO.longitude(station)
+    
+    colatitude = 90 - IMO.latitude(station)
+    
+    date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+    jd_time = cp.data_utils.mjd2000(date)
+    
+    solar_zenith = cp.coordinate_utils.zenith_angle(jd_time, colatitude, longitude)
+    
+    return solar_zenith
                    
 def hdz_to_xyz_conversion(station: str,
                           dataframe: pd.DataFrame(),
@@ -164,30 +187,30 @@ def hdz_to_xyz_conversion(station: str,
         if end_index is []:
             files_station = files_station[start_index:]
         else:
-            files_station = files_station[start_index:end_index]
-            
+            try:
+                files_station = files_station[start_index:end_index]
+            except:
+                files_station = files_station
             
     values_list = []
     for file in files_station:
-        df_data = pd.read_csv(file,
-                              sep = '\s+',
-                              skiprows = 12,
-                              nrows = 40,
-                              usecols = [0, 3],
-                              names = ['date', 'col']
-                              )
-        file = file
-        idx = 0
-        while df_data['col'][idx] != station.upper() + 'H':
-            idx+=1
-    
-            if df_data['col'][idx] == station.upper() + 'H':
+        
+
+        right_line = False
+
+        with open(file, 'r') as f:
+            line_count = 1
+            for line in f.readlines():
+                line_count += 1
+                if right_line is True:
+                    values_list.append(line[0:10])
+                    break
+                if re.search ('^DATE', line):
                 
-                values_list.append(df_data['date'][idx + 1])     
-                #values_list[1].append(x['col'][idx])
-    
-            if df_data['col'][idx] == station.upper() + 'X':
-                break
+                    if line[32:36] == f"{station.upper()}H":
+                        right_line = True
+                    else:
+                        break
     
     
     date_hdz = pd.to_datetime(values_list, infer_datetime_format = True)
@@ -211,12 +234,12 @@ class IMO(object):
     It is also possible to add, remove an check the existence of an IMO.
     
     '''
+    config = spf.get_config()
+    
     working_directory = os.getcwd()
         
-    imos_directory = pathlib.Path(os.path.join(working_directory,
-                                               'Data',
-                                               'Imos informations',
-                                               'IMOS_INTERMAGNET.txt'
+    imos_directory = pathlib.Path(os.path.join(config.directory.imos_database,
+                                               config.filenames.imos_database
                                                )
                                   )
     
@@ -308,4 +331,6 @@ class IMO(object):
         database.to_csv(IMO.imos_directory, sep = '\t')
  
     
+if __name__ == '__main__':
     
+    print(get_solar_zenith("NGK", "2010-01-01", "2020-12-31"))   
