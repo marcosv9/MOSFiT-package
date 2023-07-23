@@ -6,7 +6,168 @@ import ftplib
 import pathlib
 from datetime import datetime, timedelta
 import utilities_tools as utt
+import requests
+import re
+import shutil
+from bs4 import BeautifulSoup
+import yaml
+from box import Box
 
+def get_config() -> None:
+    with open(os.path.join(os.getcwd(),"config","main_cfg.yaml"), "r") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    config_box = Box(config)
+    #config = ruamel.yaml.safe_load(open("C://Users//marcos//Documents//leomagnetics//qnl-code-1//config//main_cfg.yaml"))
+    #config_dict = ruamel.yaml.comments.CommentedMap(config)
+    #config = yaml.safe_load(open("C://Users//marcos//Documents//leomagnetics//qnl-code-1//config//main_cfg.yaml"))
+    # Access the configuration parameters
+    return config_box
+
+def get_chaos_latest_release():
+    
+    config = get_config()
+    
+    url = config.url.chaos_model
+    
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Check if the request was successful
+    except requests.exceptions.RequestException as e:
+        print("Error fetching the webpage:", e)
+        return None
+    
+    soup = BeautifulSoup(response.text, 'html.parser')
+    h2_elements = soup.find_all('h2')
+    last_release = str(h2_elements[3])[7:17]
+    
+    return last_release
+
+def check_chaos_local_version():
+    
+    config = get_config()
+    
+    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
+                                   'data',
+                                   'CHAOS*'
+                                  )
+                      ) 
+    
+    filename = os.path.basename(chaos_path[0])
+    local_version = filename[0:10]
+    
+    lastest_version = get_chaos_latest_release()
+    
+    if lastest_version != local_version:
+        print("Local CHAOS model version is not the latest version.")
+        print("Downloading latest version.")
+        download_chaos_latest_release()
+        print("Old version deleted.")
+
+    return
+
+def unzip_chaos_model():
+
+# Assuming you have already downloaded the file and have its filename
+    zipfile = glob(os.path.join(os.getcwd(),"chaosmagpy_package_*.zip"))[0]
+
+    # Specify the directory where you want to extract the contents
+    extract_dir = "./chaosmagpy_package"
+
+    # Create the extraction directory if it doesn't exist
+    os.makedirs(extract_dir, exist_ok=True)
+
+    # Open the zip file in read mode
+    shutil.unpack_archive(zipfile, extract_dir)
+    os.remove(zipfile)
+
+def download_chaos_latest_release():
+    
+    config = get_config()
+    
+    url = config.url.chaos_model    
+    
+    # Send a GET request to the URL and get the HTML content
+    response = requests.get(url)
+    html_content = response.text
+
+    # Use BeautifulSoup to parse the HTML content
+    soup = BeautifulSoup(html_content, "html.parser")
+
+    # Find the <a> tag with the href containing "chaosmagpy_package" (you can modify the regex pattern accordingly)
+    pattern = re.compile("chaosmagpy_package_.*\.zip")
+    link = soup.find("a", href=pattern)
+
+    if link:
+        download_url = url + link["href"]
+
+        # Download the file using requests
+        response = requests.get(download_url)
+        if response.status_code == 200:
+            # Save the file to a local directory
+            filename = download_url.split("/")[-1]
+            with open(filename, "wb") as file:
+                file.write(response.content)
+            print(f"File '{filename}' downloaded successfully.")
+        else:
+            print(f"Failed to download the file.")
+    else:
+        print("File link not found.")
+    unzip_chaos_model()
+    #os.remove(filename)
+
+
+def download_new_iaga(station:str, starttime:str, endtime:str):
+    """_summary_
+
+    Args:
+        station (str): _description_
+        starttime (str): _description_
+        endtime (str): _description_
+    """
+
+    if not os.path.exists(os.path.join(os.getcwd(), station.upper())):
+        os.makedirs(os.path.join(os.getcwd(), station.upper()))
+        
+    starttime = datetime.strptime(starttime, '%Y-%m-%d')
+    endtime = datetime.strptime(endtime, '%Y-%m-%d')
+    
+    while starttime <= endtime:
+        
+        specific_directory = f"https://imag-data.bgs.ac.uk/GIN_V1/GINServices?Request=GetData&format=IAGA2002&testObsys=0&observatoryIagaCode={station.upper()}&samplesPerDay=1440&publicationState=adj-or-rep&recordTermination=UNIX&dataStartDate=[{starttime}]&dataDuration=1"    
+
+
+        url = specific_directory    
+
+    #url = "https://imag-data.bgs.ac.uk/GIN_V1/GINForms2?dlC=AAE&downloadDataStartDate=2022-05-12&downloadPublicationState=Best+available&downloadDataDuration=10&downloadDurationType=Days&downloadSamplesPerDay=minute&downloadFormat=IAGA2002&downloadScriptTarget=Windows&downloadFolderOptions=YearThenObservatory&downloadProxyAddress=&request=BulkDownloadOptions&submitValue=Done"
+    #req = requests.get(url)
+#
+    #content_url = req.content
+    #
+    #data_string = content_url.decode('utf-8')
+    
+
+        response = requests.get(f"https://imag-data.bgs.ac.uk/GIN_V1/GINServices?Request=GetData&format=IAGA2002&testObsys=0&observatoryIagaCode={station.upper()}&samplesPerDay=1440&publicationState=adj-or-rep&recordTermination=UNIX&dataStartDate={starttime}&dataDuration=1")
+        local_file = os.path.join(os.getcwd(), station.lower(), f"{station.lower()}{starttime.strftime('%Y%m%d')}min.min")
+
+        with open(local_file, 'wb') as file:
+
+            file.write(response.content)
+
+        with open(local_file, 'r') as f:
+            for line in f.readlines():
+                if re.search ('^ Data Type', line):
+                    dt = line[24:25].lower()
+
+        new_file = os.path.join(os.getcwd(), station.lower(), f"{station.lower()}{starttime.strftime('%Y%m%d')}{dt}min.min")
+        with open(new_file, 'wb') as file:
+
+            file.write(response.content)
+
+        os.remove(local_file)
+        
+        print(f"File {station.lower()}{starttime.strftime('%Y%m%d')}{dt}min.min downloaded!")
+        
+        starttime += timedelta(days=1)
 
 def project_directory():
     '''
@@ -25,6 +186,8 @@ def update_qd_and_dd(data:str):
     #validating input parameter
     
     assert data in ['DD', 'QD'], 'data must be QD or DD!'
+    
+    config = get_config()
         
     #connecting to the ftp server 
     ftp = ftplib.FTP('ftp.gfz-potsdam.de')
@@ -34,10 +197,7 @@ def update_qd_and_dd(data:str):
     
     working_directory = project_directory()
     
-    path_local = pathlib.Path(os.path.join(working_directory,
-                                           'Data/Disturbed and Quiet Days'
-                                           )
-                              )
+    path_local = config.directory.qd_dd
     
     ##path inside ftp server
     path_ftp = f'/pub/home/obs/kp-ap/quietdst'
@@ -58,8 +218,8 @@ def update_qd_and_dd(data:str):
     
     if data == 'DD':
         
-        df = pd.read_csv(os.path.join(f'{path_local}',
-                                      'qdrecent.txt'
+        df = pd.read_csv(os.path.join(path_local,
+                                      config.filenames.recent_qd
                                       ),
                          skiprows = 4,
                          sep = '\s+',
@@ -90,18 +250,9 @@ def update_qd_and_dd(data:str):
                                )
         
         df_dd['DD'] = pd.to_datetime(df_dd['DD'], format= '%Y-%m-%d')
-
-        #reading the current QD and DD list
-        
-        pathlib.Path(os.path.join(working_directory,
-                                 'Data',
-                                 'Disturbed and Quiet Days',
-                                 'Disturbed_Days_list.txt'
-                                  )
-                    )
         
         df_list = pd.read_csv(pathlib.Path(os.path.join(path_local,
-                                                        'Disturbed_Days_list.txt'
+                                                        config.filenames.disturbed_days
                                                         )
                                            )
                               )
@@ -116,11 +267,11 @@ def update_qd_and_dd(data:str):
         
         df_new.set_index('DD', inplace=True)
         
-        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, 'Disturbed_Days_list.txt')), index = True)
+        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, config.filenames.disturbed_days)), index = True)
         
     if data == 'QD':
         
-        df = pd.read_csv(pathlib.Path(os.path.join(path_local, 'qdrecent.txt')),
+        df = pd.read_csv(pathlib.Path(os.path.join(path_local, config.filenames.recent_qd)),
                           skiprows = 4,
                           sep = '\s+',
                           header = None,
@@ -158,7 +309,7 @@ def update_qd_and_dd(data:str):
         df_qd['QD'] = pd.to_datetime(df_qd['QD'], infer_datetime_format=True)
         
         df_list = pd.read_csv(pathlib.Path(os.path.join(path_local,
-                                                        'Quiet_Days_list.txt'
+                                                        config.filenames.quiet_days
                                                         )
                                            )
                               )
@@ -173,7 +324,7 @@ def update_qd_and_dd(data:str):
         
         df_new.set_index('QD', inplace=True)
         
-        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, 'Quiet_Days_list.txt')), index = True)
+        df_new.dropna().sort_index().to_csv(pathlib.Path(os.path.join(path_local, config.filenames.quiet_days)), index = True)
         
 def header_sv_obs_files(station: str,
                         filename: str,
@@ -193,21 +344,20 @@ def header_sv_obs_files(station: str,
         raise ValueError(f'station must be an observatory IAGA CODE!')
     
     working_directory = project_directory()
+    
+    config = get_config()
         
-    path = pathlib.Path(os.path.join(working_directory,
-                                     'Filtered_data',
+    path = pathlib.Path(os.path.join(config.directory.filtered_data,
                                      f'{station}_data',
                                      f'{station.upper()}_{filename}_preliminary.txt'
                                      )
                         )
     
-    path_header = pathlib.Path(os.path.join(working_directory,
-                                            'Filtered_data',
+    path_header = pathlib.Path(os.path.join(config.directory.filtered_data,
                                             f'{station}_data'
                                             )
                                )
-    output_path = pathlib.Path(os.path.join(working_directory,
-                                             'Filtered_data',
+    output_path = pathlib.Path(os.path.join(config.directory.filtered_data,
                                              f'{station}_data',
                                              f'{station.upper()}_{filename}.txt'
                                              )
@@ -244,12 +394,12 @@ def header_sv_obs_files(station: str,
               f'\n\n')
     
     with open(os.path.join(f'{path_header}',
-                           'header_file.txt'), 'w+') as f2:
+                           config.filenames.header_file), 'w+') as f2:
         f2.write(Header)
         header = f2.read()
     
     filenames = [os.path.join(f'{path_header}',
-                              'header_file.txt'),
+                              config.filenames.header_file),
                  path
                  ]
     
@@ -261,7 +411,7 @@ def header_sv_obs_files(station: str,
                     
     
     os.remove(os.path.join(f'{path_header}',
-                           'header_file.txt'
+                           config.filenames.header_file
                            )
               )
     os.remove(path)
@@ -502,6 +652,33 @@ class year(object):
         else:
             return False
 
+def skiprows_detection_v2(file_path) -> int:
+    """Function to detect the correct number of skiprows
+        for each IAGA-2002 file
+    Args:
+        file_path (str): _description_
+    Returns:
+        int: The number of rows to skip before the data
+    """
+    
+    idx = 0
+    skiprows = 10
+    df_station = pd.read_csv(file_path,
+                             sep = '\s+',
+                             skiprows = skiprows,
+                             nrows=40,
+                             usecols = [0],
+                             names = ['col']
+                             )
+
+    while df_station['col'][idx] != 'DATE':
+        skiprows += 1
+        idx +=1 
+        if df_station['col'][idx] == 'DATE':
+            skiprows += 1
+                
+    return skiprows 
+
 def skiprows_detection(files_station):
     """Function to detect the correct number of skiprows
     for each IAGA-2002 file
@@ -521,7 +698,7 @@ def skiprows_detection(files_station):
         df_station = pd.read_csv(file,
                                  sep = '\s+',
                                  skiprows = skiprows,
-                                 nrows=40,
+                                 nrows=30,
                                  usecols = [0],
                                  names = ['col']
                                  )
