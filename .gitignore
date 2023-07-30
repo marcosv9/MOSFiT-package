@@ -9,6 +9,8 @@ temp/
 figures/
 assets/
 trash_files/
+mosfitenv/
+
 
 *.ipynb
 *.jpeg

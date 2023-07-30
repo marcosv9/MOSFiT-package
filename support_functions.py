@@ -47,10 +47,10 @@ def check_chaos_local_version():
     config = get_config()
     
     chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
-                                   'data',
-                                   'CHAOS*'
-                                  )
-                      ) 
+                                        'data',
+                                        'CHAOS*'
+                                        )
+                           ) 
     
     filename = os.path.basename(chaos_path[0])
     local_version = filename[0:10]
@@ -194,8 +194,6 @@ def update_qd_and_dd(data:str):
     ftp.login('anonymous', 'email@email.com')
     
     ##path to read the already stored QD and DD
-    
-    working_directory = project_directory()
     
     path_local = config.directory.qd_dd
     

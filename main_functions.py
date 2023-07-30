@@ -1420,6 +1420,8 @@ def plot_samples(station: str,
         
     working_directory = project_directory()
     
+    config = spf.get_config()
+    
     if save_plots is False and plot_data_type is None:
     
         samples = ['H','D','M','Y']
@@ -1510,8 +1512,7 @@ def plot_samples(station: str,
                        
     if save_plots is True and plot_data_type is None:
         
-        directory = pathlib.Path(os.path.join(working_directory,
-                                              'Filtered_data',
+        directory = pathlib.Path(os.path.join(config.directory.filtered_data,
                                               f'{station}_data'
                                               )
                                  )
@@ -1550,7 +1551,8 @@ def plot_samples(station: str,
                 ax.minorticks_on() 
                 ax.grid()
                 
-            plt.savefig(os.path.join(directory,
+            plt.savefig(os.path.join(config.directory.filtered_data,
+                                     f"{station}_data",
                                      f'{station}_{title}_mean.jpeg'
                                      ),
                         dpi = 300,
@@ -1561,8 +1563,7 @@ def plot_samples(station: str,
     if save_plots is True and plot_data_type is not None:
         
         First_QD_data = plot_data_type
-        directory = pathlib.Path(os.path.join(working_directory,
-                                              'Filtered_data',
+        directory = pathlib.Path(os.path.join(config.directory.filtered_data,
                                               f'{station}_data'
                                               )
                                  )
@@ -1610,7 +1611,8 @@ def plot_samples(station: str,
                 ax.xaxis.set_tick_params(labelrotation = 30) 
                 ax.grid()
                 
-            plt.savefig(os.path.join(directory,
+            plt.savefig(os.path.join(config.directory.filtered_data,
+                                     f"{station}_data"
                                      f'{station}_{title}_mean.jpeg'
                                      ),
                         dpi = 300,
@@ -1634,6 +1636,8 @@ def plot_tdep_map(time:str,
     #validating inputs
     
     spf.validate(time)
+    
+    config = spf.get_config()
     
     assert deriv in [1, 2], 'deriv must be 1 or 2'
     
@@ -1669,12 +1673,11 @@ def plot_tdep_map(time:str,
     
     working_directory = project_directory()
     
-    chaos_path = glob.glob(os.path.join(working_directory,
-                                        'chaosmagpy_package_*.*',
+    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
                                         'data',
                                         'CHAOS*'
                                         )
-                           ) 
+                           )
 
     model = cp.load_CHAOS_matfile(chaos_path[0])   
 
@@ -1760,10 +1763,8 @@ def plot_tdep_map(time:str,
         clb.set_label('nT/yr\u00b2',
                       fontsize=14)
     if station != None:
-        df_imos = pd.read_csv(os.path.join(working_directory,
-                                           'Data',
-                                           'Imos informations',
-                                           'IMOS_INTERMAGNET.txt'
+        df_imos = pd.read_csv(os.path.join(config.directory.imos_database,
+                                           config.filenames.imos_database
                                            ),
                               sep = '\t',
                               index_col = [0]

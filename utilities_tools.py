@@ -106,12 +106,14 @@ def get_solar_zenith(station:str, starttime:str, endtime:str):
     
     colatitude = 90 - IMO.latitude(station)
     
-    date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+    date = pd.date_range(starttime, f"{endtime} 23:59:00", freq = 'min')
     jd_time = cp.data_utils.mjd2000(date)
     
     solar_zenith = cp.coordinate_utils.zenith_angle(jd_time, colatitude, longitude)
     
-    return solar_zenith
+    df_sz = pd.DataFrame(index=date, data={"sz":solar_zenith} )
+    
+    return df_sz
                    
 def hdz_to_xyz_conversion(station: str,
                           dataframe: pd.DataFrame(),
