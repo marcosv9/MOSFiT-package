@@ -276,8 +276,6 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     else:
         sample_rate = 'min'
     
-    working_directory = project_directory()
-    
     config = spf.get_config()
     
     kp_directory = pathlib.Path(os.path.join(config.directory.kp_index,
@@ -506,8 +504,8 @@ def nighttime_selection_sz(station:str, df_station:pd.DataFrame):
     starttime = df_station.index[0]
     endtime = df_station.index[-1]
 
-    sz = utt.get_solar_zenith(station, starttime, endtime)
-    df_sz = pd.DataFrame(index=df_station.index, columns={"sz":sz} )
+    df_sz = utt.get_solar_zenith(station, starttime, endtime)
+    #df_sz = pd.DataFrame(index=df_station.index, columns={"sz":sz} )
     
     
     df_station['sun_p'] = df_sz['sz']
@@ -515,6 +513,8 @@ def nighttime_selection_sz(station:str, df_station:pd.DataFrame):
     df_station.loc[(df_station['sun_p'] >=100),'sz'] = 1
     df_station.loc[(df_station['sun_p'] <100),'sz'] = 0
     df_station.pop('sun_p')
+    df_station = df_station.loc[(df_station['sz'] == 1)]
+    df_station.pop("sz")
     return df_station
         
 def external_field_correction_chaos_model(station: str,
@@ -1407,3 +1407,8 @@ def jerk_detection_window(station: str,
                                   station = [station.upper()])
         
     return df_jerk_window, df_slopes, breakpoints, r2
+
+
+if __name__ == '__main__':
+   df = mvs.load_intermagnet_files("KAK", "2023-04-14", "2023-04-15", "C://Users//marcos//Documents//obs data//KAK")
+   df_nt = nighttime_selection_sz("KAK", df)
