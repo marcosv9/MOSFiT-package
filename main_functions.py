@@ -13,9 +13,10 @@ import chaosmagpy as cp
 import utilities_tools as utt
 import data_processing_tools as dpt
 import support_functions as spf
-import matplotlib.gridspec as gridspec
+from concurrent.futures import ThreadPoolExecutor
 import warnings
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+import multiprocessing
 
 try:  # make cartopy optional
     import cartopy.crs as ccrs
@@ -27,6 +28,123 @@ except ImportError:
 def project_directory():
     
     return os.getcwd()
+
+def read_csv(filepath):
+    
+    
+    skip_values = spf.skiprows_detection_v2(filepath)    
+        
+    #reading and concatenating the files
+
+    df_station = pd.DataFrame()
+    df_station = pd.read_csv(filepath,
+                             sep='\s+',
+                             usecols = [0, 1, 3, 4, 5], 
+                             header = None,
+                             skiprows = skip_values, 
+                             parse_dates = {'Date': ['date', 'Time']},
+                             names = ['date', 'Time', 'X', 'Y', 'Z']
+                             )
+    
+    try:
+        df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
+    except IOError:    
+        df_station['Date'] = pd.to_datetime(df_station['Date'], infer_datetime_format=True)
+    except:
+        print('Wrong date format in the files')
+              
+    df_station.set_index('Date', inplace = True)
+
+    # replacing 99999.0 values
+    
+    df_station.loc[df_station['X'] >= 99999.0, 'X'] = np.nan
+    df_station.loc[df_station['Y'] >= 99999.0, 'Y'] = np.nan
+    df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
+
+    #df_station = df_station.sort_index().loc[starttime:endtime]
+    
+    try:
+        df_station.pop('date')
+        df_station.pop('Time')
+    except:
+        pass
+    
+def load_new_intermagnet(station, starttime, endtime, files_path):
+    
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    if not [i for i in (starttime, endtime) if i is None]:
+        for i in [starttime, endtime]:
+            spf.validate(i)
+    else:
+        if files_path is None:
+            raise ValueError('if starttime and endtime are None, you must inform files_path.') 
+           
+    #checking the existence of the station argument
+    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
+   
+    #creating a list to allocate the file paths
+    
+    files_station = []
+       
+    print(f'Reading files from {station.upper()}...')
+    
+    #default path
+    if files_path is None:
+        years_interval = np.arange(int(starttime[0:4]), int(endtime[0:4]) + 1)
+
+        for year in years_interval:
+
+            files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
+
+            files_station.sort()
+    
+    else:
+    # if user set files_path 
+        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+                                                    f'{station.lower()}*min*'
+                                                    )
+                                      )
+                            )
+    
+        files_station.sort()
+        if starttime is not None and endtime is not None:
+            start_index = []
+            end_index = []
+            for file, i in zip(files_station, np.arange(0,len(files_station))):
+                
+                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
+                    start_index = i
+                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
+                    end_index = i
+            if start_index is []:
+                files_station = files_station[:end_index]
+            if end_index is []:
+                files_station = files_station[start_index:]
+            else:
+                try:
+                    files_station = files_station[start_index:end_index]
+                except:
+                    files_station = files_station
+    
+    
+    with ThreadPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
+        dfs = list(executor.map(read_csv, [os.path.join(files_path, f) for f in files_station]))
+
+# Concatenate all DataFrames into a single DataFrame
+    result_df = pd.concat(dfs, ignore_index=True)   
+    
+    return result_df
+
+def determine_skiprows(file_path, keyword="DATE"):
+    with open(file_path, 'r') as file:
+        for line_number, line in enumerate(file, start=1):
+            if line.startswith(keyword):
+                return line_number
+    return 0  # Return 0 if the keyword is not found
+
 
 def load_intermagnet_files(station: str,
                            starttime: str = None,
@@ -122,10 +240,7 @@ def load_intermagnet_files(station: str,
             if end_index is []:
                 files_station = files_station[start_index:]
             else:
-                try:
-                    files_station = files_station[start_index:end_index]
-                except:
-                    files_station = files_station
+                files_station = files_station[start_index:end_index]
     #detecting the correct number of skiprows for each file
     
     skip_values = spf.skiprows_detection(files_station)    
@@ -259,6 +374,8 @@ def load_intermagnet_files_v2(station: str,
                                 )
             
             df_station = pd.concat([df_station, df], ignore_index=True)
+        else:
+            pass
             
         starttime += timedelta(days = 1)
 
@@ -1931,10 +2048,10 @@ def plot_sv(station: str,
     
 
 if __name__ == '__main__':
-    plot_sv("NGK", "2008-01-01", "2010-05-30", "C://Users//marcos//Documents//obs data//NGK",
-            plot_chaos=True,
-            chaos_correction=True,
-            save_plot=True,
-            convert_hdz_to_xyz = True)
-    #print(load_intermagnet_files_v2("SHE","2023-01-01", "2023-05-30", "C://Users//marcos//Documents//MOSFiT-package//SHE"))  
+    #plot_sv("NGK", "2008-01-01", "2010-05-30", "C://Users//marcos//Documents//obs data//NGK",
+    #        plot_chaos=True,
+    #        chaos_correction=True,
+    #        save_plot=True,
+    #        convert_hdz_to_xyz = True)
+    print(load_intermagnet_files("KAK","2020-01-01", "2023-05-02", "C://Users//marcos//Documents//obs data//KAK"))  
         

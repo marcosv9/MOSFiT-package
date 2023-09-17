@@ -4,6 +4,7 @@ import numpy as np
 from pandas.tseries.frequencies import to_offset
 import h5py
 import glob
+import pyIGRF
 import os
 import pathlib
 import matplotlib.dates as md
@@ -414,27 +415,31 @@ def chaos_model_prediction(station: str,
     #getting coordenates for the stations
     Longitude = utt.IMO.longitude(station)
 
-    Latitude = 90 - utt.IMO.latitude(station)
+    colatitude = 90 - utt.IMO.latitude(station)
     
-    Elevation, Latitude = cp.coordinate_utils.gg_to_geo(utt.IMO.elevation(station)/1000, Latitude)
+    elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
 
-    Date = pd.date_range(starttime, endtime + ' 23:00:00', freq = 'H')
-    Time =cp.data_utils.mjd2000(Date)
+    if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
+        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
+    else:
+        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
     
     # Internal field
     print(f'Initiating geomagnetic field computation for {station.upper()}.')
     print(f'Computing core field.')
     B_core = model.synth_values_tdep(time = Time,
-                                     radius = round(Elevation, 2),
-                                     theta = round(Latitude, 2) ,
+                                     radius = round(elevation, 2),
+                                     theta = round(colatitude, 2) ,
                                      phi = Longitude,
                                      nmax = n_core
                                      )
 
     print(f'Computing crustal field up to degree 110.')
 
-    B_crust = model.synth_values_static(radius = Elevation,
-                                        theta = Latitude,
+    B_crust = model.synth_values_static(radius = elevation,
+                                        theta = colatitude,
                                         phi = Longitude,
                                         nmax = n_crust
                                         )         
@@ -446,16 +451,16 @@ def chaos_model_prediction(station: str,
     
     print('Computing field due to external sources, incl. induced field: GSM.')
     B_gsm = model.synth_values_gsm(time = Time,
-                                   radius = Elevation, 
-                                   theta = Latitude,
+                                   radius = elevation, 
+                                   theta = colatitude,
                                    phi = Longitude, 
                                    source='all',
                                    nmax = n_gsm
                                    )
     
     B_sm = model.synth_values_sm(time = Time,
-                                 radius = Elevation,
-                                 theta = Latitude,
+                                 radius = elevation,
+                                 theta = colatitude,
                                  phi = Longitude,
                                  source='all',
                                  nmax = n_sm,
@@ -475,21 +480,21 @@ def chaos_model_prediction(station: str,
     df_station = pd.DataFrame()
     df_station.index = Date
     
-    df_station['X_tot'] = B_theta*-1
+    df_station['X_tot'] = (B_theta*-1)*cd + (B_radius*-1)*sd
     df_station['Y_tot'] = B_phi
-    df_station['Z_tot'] = B_radius*-1    
+    df_station['Z_tot'] = (B_radius*-1)*cd - (B_theta*-1)*sd    
     
-    df_station['X_int'] = B_core[1]*-1
+    df_station['X_int'] = (B_core[1]*-1)*cd + (B_core[0]*-1)*sd
     df_station['Y_int'] = B_core[2]
-    df_station['Z_int'] = B_core[0]*-1
+    df_station['Z_int'] = (B_core[0]*-1)*cd - (B_core[1]*-1)*sd
     
-    df_station['X_crust'] = B_crust[1]*-1
+    df_station['X_crust'] = (B_crust[1]*-1)*cd + (B_crust[0]*-1)*sd
     df_station['Y_crust'] = B_crust[2]
-    df_station['Z_crust'] = B_crust[0]*-1
+    df_station['Z_crust'] = (B_crust[0]*-1)*cd - (B_crust[1]*-1)*sd
     
-    df_station['X_ext'] = B_theta_ext*-1
+    df_station['X_ext'] = (B_theta_ext*-1)*cd + (B_radius_ext*-1)*sd 
     df_station['Y_ext'] = B_phi_ext
-    df_station['Z_ext'] = B_radius_ext*-1
+    df_station['Z_ext'] = (B_radius_ext*-1)*cd - (B_theta_ext*-1)*sd
     
     return df_station 
 
@@ -1410,5 +1415,6 @@ def jerk_detection_window(station: str,
 
 
 if __name__ == '__main__':
-   df = mvs.load_intermagnet_files("KAK", "2023-04-14", "2023-04-15", "C://Users//marcos//Documents//obs data//KAK")
-   df_nt = nighttime_selection_sz("KAK", df)
+   #df = mvs.load_intermagnet_files("KAK", "2023-04-14", "2023-04-15", "C://Users//marcos//Documents//obs data//KAK")
+   #df_nt = nighttime_selection_sz("KAK", df)
+   chaos_model_prediction("VSS", "2023-04-14", "2023-04-20")
