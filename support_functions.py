@@ -68,7 +68,7 @@ def check_chaos_local_version():
 def unzip_chaos_model():
 
 # Assuming you have already downloaded the file and have its filename
-    zipfile = glob(os.path.join(os.getcwd(),"chaosmagpy_package_*.zip"))[0]
+    zipfile = glob.glob(os.path.join(os.getcwd(),"chaosmagpy_package_*.zip"))[0]
 
     # Specify the directory where you want to extract the contents
     extract_dir = "./chaosmagpy_package"
