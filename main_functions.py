@@ -286,7 +286,56 @@ def load_intermagnet_files(station: str,
     
     return df_station
 
+def load_wdc(filepath, format = "XYZ"):
+    
+    assert format in ["HDZ", "XYZ"], "format must be HDZ or XYZ"
+    
+    skiprows = determine_skiprows(filepath)
+    df_wdc = pd.read_csv(filepath,sep="\s+", usecols=[0,1,3,4,5,6], skiprows=(skiprows-1), parse_dates = {'Date': ['DATE', 'TIME']})
+    
+    df_wdc['Date'] = pd.to_datetime(df_wdc['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
+    df_wdc.set_index('Date', inplace = True)
+    
+    df_wdc = df_wdc.rename(columns={df_wdc.columns[0]:df_wdc.columns[0][3:4],
+                                    df_wdc.columns[1]:df_wdc.columns[1][3:4],
+                                    df_wdc.columns[2]:df_wdc.columns[2][3:4],
+                                    df_wdc.columns[3]:df_wdc.columns[3][3:4]})
+    
+    df_wdc.loc[df_wdc[df_wdc.columns[0]] >= 99999.0, df_wdc.columns[0]] = np.nan
+    df_wdc.loc[df_wdc[df_wdc.columns[1]] >= 99999.0, df_wdc.columns[1]] = np.nan
+    df_wdc.loc[df_wdc[df_wdc.columns[2]] >= 99999.0, df_wdc.columns[2]] = np.nan
+    df_wdc.loc[df_wdc[df_wdc.columns[3]] >= 99999.0, df_wdc.columns[3]] = np.nan
+    
+    if (format == 'XYZ') & ("X" not in df_wdc.columns):  
 
+        D = np.deg2rad(df_wdc['D']/60)
+        X = df_wdc['H']*np.cos(D)
+        Y = df_wdc['H']*np.sin(D)
+
+        df_wdc['X'] = X
+        df_wdc['Y'] = Y
+    
+    if (format == 'HDZ') & ("H" in df_wdc.columns):
+        if df_wdc["D"].mean() < 0:
+            df_wdc["D"] = ((df_wdc["D"]/60) + 360)*60
+    
+         
+    if (format == 'HDZ') & ("H" not in df_wdc.columns):     
+        
+        D = np.arctan(df_wdc["Y"]/df_wdc["X"]) #rad
+        
+        df_wdc["H"] = np.sqrt(df_wdc["X"]**2 + df_wdc["Y"]**2)
+        if D.mean() > 0:
+            df_wdc["D"] = (360 + np.rad2deg(D))*60 
+        else:
+            df_wdc["D"] = (360 + np.rad2deg(D))*60
+            
+    if format == 'XYZ':
+        
+        return df_wdc[["X","Y","Z"]]
+    else:
+        return df_wdc[["H","D","Z"]]
+    
 def load_intermagnet_files_v2(station: str,
                               starttime: str = None,
                               endtime: str = None,
@@ -1974,6 +2023,7 @@ def plot_sv(station: str,
         
     if chaos_correction is True:
         df_station_raw = df_station.copy()
+        df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
     
     
     if chaos_correction is True:
@@ -1993,9 +2043,6 @@ def plot_sv(station: str,
         df_chaos = dpt.chaos_model_prediction(station, starttime, endtime)
     
     df_sv = dpt.calculate_sv(df_station, apply_percentage = apply_percentage)
-    
-    df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
-    
         
     if plot_chaos is True:
         
@@ -2047,11 +2094,3 @@ def plot_sv(station: str,
         return df_sv
     
 
-if __name__ == '__main__':
-    #plot_sv("NGK", "2008-01-01", "2010-05-30", "C://Users//marcos//Documents//obs data//NGK",
-    #        plot_chaos=True,
-    #        chaos_correction=True,
-    #        save_plot=True,
-    #        convert_hdz_to_xyz = True)
-    print(load_intermagnet_files("KAK","2020-01-01", "2023-05-02", "C://Users//marcos//Documents//obs data//KAK"))  
-        
