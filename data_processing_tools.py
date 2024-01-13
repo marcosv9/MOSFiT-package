@@ -378,7 +378,6 @@ def chaos_model_prediction(station: str,
     if utt.IMO.check_existence(station) is False:
         raise ValueError(f'station must be an observatory IAGA CODE!')
             
-    working_directory = project_directory()
     
     config = spf.get_config()
     
@@ -521,6 +520,140 @@ def nighttime_selection_sz(station:str, df_station:pd.DataFrame):
     df_station = df_station.loc[(df_station['sz'] == 1)]
     df_station.pop("sz")
     return df_station
+
+
+def chaos_magnetospheric_field_prediction(station: str,
+                                          starttime: str,
+                                          endtime: str,
+                                          n_gsm = 2,
+                                          n_sm = 2,
+                                          ):    
+    '''
+    Correct the INTERMAGNET observatory data with the CHAOS-7.11 model external geomagnetic field prediction.
+    
+    Find the model in the website - http://www.spacecenter.dk/files/magnetic-models/CHAOS-7/
+    
+    References
+    Finlay, C.C., Kloss, C., Olsen, N., Hammer, M. Toeffner-Clausen, L., Grayver, A and Kuvshinov, A. (2020),
+    The CHAOS-7 geomagnetic field model and observed changes in the South Atlantic Anomaly,
+    Earth Planets and Space 72, doi:10.1186/s40623-020-01252-9
+    --------------------------------------------------------------------------------
+    Inputs:
+    
+    station - 3 letters IAGA code for a INTERMAGNET observatory.
+    
+    starttime - first day of the data (format = 'yyyy-mm-dd)
+    
+    endtime - last day of the data (format = 'yyyy-mm-dd)
+    
+    ----------------------------------------------------------------------------------
+    
+    Return a hourly mean dataframe corrected from CHAOS-7 model external field
+    
+    
+    '''
+    
+    #validant inputs
+    assert len(station) == 3, 'station must be a three letters IAGA Code'
+    
+    
+    for i in [starttime, endtime]:
+        spf.validate(i) 
+    
+    station = station.upper()
+    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')  
+        
+        #df_station = df_station.loc[starttime:endtime]
+    
+    else:
+        config = spf.get_config()
+    
+        spf.check_chaos_local_version()
+
+        #loading CHAOS model    
+        chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
+                                            'data',
+                                            'CHAOS*'
+                                            )
+                               ) 
+
+        model = cp.load_CHAOS_matfile(chaos_path[0])
+
+        station = station.upper()
+
+        rc_directory = pathlib.Path(os.path.join(config.directory.rc_index,
+                                                 config.filenames.rc_index
+                                                 )
+                                    )                        
+        rc_data = h5py.File(rc_directory)
+
+        if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
+
+            rc_data.close()
+            save_RC_h5file(rc_directory)
+            cp.basicConfig['file.RC_index'] = rc_directory
+        else:
+            rc_data.close()
+            cp.basicConfig['file.RC_index'] = rc_directory  
+            
+        R_REF = 6371.2
+
+        #getting coordenates for the stations
+        Longitude = utt.IMO.longitude(station)
+
+        colatitude = 90 - utt.IMO.latitude(station)
+
+        elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
+
+    if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
+        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
+    else:
+        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
+
+    print('Computing field due to external sources, incl. induced field: GSM.')
+    B_gsm = model.synth_values_gsm(time = Time,
+                                   radius = elevation, 
+                                   theta = colatitude,
+                                   phi = Longitude, 
+                                   source='all',
+                                   nmax = n_gsm
+                                   )
+    B_sm = model.synth_values_sm(time = Time,
+                                 radius = elevation,
+                                 theta = colatitude,
+                                 phi = Longitude,
+                                 source='all',
+                                 nmax = n_sm,
+                                 )
+        
+    # complete external field contribution
+    B_radius_gsm = B_gsm[0].astype('float32')
+    B_theta_gsm = B_gsm[1].astype('float32')    
+    B_phi_gsm = B_gsm[2].astype('float32') 
+    
+    B_radius_sm = B_sm[0].astype('float32')
+    B_theta_sm = B_sm[1].astype('float32')
+    B_phi_sm = B_sm[2].astype('float32')
+    
+    df_chaos = pd.DataFrame(index = Date)
+  
+    df_chaos["X_gsm"] = (B_theta_gsm*-1)*cd + (B_radius_gsm*-1)*sd
+    df_chaos["X_sm"] = (B_theta_sm*-1)*cd + (B_radius_sm*-1)*sd
+    
+    df_chaos['Y_gsm'] = B_phi_gsm
+    df_chaos['Y_sm'] = B_phi_sm
+    
+    df_chaos['Z_gsm'] = (B_radius_gsm*-1)*cd - (B_theta_gsm*-1)*sd
+    df_chaos['Z_sm'] = (B_radius_sm*-1)*cd - (B_theta_sm*-1)*sd
+    
+    
+    
+    return df_chaos    
+
         
 def external_field_correction_chaos_model(station: str,
                                           starttime: str = None,
