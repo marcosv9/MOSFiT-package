@@ -145,6 +145,8 @@ def determine_skiprows(file_path, keyword="DATE"):
                 return line_number
     return 0  # Return 0 if the keyword is not found
 
+def is_date_row(line):
+    return 'DATE' in line
 
 def load_intermagnet_files(station: str,
                            starttime: str = None,
@@ -219,48 +221,55 @@ def load_intermagnet_files(station: str,
     
     else:
     # if user set files_path 
-        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+        files_station.extend(glob.glob(os.path.join(files_path,
                                                     f'{station.lower()}*min*'
                                                     )
                                       )
                             )
     
         files_station.sort()
+        
         if starttime is not None and endtime is not None:
-            start_index = []
-            end_index = []
-            for file, i in zip(files_station, np.arange(0,len(files_station))):
-                
-                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
-                    start_index = i
-                if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
-                    end_index = i
-            if start_index is []:
-                files_station = files_station[:end_index]
-            if end_index is []:
-                files_station = files_station[start_index:]
-            else:
-                files_station = files_station[start_index:end_index]
+            
+            for file in files_station:
+                if (pd.Timestamp(os.path.basename(file)[3:11]).date() < pd.Timestamp(starttime).date()) or (pd.Timestamp(os.path.basename(file)[3:11]).date() > pd.Timestamp(endtime).date()):
+                    files_station.remove(file)           
+                    
+            #start_index = []
+            #end_index = []
+            #for file, i in zip(files_station, np.arange(0,len(files_station))):
+            #    
+            #    if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(starttime).date():
+            #        start_index = i
+            #    if pd.Timestamp(os.path.basename(file)[3:11]).date() == pd.Timestamp(endtime).date():
+            #        end_index = i
+            #if start_index is []:
+            #    files_station = files_station[:end_index]
+            #if end_index is []:
+            #    files_station = files_station[start_index:]
+            #else:
+            #    files_station = files_station[start_index:end_index]
     #detecting the correct number of skiprows for each file
     
-    skip_values = spf.skiprows_detection(files_station)    
-        
-    #reading and concatenating the files
-
+    #skip_values = spf.skiprows_detection(files_station)    
     df_station = pd.DataFrame()
-    df_station = pd.concat((pd.read_csv(file,
-                                        sep='\s+',
-                                        usecols = [0, 1, 3, 4, 5], 
-                                        header = None,
-                                        skiprows = skiprows, 
-                                        parse_dates = {'Date': ['date', 'Time']},
-                                        names = ['date', 'Time', 'X', 'Y', 'Z']
-                                        ) for skiprows,
-                                              file in zip(skip_values[0], skip_values[1])
-                                              ), 
-                                              ignore_index = True
-                           )
-    
+    #reading and concatenating the files
+    for file in files_station:
+        
+        rows_to_skip = determine_skiprows(file)
+        
+        df_day = pd.read_csv(file,
+                             sep='\s+',
+                             usecols = [0, 1, 3, 4, 5], 
+                             header = None,
+                             skiprows = rows_to_skip, 
+                             parse_dates = {'Date': ['date', 'Time']},
+                             names = ['date', 'Time', 'X', 'Y', 'Z'],
+                             engine="c"
+                             )
+        
+        df_station = pd.concat([df_station, df_day] ,ignore_index = True)
+
     try:
         df_station['Date'] = pd.to_datetime(df_station['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
     except IOError:    
@@ -2023,12 +2032,11 @@ def plot_sv(station: str,
         
     if chaos_correction is True:
         df_station_raw = df_station.copy()
+        
         df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
     
     
     if chaos_correction is True:
-        
-         
         
         df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
                                                                         starttime,
@@ -2079,7 +2087,7 @@ def plot_sv(station: str,
         ax.yaxis.set_tick_params(which='minor', bottom=False)
         ax.grid(alpha = 0.3)
         ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
-        ax.set_xticks(list(df_sv.index[0:-1:12])[0:-1] + [df_sv.index[-1]])
+        ax.set_xticks(list(df_sv.index[0:-1:6])[0:-1] + [df_sv.index[-1]])
         ax.legend()
 
     #axes[0].set_title(f"{station.upper()} Secular Variation")
@@ -2092,5 +2100,16 @@ def plot_sv(station: str,
         return df_sv, df_sv_chaos
     else:
         return df_sv
+    
+if __name__ == '__main__':
+    import time
+    start = time.time()
+    df_station = load_intermagnet_files("NGK", "2010-01-01", "2022-12-31", "C://Users//marcos//Documents//obs data//NGK")
+    
+    print(df_station)
+    
+    end = time.time()
+    print(end - start)
+    #plot_sv("NGK", "2010-01-01", "2022-12-31")
     
 
