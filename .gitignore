@@ -10,7 +10,7 @@ figures/
 assets/
 trash_files/
 mosfitenv/
-
+NGK/
 *min*
 *.ipynb
 *.jpeg
@@ -19,3 +19,4 @@ mosfitenv/
 __pycache__/
 .vscode/
 not_in_use.py
+mosfit_env/
