@@ -67,7 +67,6 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
                                                   )
                                      )
     
-    
     #updating disturbed days list
 
     df_d = pd.read_csv(dd_list_directory,
@@ -77,19 +76,15 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
                        parse_dates = {'D-Days': ['dd']},
                        index_col = ['D-Days']
                        )
+
     if df_d.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
         spf.update_qd_and_dd(data = 'DD')
     
     df_d = df_d.loc[str(df.index[0].date()):str(df.index[-1].date())]
     
-    for date in df_d.index.date:
-        try:
-            disturbed_index = pd.concat([disturbed_index, df.loc[str(date)]])
-        except:
-            pass
+    mask = np.where(np.isin(df.index.date, np.unique(df_d.index.date)), True, False)
 
-    
-    df = df.drop(disturbed_index.index)
+    df = df[~mask]
     
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
@@ -146,19 +141,20 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
                        parse_dates = {'Q-Days': ['qd']},
                        index_col= ['Q-Days']
                        )
-    
+
+    mask = np.where(np.isin(df.index.date, np.unique(df_q.index.date)), True, False)
+
+    df[mask]
+
     if df_q.index[-1].date().strftime('%Y-%m') != (datetime.today().date() - timedelta(days=30)).strftime('%Y-%m'):
         spf.update_qd_and_dd(data = 'QD')
     
     df_q = df_q.loc[str(df.index[0].date()):str(df.index[-1].date())]
 
-    for date in df_q.index.date:
-        try:
-            quiet_index = pd.concat([quiet_index, df.loc[str(date)]])
-        except:
-            pass
-    df = quiet_index
-    
+    mask = np.where(np.isin(df.index.date, np.unique(df_q.index.date)), True, False)
+
+    df = df[mask]
+
     print('Only top 10 quiet days for each month were kept in the data.')
     return df
 
@@ -292,7 +288,7 @@ def kp_index_correction(dataframe: pd.DataFrame(),
     KP_.index = pd.to_datetime(KP_.index, format = '%Y-%m-%d %H:%M:%S')
     
     if df_station.index[-1] > KP_.index[-1]:
-        print('Updating the index')
+        print('Updating the Kp index list.')
     
     #updating the Kp_index for the most recent data
         KP_ = pd.read_csv(config.url.kp_index,
@@ -511,7 +507,6 @@ def nighttime_selection_sz(station:str, df_station:pd.DataFrame):
     df_sz = utt.get_solar_zenith(station, starttime, endtime)
     #df_sz = pd.DataFrame(index=df_station.index, columns={"sz":sz} )
     
-    
     df_station['sun_p'] = df_sz['sz']
     df_station['sz'] = np.nan
     df_station.loc[(df_station['sun_p'] >=100),'sz'] = 1
@@ -638,7 +633,11 @@ def chaos_magnetospheric_field_prediction(station: str,
     B_radius_sm = B_sm[0].astype('float32')
     B_theta_sm = B_sm[1].astype('float32')
     B_phi_sm = B_sm[2].astype('float32')
-    
+
+    B_radius_ext = B_gsm[0].astype('float32') + B_sm[0].astype('float32')
+    B_theta_ext = B_gsm[1].astype('float32') + B_sm[1].astype('float32')
+    B_phi_ext = B_gsm[2].astype('float32') + B_sm[2].astype('float32')
+
     df_chaos = pd.DataFrame(index = Date)
   
     df_chaos["X_gsm"] = (B_theta_gsm*-1)*cd + (B_radius_gsm*-1)*sd
@@ -649,19 +648,84 @@ def chaos_magnetospheric_field_prediction(station: str,
     
     df_chaos['Z_gsm'] = (B_radius_gsm*-1)*cd - (B_theta_gsm*-1)*sd
     df_chaos['Z_sm'] = (B_radius_sm*-1)*cd - (B_theta_sm*-1)*sd
-    
-    
-    
-    return df_chaos    
 
+    df_chaos['X_ext'] = (B_theta_ext*-1)*cd + (B_radius_ext*-1)*sd 
+    df_chaos['Y_ext'] = B_phi_ext
+    df_chaos['Z_ext'] = (B_radius_ext*-1)*cd - (B_theta_ext*-1)*sd
+    
+    return df_chaos
+
+def chaos_core_field_prediction(station: str,
+                                starttime: str,
+                                endtime: str,
+                                n_core = 20,
+                                ): 
+
+    assert len(station) == 3, 'station must be a three letters IAGA Code'
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
+        
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
+            
+    
+    config = spf.get_config()
+    
+    spf.check_chaos_local_version()
+    
+    #loading CHAOS model    
+    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
+                                        'data',
+                                        'CHAOS*'
+                                        )
+                           ) 
+
+    model = cp.load_CHAOS_matfile(chaos_path[0])
+    
+    station = station.upper()
+    
+    #setting the Earth radius reference
+    R_REF = 6371.2
+
+    #getting coordenates for the stations
+    Longitude = utt.IMO.longitude(station)
+
+    colatitude = 90 - utt.IMO.latitude(station)
+    
+    elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
+
+    if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
+        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
+    else:
+        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+        Time = cp.data_utils.mjd2000(Date)
+    
+    # Internal field
+    print(f'Initiating geomagnetic field computation for {station.upper()}.')
+    print(f'Computing core field.')
+    B_core = model.synth_values_tdep(time = Time,
+                                     radius = round(elevation, 2),
+                                     theta = round(colatitude, 2) ,
+                                     phi = Longitude,
+                                     nmax = n_core
+                                     )        
+
+    df_chaos = pd.DataFrame()
+    df_chaos.index = Date
+    
+    df_chaos['X_int'] = (B_core[1]*-1)*cd + (B_core[0]*-1)*sd
+    df_chaos['Y_int'] = B_core[2]
+    df_chaos['Z_int'] = (B_core[0]*-1)*cd - (B_core[1]*-1)*sd
+    
+    return df_chaos 
         
 def external_field_correction_chaos_model(station: str,
                                           starttime: str = None,
                                           endtime: str = None,
                                           df_station = None,
                                           df_chaos = None,
-                                          n_core = 20,
-                                          n_crust = 110,
                                           n_gsm = 2,
                                           n_sm = 2,
                                           files_path = None,
@@ -747,14 +811,12 @@ def external_field_correction_chaos_model(station: str,
     
     else:
         
-        df_chaos = chaos_model_prediction(station = station,
-                                          starttime = starttime,
-                                          endtime = endtime,
-                                          n_core = n_core,
-                                          n_crust = n_crust,
-                                          n_gsm = n_gsm,
-                                          n_sm = n_sm  
-                                         )
+        df_chaos = chaos_magnetospheric_field_prediction(station = station,
+                                                         starttime = starttime,
+                                                         endtime = endtime,
+                                                         n_gsm = n_gsm,
+                                                         n_sm = n_sm  
+                                                        )
     
     df_station = df_station.resample('H').mean()
         
@@ -1293,8 +1355,12 @@ def jerk_detection_window(station: str,
     
     
     if chaos_correction is True and plot_chaos_prediction is True:
+
+        df_chaos_int = chaos_core_field_prediction(station,
+                                                   starttime,
+                                                   endtime)
         
-        df_chaos_sv = calculate_sv(dataframe = df_chaos,
+        df_chaos_sv = calculate_sv(dataframe = df_chaos_int,
                                    method = 'ADMM',
                                    source = 'int',
                                    apply_percentage = False
@@ -1548,6 +1614,13 @@ def jerk_detection_window(station: str,
 
 
 if __name__ == '__main__':
-   #df = mvs.load_intermagnet_files("KAK", "2023-04-14", "2023-04-15", "C://Users//marcos//Documents//obs data//KAK")
-   #df_nt = nighttime_selection_sz("KAK", df)
-   chaos_model_prediction("VSS", "2023-04-14", "2023-04-20")
+    jerk_detection_window(station = 'ngk',
+                          window_start = '2012-01', 
+                          window_end = '2018-01', 
+                          starttime = '2010-01-01', 
+                          endtime = '2021-06-30',
+                          files_path = "NGK",
+                          plot_detection = True,
+                          chaos_correction = True,
+                          plot_chaos_prediction=True)
+

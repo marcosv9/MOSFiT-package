@@ -2013,21 +2013,35 @@ def plot_sv(station: str,
         df_station_raw = df_station.copy()
         
         df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
-    
-    
-    if chaos_correction is True:
+
+    if chaos_correction is True and plot_chaos is True and not (df_chaos is None):
         
-        df_station, df_chaos= dpt.external_field_correction_chaos_model(station,
-                                                                        starttime,
-                                                                        endtime,
-                                                                        df_station,
-                                                                        files_path = files_path,
-                                                                        df_chaos = df_chaos
-                                                                        )
+        df_station, df_chaos_int = dpt.external_field_correction_chaos_model(station,
+                                                                             starttime,
+                                                                             endtime,
+                                                                             df_station,
+                                                                             files_path = files_path,
+                                                                             df_chaos = df_chaos
+                                                                             )
+    
+    if chaos_correction is True and plot_chaos is True and df_chaos is None:
+
+        df_chaos = dpt.chaos_model_prediction(station,
+                                          starttime,
+                                          endtime)
         
+        df_station, df_chaos_ext = dpt.external_field_correction_chaos_model(station,
+                                                                             starttime,
+                                                                             endtime,
+                                                                             df_station,
+                                                                             files_path = files_path,
+                                                                             df_chaos = df_chaos
+                                                                             )
+
+
     if chaos_correction is False and plot_chaos is True and df_chaos is None:
         
-        df_chaos = dpt.chaos_model_prediction(station, starttime, endtime)
+        df_chaos = dpt.chaos_core_field_prediction(station, starttime, endtime)
     
     df_sv = dpt.calculate_sv(df_station, apply_percentage = apply_percentage)
         
@@ -2045,7 +2059,6 @@ def plot_sv(station: str,
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
             ax.plot(df_sv[col], 'o', color = 'black', label = "Corrected SV")
             ax.legend()
-
         
     else:
         for ax, col in zip(axes.flatten(), df_sv.columns):
@@ -2059,8 +2072,6 @@ def plot_sv(station: str,
     for ax, col in zip(axes.flatten(), df_sv.columns):
         ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
         ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
-        #ax.xaxis.set_major_locator(md.MonthLocator(bymonthday=1, interval=6))
-        #ax.xaxis.set_minor_locator(md.MonthLocator(bymonthday=1, interval=1))
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
         ax.xaxis.set_tick_params(labelrotation = 30, width=2)
         ax.xaxis.get_ticklocs(minor=True)
@@ -2069,7 +2080,6 @@ def plot_sv(station: str,
         ax.grid(alpha = 0.3)
         ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
         ax.set_xticks(list(df_sv[df_sv.index.month.isin([6, 12])].index) + [df_sv.index[-1], df_sv.index[0]])
-        #ax.set_xticks([df_sv.index[-1]])
         ax.legend()
 
     #axes[0].set_title(f"{station.upper()} Secular Variation")
@@ -2099,8 +2109,8 @@ if __name__ == '__main__':
             df_station = None,
             df_chaos = None,
             apply_percentage = False,
-            plot_chaos = False,
-            chaos_correction = False,
+            plot_chaos = True,
+            chaos_correction = True,
             save_plot = False,
             convert_hdz_to_xyz = False
             )
