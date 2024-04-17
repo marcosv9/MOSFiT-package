@@ -4,9 +4,8 @@ import numpy as np
 import glob
 import os
 import pathlib
-from datetime import timedelta
 import matplotlib.gridspec as gridspec
-from datetime import datetime
+from datetime import datetime, timedelta, date
 import matplotlib.dates as md
 from dateutil.relativedelta import relativedelta
 import chaosmagpy as cp
@@ -227,13 +226,14 @@ def load_intermagnet_files(station: str,
     
         files_station.sort()
         
-        if starttime is not None and endtime is not None:
+        if (starttime is not None) and (endtime is not None):
             
-            for file in files_station:
-                if (pd.Timestamp(os.path.basename(file)[3:11]).date() < pd.Timestamp(starttime).date()) or (pd.Timestamp(os.path.basename(file)[3:11]).date() > pd.Timestamp(endtime).date()):
-                    files_station.remove(file)           
+            files_station = [filename for filename in files_station 
+                            if pd.Timestamp(starttime).date() <= 
+                            pd.Timestamp(os.path.basename(filename)[3:11]).date()
+                            <= pd.Timestamp(endtime).date()]           
     
-    skip_values = spf.skiprows_detection(files_station)    
+    skip_values = spf.skiprows_detection(files_station)  
 
     df_station = pd.DataFrame()
     df_station = pd.concat((pd.read_csv(file,
@@ -2049,7 +2049,7 @@ def plot_sv(station: str,
         
         df_sv_chaos = dpt.calculate_sv(df_chaos, source = 'int')
         
-    fig, axes = plt.subplots(3,1 ,figsize = (14,10), sharex = True)
+    fig, axes = plt.subplots(3,1 ,figsize = (12,10), sharex = True)
     
     plt.suptitle(f'{station.upper()} Secular Variation', y = 0.91)
     plt.subplots_adjust(hspace=0.05)
@@ -2084,7 +2084,7 @@ def plot_sv(station: str,
 
     #axes[0].set_title(f"{station.upper()} Secular Variation")
     if save_plot is True:
-        plt.savefig(f'{station}_worldmap_sv.jpeg', dpi = 300, bbox_inches = 'tight')
+        plt.savefig(f'{station}_sv_{date.today()}.jpeg', dpi = 300, bbox_inches = 'tight')
     plt.show()
     
     
@@ -2095,6 +2095,7 @@ def plot_sv(station: str,
     
 if __name__ == '__main__':
     #import time
+    load_intermagnet_files("NGK", "2020-02-04", "2020-02-05", "C:\\Users\\marcos\\Documents\\obs data\\NGK")
     #start = time.time()
     #df_station = load_intermagnet_files("NGK", "2010-01-01", "2022-12-31", "NGK")
     #
@@ -2102,17 +2103,7 @@ if __name__ == '__main__':
     #
     #end = time.time()
     #print(end - start)
-    plot_sv(station = "NGK",
-            starttime="2010-01-01",
-            endtime = "2021-12-31",
-            files_path = "NGK",
-            df_station = None,
-            df_chaos = None,
-            apply_percentage = False,
-            plot_chaos = True,
-            chaos_correction = True,
-            save_plot = False,
-            convert_hdz_to_xyz = False
-            )
+    for obs in ["CLF", "NGK", "KAK", "DOU", "WNG", "HER"]:
+        plot_sv(f"{obs}", "2015-01-01", "2023-12-31", f"C:\\Users\\marcos\\Documents\\obs data\\{obs}", None, None, False, True, True, False, False)
     
 
