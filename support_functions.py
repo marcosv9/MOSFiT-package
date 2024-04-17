@@ -112,7 +112,10 @@ def download_chaos_latest_release():
             print(f"Failed to download the file.")
     else:
         print("File link not found.")
-    unzip_chaos_model()
+    try:
+        unzip_chaos_model()
+    except:
+        pass
     #os.remove(filename)
 
 
@@ -791,3 +794,6 @@ def decimal_year_to_date(date):
     result = base + timedelta(seconds=(base.replace(year=base.year + 1) - base).total_seconds() * rest)
     
     return result.date()      
+
+
+    
