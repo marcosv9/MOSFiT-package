@@ -20,3 +20,7 @@ __pycache__/
 .vscode/
 not_in_use.py
 mosfit_env/
+*.pdf
+/chaosmagpy_package/html
+*.eps
+*.html

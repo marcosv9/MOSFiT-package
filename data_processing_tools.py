@@ -23,7 +23,7 @@ def project_directory():
     '''
     return os.getcwd()
 
-def remove_disturbed_days(dataframe: pd.DataFrame()):
+def remove_disturbed_days(dataframe: pd.DataFrame):
     ''' 
     Function created to remove geomagnetic disturbed 
     days from observatory geomagnetic data.
@@ -58,10 +58,6 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
       
     df = dataframe
     
-    disturbed_index = pd.DataFrame()
-    
-    working_directory = project_directory()
-    
     dd_list_directory = pathlib.Path(os.path.join(config.directory.qd_dd,
                                                   config.filenames.disturbed_days
                                                   )
@@ -89,7 +85,7 @@ def remove_disturbed_days(dataframe: pd.DataFrame()):
     print('Top 5 disturbed days for each month were removed from the data.')
     return df
 
-def keep_quiet_days(dataframe: pd.DataFrame()):
+def keep_quiet_days(dataframe: pd.DataFrame):
     
     ''' 
     Function created to keep only geomagnetic quiet 
@@ -124,15 +120,11 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     
     df = dataframe
     
-    quiet_index = pd.DataFrame()
-    
-    working_directory = project_directory()
-    
     qd_list_directory = pathlib.Path(os.path.join(config.directory.qd_dd,
                                                   config.filenames.quiet_days
                                                   )
                                      )
-
+    
     df_q = pd.read_csv(qd_list_directory,
                        header = None,
                        skiprows = 1, 
@@ -158,7 +150,7 @@ def keep_quiet_days(dataframe: pd.DataFrame()):
     print('Only top 10 quiet days for each month were kept in the data.')
     return df
 
-def calculate_sv(dataframe: pd.DataFrame(),
+def calculate_sv(dataframe: pd.DataFrame,
                  method: str = 'ADMM',
                  source: str = None,
                  apply_percentage:bool = False
@@ -235,7 +227,7 @@ def calculate_sv(dataframe: pd.DataFrame(),
             
     return df_sv
 
-def kp_index_correction(dataframe: pd.DataFrame(),
+def kp_index_correction(dataframe: pd.DataFrame,
                         kp: float = 2,
                         ):
     '''
@@ -935,7 +927,7 @@ def night_time_selection(station: str,
     print('The night time period was selected.')
     return df_NT
 
-def hampel_filter_denoising(dataframe: pd.DataFrame(),
+def hampel_filter_denoising(dataframe: pd.DataFrame,
                             window_size: int = 100,
                             n_sigmas=3,
                             plot_figure:bool = False,
@@ -1614,6 +1606,9 @@ def jerk_detection_window(station: str,
 
 
 if __name__ == '__main__':
+    
+    chaos_model_prediction("WNG", "2010-01-01", "2011-01-12")
+    
     jerk_detection_window(station = 'ngk',
                           window_start = '2012-01', 
                           window_end = '2018-01', 

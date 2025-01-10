@@ -16,13 +16,13 @@ from concurrent.futures import ThreadPoolExecutor
 import warnings
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import multiprocessing
+import struct
+import sys
 
 try:  # make cartopy optional
     import cartopy.crs as ccrs
 except ImportError:
     warnings.warn('Could not import Cartopy package. Jerk detection plots will be incomplete')
-
- 
 
 def project_directory():
     
@@ -67,6 +67,42 @@ def read_csv(filepath):
         df_station.pop('Time')
     except:
         pass
+    
+def read_IAF_files(station:str, starttime:str, endtime:str, IAF_directory:str):
+    """_summary_
+
+    Args:
+        station (str): _description_
+        starttime (str): _description_
+        endtime (str): _description_
+        IAF_directory (str): _description_
+    """
+    
+    assert len(station) == 3, 'station must be a IAGA code with 3 letters'
+    
+    if utt.IMO.check_existence(station) is False:
+        raise ValueError(f'station must be an observatory IAGA CODE!')
+    
+    for i in [starttime, endtime]:
+        spf.validate(i)
+        
+    starttime = pd.to_datetime(starttime)
+    endtime = pd.to_datetime(endtime)
+        
+    df_station = pd.DataFrame()
+    
+    while starttime <= endtime:
+        filename = f"{station.upper()}{starttime.strftime('%y')}{starttime.strftime('%b').upper()}.BIN"
+        IAF_file = os.path.join(IAF_directory,
+                                filename
+                                )
+        
+        if os.path.isfile(IAF_file) is False:
+            starttime+=relativedelta(months=1)
+        else:
+            df_station = pd.concat([df_station, readIAF_mvs(IAF_file)])
+            starttime+=relativedelta(months=1)
+    return df_station
     
 def load_new_intermagnet(station, starttime, endtime, files_path):
     
@@ -149,7 +185,7 @@ def load_intermagnet_files(station: str,
                            starttime: str = None,
                            endtime: str = None,
                            files_path: str = None
-                           ) -> pd.DataFrame():
+                           ) -> pd.DataFrame:
 
     '''
     
@@ -274,7 +310,7 @@ def load_intermagnet_files(station: str,
     
     return df_station
 
-def load_wdc(filepath, format = "XYZ"):
+def load_wdc(filepath:str, format = "XYZ"):
     
     assert format in ["HDZ", "XYZ"], "format must be HDZ or XYZ"
     
@@ -1937,17 +1973,126 @@ def plot_tdep_map(time:str,
                  
     plt.show()
 
+def readIAF_mvs(filename):
+    """
+    DESCRIPTION:
+        Reading Intermagnet archive data format
+    PARAMETER:
+        resolution      (string) one of day,hour,minute,k   - default is minute
+
+    """
+    
+    x,y,z,f,xho,yho,zho,fho,xd,yd,zd,fd,k,ir = [],[],[],[],[],[],[],[],[],[],[],[],[],[]
+    datelist = []
+
+    fh = open(filename, 'rb')
+    while True:
+        #try:
+        getline = True
+        start = fh.read(64)
+        if not len(start) == 64:
+            break
+        else:
+            head = struct.unpack('<4s4l4s4sl4s4sll4s4sll', start)
+            newhead = []
+            for el in head:
+                if not isinstance(el,(int,str)):
+                    try:
+                        el = el.decode('utf-8')
+                    except: # might fail e.g. for empty publication date
+                        el = None
+                newhead.append(el)
+            head = newhead
+            date = datetime.strptime(str(head[1]),"%Y%j")
+            datelist.append(date)
+            if getline:
+                # unpack header
+                # get minute data
+                xb = fh.read(5760)
+                x.extend(struct.unpack('<1440l', xb))
+                #x = np.asarray(struct.unpack('<1440l', xb))/10. # needs an extend
+                yb = fh.read(5760)
+                y.extend(struct.unpack('<1440l', yb))
+                zb = fh.read(5760)
+                z.extend(struct.unpack('<1440l', zb))
+                fb = fh.read(5760)
+                f.extend(struct.unpack('<1440l', fb))
+                # get hourly means
+                xhb = fh.read(96)
+                xho.extend(struct.unpack('<24l', xhb))
+                #xho = np.asarray(struct.unpack('<24l', xhb))/10.
+                yhb = fh.read(96)
+                yho.extend(struct.unpack('<24l', yhb))
+                zhb = fh.read(96)
+                zho.extend(struct.unpack('<24l', zhb))
+                fhb = fh.read(96)
+                fho.extend(struct.unpack('<24l', fhb))
+                # get daily means
+                xdb = fh.read(4)
+                xd.extend(struct.unpack('<l', xdb))
+                ydb = fh.read(4)
+                yd.extend(struct.unpack('<l', ydb))
+                zdb = fh.read(4)
+                zd.extend(struct.unpack('<l', zdb))
+                fdb = fh.read(4)
+                fd.extend(struct.unpack('<l', fdb))
+                kb = fh.read(32)
+                k.extend(struct.unpack('<8l', kb))
+                ilb = fh.read(16)
+                ir.extend(struct.unpack('<4l', ilb))
+        #except:
+        #break
+    fh.close()
+    x = np.asarray(x)/10.
+    x[x > 88880] = float(np.nan)
+    y = np.asarray(y)/10.
+    y[y > 88880] = float(np.nan)
+    z = np.asarray(z)/10.
+    z[z > 88880] = float(np.nan)
+    f = np.asarray(f)/10.
+    f[f > 88880] = float(np.nan)
+    #with np.errstate(invalid='ignore'):
+    #    f[f < -44440] = float(np.nan)
+    #xho = np.asarray(xho)/10.
+    #xho[xho > 88880] = float(np.nan)
+    #yho = np.asarray(yho)/10.
+    #yho[yho > 88880] = float(np.nan)
+    #zho = np.asarray(zho)/10.
+    #zho[zho > 88880] = float(np.nan)
+    #fho = np.asarray(fho)/10.
+    #fho[fho > 88880] = float(np.nan)
+    #with np.errstate(invalid='ignore'):
+    #    fho[fho < -44440] = float(np.nan)
+    #xd = np.asarray(xd)/10.
+    #xd[xd > 88880] = float(np.nan)
+    #yd = np.asarray(yd)/10.
+    #yd[yd > 88880] = float(np.nan)
+    #zd = np.asarray(zd)/10.
+    #zd[zd > 88880] = float(np.nan)
+    #fd = np.asarray(fd)/10.
+    #fd[fd > 88880] = float(np.nan)
+    #with np.errstate(invalid='ignore'):
+    #    fd[fd < -44440] = float(np.nan)
+    #k = np.asarray(k).astype(float)/10.
+    #k[k > 88] = float(np.nan)
+    #ir = np.asarray(ir)
+    
+    index = pd.date_range(datelist[0], datelist[-1] + timedelta(seconds=86399), freq = "min")    
+
+    return pd.DataFrame(index=index, data = {"X":x, "Y":y, "Z":z})
+
 def plot_sv(station: str,
             starttime: str = None,
             endtime: str = None,
             files_path = None,
-            df_station: pd.DataFrame() = None,
-            df_chaos: pd.DataFrame() = None,
+            df_station: pd.DataFrame = None,
+            df_chaos: pd.DataFrame = None,
             apply_percentage: bool = False,
             plot_chaos: bool = False,
             chaos_correction: bool = False,
             save_plot: bool = False,
-            convert_hdz_to_xyz: bool = False
+            convert_hdz_to_xyz: bool = False,
+            format: str = "IAGA2002"
             ):
     """
     Function to plot the Secular Variation
@@ -1993,15 +2138,22 @@ def plot_sv(station: str,
     
     if utt.IMO.check_existence(station) is False:
         raise ValueError(f'station must be an observatory IAGA CODE!')
+    
+    assert format in ["IAGA2002", "IAF"], "Invalid format, must be either IAGA2002 or IAF"
         
     
     if df_station is None:
         
-        df_station = load_intermagnet_files(station,
-                                            starttime,
-                                            endtime,
-                                            files_path)
-        
+        if format == "IAGA2002":
+            df_station = load_intermagnet_files(station,
+                                                starttime,
+                                                endtime,
+                                                files_path)
+        if format == "IAF":
+            df_station = read_IAF_files(station,
+                                        starttime,
+                                        endtime,
+                                        files_path)
         
     # calculating sv
     
@@ -2095,7 +2247,8 @@ def plot_sv(station: str,
     
 if __name__ == '__main__':
     #import time
-    load_intermagnet_files("NGK", "2020-02-04", "2020-02-05", "C:\\Users\\marcos\\Documents\\obs data\\NGK")
+    #read_IAF_files("WNG", "2023-01-01", "2023-12-31", "O:\\jmat\\IMAG_BIN\\mag2023\\WNG\\")
+    #load_intermagnet_files("NGK", "2020-02-04", "2020-02-05", "C:\\Users\\marcos\\Documents\\obs data\\NGK")
     #start = time.time()
     #df_station = load_intermagnet_files("NGK", "2010-01-01", "2022-12-31", "NGK")
     #
@@ -2103,7 +2256,7 @@ if __name__ == '__main__':
     #
     #end = time.time()
     #print(end - start)
-    for obs in ["CLF", "NGK", "KAK", "DOU", "WNG", "HER"]:
-        plot_sv(f"{obs}", "2015-01-01", "2023-12-31", f"C:\\Users\\marcos\\Documents\\obs data\\{obs}", None, None, False, True, True, False, False)
+    for obs in ["STT"]:
+        plot_sv(obs, "2019-01-01", "2024-10-30", "C:\\Users\\marcos\\Documents\\IAF", None, None, False, True, True, True, False, "IAF")
     
 
