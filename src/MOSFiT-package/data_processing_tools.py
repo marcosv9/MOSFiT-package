@@ -14,7 +14,8 @@ import chaosmagpy as cp
 import main_functions as mvs
 import utilities_tools as utt
 import support_functions as spf
-from chaosmagpy.data_utils import save_RC_h5file
+
+#from chaosmagpy.data_utils import save_RC_h5file
 
 
 def project_directory():
@@ -369,7 +370,7 @@ def chaos_model_prediction(station: str,
     
     config = spf.get_config()
     
-    spf.check_chaos_local_version()
+    #spf.check_chaos_local_version()
     
     #loading CHAOS model    
     chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
@@ -391,7 +392,7 @@ def chaos_model_prediction(station: str,
     if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
         
         rc_data.close()
-        save_RC_h5file(rc_directory)
+        spf.save_RC_h5file(rc_directory)
         cp.basicConfig['file.RC_index'] = rc_directory
     else:
         rc_data.close()
@@ -407,10 +408,10 @@ def chaos_model_prediction(station: str,
     elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
 
     if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
-        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
+        Date = pd.date_range(starttime, datetime.utc().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'h')
         Time = cp.data_utils.mjd2000(Date)
     else:
-        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'h')
         Time = cp.data_utils.mjd2000(Date)
     
     # Internal field
@@ -557,7 +558,7 @@ def chaos_magnetospheric_field_prediction(station: str,
     else:
         config = spf.get_config()
     
-        spf.check_chaos_local_version()
+        #spf.check_chaos_local_version()
 
         #loading CHAOS model    
         chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
@@ -579,7 +580,7 @@ def chaos_magnetospheric_field_prediction(station: str,
         if int(cp.data_utils.mjd2000(datetime.today())) != int(rc_data['time'][-1]):
 
             rc_data.close()
-            save_RC_h5file(rc_directory)
+            spf.save_RC_h5file(rc_directory)
             cp.basicConfig['file.RC_index'] = rc_directory
         else:
             rc_data.close()
@@ -595,10 +596,10 @@ def chaos_magnetospheric_field_prediction(station: str,
         elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
 
     if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
-        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
+        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'h')
         Time = cp.data_utils.mjd2000(Date)
     else:
-        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
+        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'h')
         Time = cp.data_utils.mjd2000(Date)
 
     print('Computing field due to external sources, incl. induced field: GSM.')
@@ -647,71 +648,68 @@ def chaos_magnetospheric_field_prediction(station: str,
     
     return df_chaos
 
-def chaos_core_field_prediction(station: str,
-                                starttime: str,
-                                endtime: str,
-                                n_core = 20,
-                                ): 
-
+def chaos_core_field_prediction(
+    station: str,
+    starttime: str,
+    endtime: str,
+    n_core: int = 20) -> pd.DataFrame:
+    """
+    Efficiently compute CHAOS core field prediction for a given station and time range.
+    """
     assert len(station) == 3, 'station must be a three letters IAGA Code'
-    
     for i in [starttime, endtime]:
         spf.validate(i)
-        
-    if utt.IMO.check_existence(station) is False:
-        raise ValueError(f'station must be an observatory IAGA CODE!')
-            
-    
+    if not utt.IMO.check_existence(station):
+        raise ValueError('station must be an observatory IAGA CODE!')
+
     config = spf.get_config()
-    
-    spf.check_chaos_local_version()
-    
-    #loading CHAOS model    
-    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
-                                        'data',
-                                        'CHAOS*'
-                                        )
-                           ) 
+    #spf.check_chaos_local_version()
 
-    model = cp.load_CHAOS_matfile(chaos_path[0])
-    
+    # Use first matching CHAOS file for core field
+    chaos_files = glob.glob(os.path.join(config.directory.chaos_model, 'data', 'CHAOS*'))
+    if not chaos_files:
+        raise FileNotFoundError("CHAOS model file not found.")
+    model = cp.load_CHAOS_matfile(chaos_files[0])
+
     station = station.upper()
-    
-    #setting the Earth radius reference
-    R_REF = 6371.2
-
-    #getting coordenates for the stations
     Longitude = utt.IMO.longitude(station)
-
     colatitude = 90 - utt.IMO.latitude(station)
-    
-    elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station)/1000, colatitude)
+    elevation, colatitude, sd, cd = spf.gg_to_geo(utt.IMO.elevation(station) / 1000, colatitude)
 
-    if (pd.to_datetime(endtime).date() == datetime.today().date()) is True:
-        Date = pd.date_range(starttime, datetime.utcnow().strftime(format = "%Y-%m-%d %H:00:00"), freq = 'H')
-        Time = cp.data_utils.mjd2000(Date)
+    # Efficient date range and time conversion
+    if pd.to_datetime(endtime).date() == datetime.today().date():
+        end_str = datetime.utcnow().strftime("%Y-%m-%d %H:00:00")
     else:
-        Date = pd.date_range(starttime, f"{endtime} 23:00:00", freq = 'H')
-        Time = cp.data_utils.mjd2000(Date)
-    
-    # Internal field
-    print(f'Initiating geomagnetic field computation for {station.upper()}.')
-    print(f'Computing core field.')
-    B_core = model.synth_values_tdep(time = Time,
-                                     radius = round(elevation, 2),
-                                     theta = round(colatitude, 2) ,
-                                     phi = Longitude,
-                                     nmax = n_core
-                                     )        
+        end_str = f"{endtime} 23:00:00"
+    Date = pd.date_range(starttime, end_str, freq='h')
+    Time = cp.data_utils.mjd2000(Date)
 
-    df_chaos = pd.DataFrame()
-    df_chaos.index = Date
-    
-    df_chaos['X_int'] = (B_core[1]*-1)*cd + (B_core[0]*-1)*sd
-    df_chaos['Y_int'] = B_core[2]
-    df_chaos['Z_int'] = (B_core[0]*-1)*cd - (B_core[1]*-1)*sd
-    
-    return df_chaos 
+    # Vectorized computation for core field
+    print(f'Initiating geomagnetic field computation for {station}.')
+    B_core = model.synth_values_tdep(
+        time=Time,
+        radius=round(elevation, 2),
+        theta=round(colatitude, 2),
+        phi=Longitude,
+        nmax=n_core
+    )
+
+    # Use numpy for efficient calculations
+    B_core_0 = B_core[0].astype(np.float32)
+    B_core_1 = B_core[1].astype(np.float32)
+    B_core_2 = B_core[2].astype(np.float32)
+
+    X_int = (-B_core_1) * cd + (-B_core_0) * sd
+    Y_int = B_core_2
+    Z_int = (-B_core_0) * cd - (-B_core_1) * sd
+
+    df_chaos = pd.DataFrame({
+        'X_int': X_int,
+        'Y_int': Y_int,
+        'Z_int': Z_int
+    }, index=Date)
+
+    return df_chaos
         
 def external_field_correction_chaos_model(station: str,
                                           starttime: str = None,
@@ -825,8 +823,8 @@ def external_field_correction_chaos_model(station: str,
     
     return df_station, df_chaos    
 
-def rms(predictions: pd.DataFrame(),
-        observed_data: pd.DataFrame()
+def rms(predictions: pd.DataFrame,
+        observed_data: pd.DataFrame
         ):
     '''
     Function to calculate the Root mean square error.
@@ -1000,7 +998,7 @@ def hampel_filter_denoising(dataframe: pd.DataFrame,
         
     return df_denoised
 
-def resample_obs_data(dataframe: pd.DataFrame(),
+def resample_obs_data(dataframe: pd.DataFrame,
                       sample: str,
                       apply_percentage:bool = False
                       ):

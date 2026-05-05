@@ -18,4 +18,4 @@ filenames:
   recent_qd: qdrecent.txt
   quiet_days: Quiet_Days_list.txt
   header_file: header_file.txt
-  imos_database: IMOS_INTERMAGNET.txt
+  imos_database: IMO_list_complete.csv

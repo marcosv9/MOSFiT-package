@@ -1,0 +1,28 @@
+[project]
+name = "MOSFiT-package"
+version = "0.1.0"
+description = "A Python package for geomagnetic data analysis and SV calculation"
+requires-python = ">=3.10"
+
+authors = [
+  { name = "Marcos Vinicius da Silva", email = "marcosv9@hotmail.com" }
+]
+
+dependencies = [
+  "numpy",
+  "pandas",
+  "matplotlib",
+  "requests",
+  "beautifulsoup4",
+  "h5py",
+  "scipy",
+  "chaosmagpy",
+  "lxml",
+]
+
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

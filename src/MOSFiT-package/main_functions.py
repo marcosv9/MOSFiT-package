@@ -17,7 +17,7 @@ import warnings
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import multiprocessing
 import struct
-import sys
+from glob import glob
 
 try:  # make cartopy optional
     import cartopy.crs as ccrs
@@ -56,9 +56,9 @@ def read_csv(filepath):
 
     # replacing 99999.0 values
     
-    df_station.loc[df_station['X'] >= 99999.0, 'X'] = np.nan
-    df_station.loc[df_station['Y'] >= 99999.0, 'Y'] = np.nan
-    df_station.loc[df_station['Z'] >= 99999.0, 'Z'] = np.nan
+    cols = ['X', 'Y', 'Z']
+    mask = df_station[cols] >= 99999.0
+    df_station[cols] = df_station[cols].mask(mask, np.nan)
 
     #df_station = df_station.sort_index().loc[starttime:endtime]
     
@@ -68,40 +68,54 @@ def read_csv(filepath):
     except:
         pass
     
-def read_IAF_files(station:str, starttime:str, endtime:str, IAF_directory:str):
-    """_summary_
+def read_IAF_files(station: str, starttime: str, endtime: str, IAF_directory: str):
+    """
+    Efficiently read IAF files for a given station and date range.
 
     Args:
-        station (str): _description_
-        starttime (str): _description_
-        endtime (str): _description_
-        IAF_directory (str): _description_
+        station (str): 3-letter IAGA code.
+        starttime (str): Start date (yyyy-mm-dd).
+        endtime (str): End date (yyyy-mm-dd).
+        IAF_directory (str): Directory containing IAF files.
+
+    Returns:
+        pd.DataFrame: Concatenated DataFrame of all data.
     """
-    
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
-    
     if utt.IMO.check_existence(station) is False:
         raise ValueError(f'station must be an observatory IAGA CODE!')
-    
     for i in [starttime, endtime]:
         spf.validate(i)
-        
+
     starttime = pd.to_datetime(starttime)
     endtime = pd.to_datetime(endtime)
-        
-    df_station = pd.DataFrame()
-    
-    while starttime <= endtime:
-        filename = f"{station.upper()}{starttime.strftime('%y')}{starttime.strftime('%b').upper()}.BIN"
-        IAF_file = os.path.join(IAF_directory,
-                                filename
-                                )
-        
-        if os.path.isfile(IAF_file) is False:
-            starttime+=relativedelta(months=1)
-        else:
-            df_station = pd.concat([df_station, readIAF_mvs(IAF_file)])
-            starttime+=relativedelta(months=1)
+
+    # Precompute all expected filenames and paths
+    months = pd.date_range(starttime, endtime, freq='MS')
+    file_paths = []
+    for dt in months:
+        filename = f"{station.upper()}{dt.strftime('%y')}{dt.strftime('%b').upper()}.BIN"
+        matches = glob(os.path.join(IAF_directory, filename))
+        if matches:
+            file_paths.append(matches[0])
+
+    # Use multiprocessing for faster reading
+
+    def safe_read(file):
+        try:
+            return readIAF_mvs(file)
+        except Exception:
+            return None
+
+    with ThreadPoolExecutor(max_workers=min(8, multiprocessing.cpu_count())) as executor:
+        dfs = list(executor.map(readIAF_mvs, file_paths))
+
+    # Filter out failed reads (None)
+    dfs = [df for df in dfs if df is not None and not df.empty]
+    if dfs:
+        df_station = pd.concat(dfs)
+    else:
+        df_station = pd.DataFrame()
     return df_station
     
 def load_new_intermagnet(station, starttime, endtime, files_path):
@@ -315,6 +329,7 @@ def load_wdc(filepath:str, format = "XYZ"):
     assert format in ["HDZ", "XYZ"], "format must be HDZ or XYZ"
     
     skiprows = determine_skiprows(filepath)
+    
     df_wdc = pd.read_csv(filepath,sep="\s+", usecols=[0,1,3,4,5,6], skiprows=(skiprows-1), parse_dates = {'Date': ['DATE', 'TIME']})
     
     df_wdc['Date'] = pd.to_datetime(df_wdc['Date'], format = '%Y-%m-%dd %H:%M:%S.%f')
@@ -364,7 +379,7 @@ def load_intermagnet_files_v2(station: str,
                               starttime: str = None,
                               endtime: str = None,
                               files_path: str = None
-                              ) -> pd.DataFrame():
+                              ) -> pd.DataFrame:
 
     '''
     
@@ -1574,7 +1589,7 @@ def sv_obs(station: str,
                 
 
 def plot_samples(station: str,
-                 dataframe: pd.DataFrame(),
+                 dataframe: pd.DataFrame,
                  save_plots: bool = False,
                  plot_data_type = None,
                  apply_percentage: bool = False
@@ -2079,7 +2094,7 @@ def readIAF_mvs(filename):
     
     index = pd.date_range(datelist[0], datelist[-1] + timedelta(seconds=86399), freq = "min")    
 
-    return pd.DataFrame(index=index, data = {"X":x, "Y":y, "Z":z})
+    return pd.DataFrame(index=index, data = {"X":x, "Y":y, "Z":z, "F":f})
 
 def plot_sv(station: str,
             starttime: str = None,
@@ -2092,7 +2107,8 @@ def plot_sv(station: str,
             chaos_correction: bool = False,
             save_plot: bool = False,
             convert_hdz_to_xyz: bool = False,
-            format: str = "IAGA2002"
+            format: str = "IAGA2002",
+            mark_year: int = None
             ):
     """
     Function to plot the Secular Variation
@@ -2124,22 +2140,23 @@ def plot_sv(station: str,
     #Validating the inputs
     assert len(station) == 3, 'station must be a IAGA code with 3 letters'
     
-    if not [i for i in (starttime, endtime) if i is None]:
-        for i in [starttime, endtime]:
-            spf.validate(i)
-            
-    if [i for i in (starttime, endtime) if i is None] and df_station is not None:
+    # Validate starttime and endtime if provided
+    if starttime is not None and endtime is not None:
+        for t in [starttime, endtime]:
+            spf.validate(t)
+    # If starttime or endtime is missing but df_station is provided, infer from index
+    elif df_station is not None and not df_station.empty:
         starttime = str(df_station.index[0].date())
         endtime = str(df_station.index[-1].date())
-    else:    
-        if files_path is None:
-            raise ValueError('if starttime, endtime and df_station are None, you must inform files_path.')    
+    # If neither times nor df_station are provided, files_path must be given
+    elif files_path is None:
+        raise ValueError('If starttime, endtime, and df_station are None, you must inform files_path.')
     #checking the existence of the station argument
     
     if utt.IMO.check_existence(station) is False:
         raise ValueError(f'station must be an observatory IAGA CODE!')
     
-    assert format in ["IAGA2002", "IAF"], "Invalid format, must be either IAGA2002 or IAF"
+    assert format in ["IAGA2002", "IAF", "WDC"], "Invalid format, must be either IAGA2002 or IAF"
         
     
     if df_station is None:
@@ -2154,6 +2171,8 @@ def plot_sv(station: str,
                                         starttime,
                                         endtime,
                                         files_path)
+        if format == "WDC":
+            df_station = load_wdc(filepath, "XYZ")
         
     # calculating sv
     
@@ -2210,34 +2229,42 @@ def plot_sv(station: str,
         for ax, col, cols in zip(axes.flatten(), df_sv.columns, ['X_int','Y_int','Z_int']): 
             ax.plot(df_sv_chaos[cols], color = 'red', label = 'CHAOS prediction')
             ax.plot(df_sv[col], 'o', color = 'black', label = "Corrected SV")
+            if mark_year is not None:
+                ax.plot(df_sv[col].loc[datetime(mark_year,1,1) - timedelta(days = 180):datetime(mark_year,12,31) + timedelta(days=180)], 'or')
             ax.legend()
-        
-    else:
-        for ax, col in zip(axes.flatten(), df_sv.columns):
-            ax.plot(df_sv[col], 'o', color = 'black')
             
     if chaos_correction is True:
         for ax, col in zip(axes.flatten(), df_sv_raw.columns):
             ax.plot(df_sv_raw[col], 'ob', label = "Measured SV")
             ax.legend()
 
+    
+    for ax, col in zip(axes.flatten(), df_sv.columns):
+        ax.plot(df_sv[col], 'o', color = 'black')
+        if mark_year is not None:
+            ax.plot(df_sv[col].loc[datetime(mark_year,1,1) - timedelta(days = 180):datetime(mark_year,12,31) + timedelta(days=180)], 'or')
+
     for ax, col in zip(axes.flatten(), df_sv.columns):
         ax.set_ylabel(f'{df_sv[col].name} SV (nT/Yr)')
         ax.xaxis.set_major_locator(md.MonthLocator(interval=12)) 
+        ##ax.xaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator(len(np.unique(df_sv.index))))
         ax.xaxis.set_major_formatter(md.DateFormatter('%Y-%m'))
         ax.xaxis.set_tick_params(labelrotation = 30, width=2)
         ax.xaxis.get_ticklocs(minor=True)
-        ax.minorticks_on()
+        
+        #ax.minorticks_on()
         ax.yaxis.set_tick_params(which='minor', bottom=False)
         ax.grid(alpha = 0.3)
         ax.set_xlim(df_sv[col].index[0], df_sv[col].index[-1])
+        #ax = utt.set_date_axis(ax)
         ax.set_xticks(list(df_sv[df_sv.index.month.isin([6, 12])].index) + [df_sv.index[-1], df_sv.index[0]])
+        ax.set_xticks(list(df_sv.index), minor = True)
         ax.legend()
 
     #axes[0].set_title(f"{station.upper()} Secular Variation")
     if save_plot is True:
         plt.savefig(f'{station}_sv_{date.today()}.jpeg', dpi = 300, bbox_inches = 'tight')
-    plt.show()
+    #plt.show()
     
     
     if plot_chaos is True:
@@ -2256,7 +2283,36 @@ if __name__ == '__main__':
     #
     #end = time.time()
     #print(end - start)
-    for obs in ["STT"]:
-        plot_sv(obs, "2019-01-01", "2024-10-30", "C:\\Users\\marcos\\Documents\\IAF", None, None, False, True, True, True, False, "IAF")
+    #database = utt.IMO.database().index
+    #for obs in database:
+    #filepath = "O:\\jmat\\IMAG_BIN\\*\\VSS"
+    #filepath = "C:\\Users\\marcos\\Downloads\\wdc_download (8)"
+    #files = glob("C:\\Users\\marcos\\Downloads\\wdc_download (8)\\lrv*")
+    #filepath = "O:\\jmat\\IMAG_BIN\\*\\BFO*"
+    filepath = "C:\\Users\\marcos\\Documents\\IMAG_BIN\\*\\VNA*"
+    #df_lrv = pd.DataFrame()
+    #for file in files:
+    #    df_lrv = pd.concat([df_lrv, load_wdc(cfile, "XYZ")])
+    for obs in ["VNA"]:
+        try:
+            print("Processing:", obs)
+            plot_sv(station= obs,
+                    starttime="2010-01-01",
+                    endtime="2026-03-31",
+                    files_path=filepath,
+                    df_station = None,
+                    df_chaos=None,
+                    apply_percentage=False,
+                    plot_chaos=True,
+                    chaos_correction=True,
+                    save_plot=True,
+                    convert_hdz_to_xyz=False,
+                    format= "IAF",
+                    mark_year=2025
+                    )
+            print("Successfully processed:", obs)
+        except Exception as e:
+            print(f"Error processing {obs}: {e}")
+            continue
     
 

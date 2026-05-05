@@ -8,9 +8,11 @@ from datetime import datetime, timedelta
 import utilities_tools as utt
 import requests
 import re
+import h5py
 import shutil
 from bs4 import BeautifulSoup
 import yaml
+import warnings
 from box import Box
 
 def get_config() -> None:
@@ -38,7 +40,7 @@ def get_chaos_latest_release():
     
     soup = BeautifulSoup(response.text, 'html.parser')
     h2_elements = soup.find_all('h2')
-    last_release = str(h2_elements[3])[7:17]
+    last_release = str(h2_elements[4])[7:17]
     
     return last_release
 
@@ -117,7 +119,112 @@ def download_chaos_latest_release():
     except:
         pass
     #os.remove(filename)
+def load_RC_datfile(filepath=None, parse_dates=None):
+    """
+    Load RC-index data file into pandas data frame.
 
+    Parameters
+    ----------
+    filepath : str, optional
+        Filepath to RC index ``*.dat``. If ``None``, the RC
+        index will be fetched from `spacecenter.dk <http://www.spacecenter.dk/\
+        files/magnetic-models/RC/current/>`_.
+    parse_dates : bool, optional
+        Replace index with datetime object for time-series manipulations.
+        Default is ``False``.
+
+    Returns
+    -------
+    df : dataframe
+        Pandas dataframe with names {'time', 'RC', 'RC_e', 'RC_i', 'flag'},
+        where ``'time'`` is given in modified Julian dates.
+
+    """
+
+    if filepath is None:
+        from lxml import html
+        import requests
+
+        link = "http://www.spacecenter.dk/files/magnetic-models/RC/current/"
+
+        page = requests.get(link)
+        print(f'Accessing {page.url}.')
+
+        tree = html.fromstring(page.content)
+        files = tree.xpath('//tr//td[2]//a/@href')  # get list of all file names
+        file = files[-1]
+        #file = tree.xpath('//tr[5]//td[2]//a/@href')[0]  # get name from list
+        date = tree.xpath('//tr[5]//td[3]/text()')[0]
+
+        print(f'Downloading RC-index file "{file}" '
+              f'(last modified on {date.strip()}).')
+
+        filepath = link + file
+
+    column_names = ['time', 'RC', 'RC_e', 'RC_i', 'flag']
+    column_types = {'time': 'float64', 'RC': 'float64', 'RC_e': 'float64',
+                    'RC_i': 'float64', 'flag': 'category'}
+
+    df = pd.read_csv(filepath, sep=r'\s+', comment='#',
+                     dtype=column_types, names=column_names)
+
+    parse_dates = False if parse_dates is None else parse_dates
+
+    # set datetime as index
+    if parse_dates:
+        df.index = pd.to_datetime(
+            df['time'].values, unit='D', origin=pd.Timestamp('2000-1-1'))
+        df.drop(['time'], axis=1, inplace=True)  # delete redundant time column
+
+    return df
+
+
+def save_RC_h5file(filepath, read_from=None):
+    """
+    Return HDF5-file of the RC index.
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath and name of ``*.h5`` output file.
+    read_from : str, optional
+        Filepath of RC index ``*.dat``. If ``None``, the RC
+        index will be fetched from :rc_url:`spacecenter.dk <>`.
+
+    Notes
+    -----
+    Saves an HDF5-file of the RC index with keywords
+    ['time', 'RC', 'RC_e', 'RC_i', 'flag']. Time is given in modified Julian
+    dates 2000.
+
+    Examples
+    --------
+    Save RC-index TXT-file (``RC_1997-2020_Aug_v4.dat``) as file in HDF5 format
+    (``RC_index.h5``).
+
+    >>> save_RC_h5file('RC_index.h5', read_from='RC_1997-2020_Aug_v4.dat')
+    Successfully saved to RC_index.h5.
+
+    """
+
+    try:
+        df_rc = load_RC_datfile(read_from, parse_dates=False)
+
+        with h5py.File(filepath, 'w') as f:
+
+            for column in df_rc.columns:
+                variable = df_rc[column].values
+                if column == 'flag':
+                    dset = f.create_dataset(column, variable.shape, dtype="S1")
+                    dset[:] = variable.astype('bytes')
+
+                else:
+                    f.create_dataset(column, data=variable)  # just save floats
+
+            print(f'Successfully saved to {f.filename}.')
+
+    except Exception as err:
+        warnings.warn(f"Can't save new RC index. Raised exception: '{err}'.")
 
 def gg_to_geo(h, gdcolat):
     """
@@ -742,38 +849,29 @@ def skiprows_detection_v2(file_path) -> int:
     return skiprows 
 
 def skiprows_detection(files_station):
-    """Function to detect the correct number of skiprows
-    for each IAGA-2002 file
+    """
+    Detect the correct number of skiprows for each IAGA-2002 file.
 
     Args:
-        files_station (list of files): _description_
+        files_station (list of str): List of file paths.
 
     Returns:
-        list: contains the number of skiprows for each file and the path
+        list: [list of skiprows per file, list of file paths]
     """
-    
     skiprows_list = [[], []]
-    
+
     for file in files_station:
-        idx = 0
-        skiprows = 10
-        df_station = pd.read_csv(file,
-                                 sep = '\s+',
-                                 skiprows = skiprows,
-                                 nrows=30,
-                                 usecols = [0],
-                                 names = ['col']
-                                 )
-        file = file
-        while df_station['col'][idx] != 'DATE':
-            skiprows += 1
-            idx +=1 
-            if df_station['col'][idx] == 'DATE':
+        skiprows = 0
+        with open(file, 'r') as f:
+            for line in f:
+                if line.strip().startswith('DATE'):
+                    skiprows += 1  # include the header line itself
+                    break
                 skiprows += 1
-                skiprows_list[0].append(skiprows)     
-                skiprows_list[1].append(file)
-                
-    return skiprows_list      
+        skiprows_list[0].append(skiprows)
+        skiprows_list[1].append(file)
+
+    return skiprows_list
 
 def decimal_year_to_date(date):
     """
@@ -794,6 +892,8 @@ def decimal_year_to_date(date):
     result = base + timedelta(seconds=(base.replace(year=base.year + 1) - base).total_seconds() * rest)
     
     return result.date()      
+
+
 
 
     

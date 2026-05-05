@@ -4,16 +4,22 @@ import glob
 import os
 import ftplib
 import pathlib
-import main_functions as mvs
-import support_functions as spf
-import data_processing_tools as dpt
-from os.path import exists
+import matplotlib.dates as mdates
 import chaosmagpy as cp
 import re
+import yaml
+from box import Box
 
 
 def project_directory():
     return os.getcwd()
+
+
+def get_config() -> Box:
+    """Load project configuration from config/main_cfg.yaml."""
+    with open(os.path.join(os.getcwd(), "config", "main_cfg.yaml"), "r") as f:
+        config = yaml.load(f, Loader=yaml.FullLoader)
+    return Box(config)
             
 def download_data_intermagnet(datatype:str,
                               years:list,
@@ -116,8 +122,8 @@ def get_solar_zenith(station:str, starttime:str, endtime:str):
     return df_sz
                    
 def hdz_to_xyz_conversion(station: str,
-                          dataframe: pd.DataFrame(),
-                          files_path: str = None) -> pd.DataFrame():
+                          dataframe: pd.DataFrame,
+                          files_path: str = None) -> pd.DataFrame:
     '''
     Automatically indentify the existence H, D and Z components in the 
     geomagnetic data, and convert to X, Y and Z.
@@ -227,6 +233,56 @@ def hdz_to_xyz_conversion(station: str,
         df_station['Y'].loc[str(date)] = Y
     return df_station
 
+def set_date_axis(ax, date_format='%Y-%m-%d'):
+    """
+    Set the date format for the x-axis of a matplotlib axis.
+
+    Args:
+        ax (matplotlib.axes.Axes): The axis to set the date format for.
+        date_format (str): The date format string. Default is '%Y-%m-%d'.
+        rotation (int): The rotation angle for the x-axis labels. Default is 30 degrees.
+    """
+    xlim = ax.get_xlim()
+    xlim_dt = [mdates.num2date(x) for x in xlim]
+    starttime = xlim_dt[0]
+    endtime = xlim_dt[1]
+    ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
+    
+    ndays = (endtime - starttime).days
+    
+    if ndays <= 1:
+        ax.xaxis.set_minor_locator(mdates.HourLocator(interval=1))
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=6))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d %H:%M'))
+        ax.grid(which='both', alpha=0.3)
+    elif ndays <= 7:
+        ax.xaxis.set_major_locator(mdates.HourLocator(interval=12))
+        ax.xaxis.set_minor_locator(mdates.HourLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d %H:%M'))
+    elif ndays <= 31:
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=3))
+        ax.xaxis.set_minor_locator(mdates.HourLocator(interval=6))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%m-%d'))
+    elif ndays <= 91:
+        ax.xaxis.set_major_locator(mdates.DayLocator(interval=10))
+        ax.xaxis.set_minor_locator(mdates.DayLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    elif ndays <= 366:
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=3))
+        ax.xaxis.set_minor_locator(mdates.DayLocator(interval=10))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    elif ndays <= 1095:
+        ax.xaxis.set_major_locator(mdates.MonthLocator(interval=6))
+        ax.xaxis.set_minor_locator(mdates.MonthLocator(interval=1))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m'))
+    else:
+        ax.xaxis.set_major_locator(mdates.YearLocator())
+        ax.xaxis.set_minor_locator(mdates.MonthLocator(interval=3))
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y'))
+    #plt.setp(ax.xaxis.get_majorticklabels(), rotation=rotation, ha='right')
+    
+    return ax
+
 class IMO(object):
     '''
     Class to represent the INTERMAGNET magnet observatory (IMO)
@@ -236,7 +292,7 @@ class IMO(object):
     It is also possible to add, remove an check the existence of an IMO.
     
     '''
-    config = spf.get_config()
+    config = get_config()
     
     working_directory = os.getcwd()
         
@@ -249,10 +305,9 @@ class IMO(object):
         
         return pd.read_csv(IMO.imos_directory,
                            skiprows = 1,
-                           sep = '\s+',
-                           usecols=[0, 1, 2, 3],
-                           names = ['Imos', 'Latitude', 'Longitude', 'Elevation'],
-                           index_col= ['Imos'])
+                           names = ['Imos', 'Name', 'Latitude', 'Longitude', 'Elevation','Notes'],
+                           index_col='Imos',
+                           sep = '\t')
     
     def code(station):
         assert isinstance(station, str), 'station must be a string.'
@@ -297,7 +352,7 @@ class IMO(object):
         
         assert station in IMO.database().index, 'station not in database.'
         
-        IMO.database().drop(station).to_csv(IMO.imos_directory, sep = '\t')
+        IMO.database().drop(station).to_csv(IMO.imos_directory, sep = ',')
     
     def check_existence(station):        
         station = station.upper()
@@ -330,9 +385,9 @@ class IMO(object):
         
         database = pd.concat([IMO.database(), df_new_imo])
         
-        database.to_csv(IMO.imos_directory, sep = '\t')
+        database.to_csv(IMO.imos_directory, sep = ',', index=True)
+
+if __name__ == "__main__":
+    #IMO = IMO()
+    IMO.database()
  
-    
-if __name__ == '__main__':
-    
-    print(get_solar_zenith("NGK", "2010-01-01", "2020-12-31"))   
