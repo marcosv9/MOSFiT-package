@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import glob
 import os
 import pathlib
 import matplotlib.gridspec as gridspec
@@ -146,13 +145,13 @@ def load_new_intermagnet(station, starttime, endtime, files_path):
 
         for year in years_interval:
 
-            files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
+            files_station.extend(glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
 
             files_station.sort()
     
     else:
     # if user set files_path 
-        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+        files_station.extend(glob(os.path.join(f'{files_path}',
                                                     f'{station.lower()}*min*'
                                                     )
                                       )
@@ -262,13 +261,13 @@ def load_intermagnet_files(station: str,
 
         for year in years_interval:
 
-            files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
+            files_station.extend(glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}\\*\\{station}*'))
 
             files_station.sort()
     
     else:
     # if user set files_path 
-        files_station.extend(glob.glob(os.path.join(files_path,
+        files_station.extend(glob(os.path.join(files_path,
                                                     f'{station.lower()}*min*'
                                                     )
                                       )
@@ -442,7 +441,7 @@ def load_intermagnet_files_v2(station: str,
     
     while starttime <= endtime:
         
-        file_path = glob.glob(os.path.join(files_path,
+        file_path = glob(os.path.join(files_path,
                                            f"{station.lower()}{starttime.strftime('%Y%m%d')}*.min"))[0] 
     
         if os.path.isfile(file_path) is True:
@@ -1878,7 +1877,7 @@ def plot_tdep_map(time:str,
     
     working_directory = project_directory()
     
-    chaos_path = glob.glob(os.path.join(config.directory.chaos_model,
+    chaos_path = glob(os.path.join(config.directory.chaos_model,
                                         'data',
                                         'CHAOS*'
                                         )
@@ -2181,7 +2180,7 @@ def plot_sv(station: str,
         df_station = utt.hdz_to_xyz_conversion(station, df_station, files_path)
         
     if chaos_correction is True:
-        df_station_raw = df_station.copy()
+        df_station_raw = df_station
         
         df_sv_raw = dpt.calculate_sv(df_station_raw, apply_percentage = apply_percentage)
 
@@ -2289,30 +2288,30 @@ if __name__ == '__main__':
     #filepath = "C:\\Users\\marcos\\Downloads\\wdc_download (8)"
     #files = glob("C:\\Users\\marcos\\Downloads\\wdc_download (8)\\lrv*")
     #filepath = "O:\\jmat\\IMAG_BIN\\*\\BFO*"
-    filepath = "C:\\Users\\marcos\\Documents\\IMAG_BIN\\*\\VNA*"
+    filepath = "C:\\Users\\marcos\\Documents\\IMAG_BIN\\*\\STT"
     #df_lrv = pd.DataFrame()
     #for file in files:
     #    df_lrv = pd.concat([df_lrv, load_wdc(cfile, "XYZ")])
-    for obs in ["VNA"]:
-        try:
-            print("Processing:", obs)
-            plot_sv(station= obs,
-                    starttime="2010-01-01",
-                    endtime="2026-03-31",
-                    files_path=filepath,
-                    df_station = None,
-                    df_chaos=None,
-                    apply_percentage=False,
-                    plot_chaos=True,
-                    chaos_correction=True,
-                    save_plot=True,
-                    convert_hdz_to_xyz=False,
-                    format= "IAF",
-                    mark_year=2025
-                    )
-            print("Successfully processed:", obs)
-        except Exception as e:
-            print(f"Error processing {obs}: {e}")
-            continue
+    for obs in ["STT"]:
+        #try:
+        print("Processing:", obs)
+        plot_sv(station= obs,
+                starttime="2020-01-01",
+                endtime="2026-10-31",
+                files_path=filepath,
+                df_station = None,
+                df_chaos=None,
+                apply_percentage=False,
+                plot_chaos=True,
+                chaos_correction=True,
+                save_plot=True,
+                convert_hdz_to_xyz=False,
+                format= "IAF",
+                mark_year=2026
+                )
+        print("Successfully processed:", obs)
+        #except Exception as e:
+        #    print(f"Error processing {obs}: {e}")
+        #    continue
     
 

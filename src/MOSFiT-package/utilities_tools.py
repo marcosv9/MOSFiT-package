@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-import glob
+from glob import glob
 import os
 import ftplib
 import pathlib
@@ -10,6 +10,19 @@ import re
 import yaml
 from box import Box
 
+def reformat_iaf_dir(dir: str) -> str:
+    """Reformat the IAF directory path to ensure it ends with a separator.
+
+    Args:
+        dir (str): The original directory path.
+
+    Returns:
+        str: The reformatted directory path.
+    """
+    
+    if not dir.endswith(os.sep):
+        return dir + os.sep
+    return dir
 
 def project_directory():
     return os.getcwd()
@@ -174,10 +187,10 @@ def hdz_to_xyz_conversion(station: str,
     if files_path is None:
         
         for year in years_interval:
-            files_station.extend(glob.glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
+            files_station.extend(glob(f'C:\\Users\\marco\\Downloads\\Thesis_notebooks\\Dados OBS\\{str(year)}/*/{station}*'))
             files_station.sort()
     else:
-        files_station.extend(glob.glob(os.path.join(f'{files_path}',
+        files_station.extend(glob(os.path.join(f'{files_path}',
                                                     f'{station}*min*'
                                                     )
                                        )
@@ -282,6 +295,81 @@ def set_date_axis(ax, date_format='%Y-%m-%d'):
     #plt.setp(ax.xaxis.get_majorticklabels(), rotation=rotation, ha='right')
     
     return ax
+
+
+def find_files_case_insensitive(directory: str,
+                                station: str,
+                                recursive: bool = False):
+    """Find files whose basename starts with ``station`` regardless of case.
+
+    Args:
+        directory (str): Directory to search.
+        station (str): Station prefix to match, case-insensitively.
+        recursive (bool): If True, search subdirectories too.
+
+    Returns:
+        list[pathlib.Path]: Matching file paths.
+    """
+
+    directory_path = pathlib.Path(directory)
+    assert directory_path.is_dir(), f'{directory} is not a valid directory.'
+    assert isinstance(station, str) and station, 'station must be a non-empty string.'
+
+    pattern = os.path.join(directory, '**', '*') if recursive else os.path.join(directory, '*')
+    target_name = station.lower()
+    matches = []
+
+    for file_name in glob(pattern, recursive=recursive):
+        file_path = pathlib.Path(file_name)
+        if file_path.is_file() and file_path.name.lower().startswith(target_name):
+            matches.append(file_path)
+
+    return matches
+
+
+def get_file_case_insensitive(directory: str,
+                              station: str,
+                              recursive: bool = False):
+    """Return the first file path whose basename starts with ``station`` ignoring case.
+
+    Use this when you want to open/read a file that may exist in lower- or
+    upper-case form on disk.
+    """
+
+    matches = find_files_case_insensitive(directory, station, recursive=recursive)
+    if not matches:
+        raise FileNotFoundError(f'No file for station {station} found in {directory}.')
+    return matches[0]
+
+
+def rename_files_to_uppercase(directory: str,
+                              station: str,
+                              recursive: bool = False):
+    """Rename files whose basename starts with ``station`` to uppercase.
+
+    Args:
+        directory (str): Directory to search.
+        station (str): Station prefix to match, case-insensitively.
+        recursive (bool): If True, search subdirectories too.
+
+    Returns:
+        list[tuple[str, str]]: A list of ``(old_path, new_path)`` rename pairs.
+    """
+
+    renamed_files = []
+    for file_path in find_files_case_insensitive(directory, station, recursive=recursive):
+        new_path = file_path.with_name(file_path.name.upper())
+
+        if new_path == file_path:
+            continue
+
+        if new_path.exists():
+            raise FileExistsError(f'Cannot rename {file_path} to {new_path}: destination already exists.')
+
+        file_path.rename(new_path)
+        renamed_files.append((str(file_path), str(new_path)))
+
+    return renamed_files
 
 class IMO(object):
     '''
@@ -388,6 +476,6 @@ class IMO(object):
         database.to_csv(IMO.imos_directory, sep = ',', index=True)
 
 if __name__ == "__main__":
-    #IMO = IMO()
+    rename_files_to_uppercase('C:\\Users\\marcos\\Documents\\IMAG_BIN', 'SPT')
     IMO.database()
  
